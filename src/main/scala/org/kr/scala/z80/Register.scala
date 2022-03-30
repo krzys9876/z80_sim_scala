@@ -2,9 +2,10 @@ package org.kr.scala.z80
 
 class Register(val reg:Map[String,Int]) {
   def apply(regSymbol:String):Int=reg.getOrElse(regSymbol,0)
-  def set(regSymbol:String,value:Int): Register= {
+  def set(regSymbol:String,value:Int): Register=
     new Register(reg++Map(regSymbol->value))
-  }
+  def movePC(forward:Int): Register=
+    new Register(reg++Map("PC"->Z80Utils.add16bit(apply("PC"),forward)))
 }
 
 object Register {
