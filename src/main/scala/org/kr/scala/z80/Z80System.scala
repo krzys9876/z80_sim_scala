@@ -7,19 +7,34 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     oper match {
       //NOP
       case 0 =>
-        returnNew
-      // LD r,r1 : 01xxxyyyy, yyy->xxx - register code
-      case x if (x & 0x40)==0x40  =>
+        returnNewNOP
+      // LD r,r1 : 01xxxyyy, yyy->xxx - register code
+      case x if (x & 0xC0)==0x40 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) && List(7,0,1,2,3,4,5).contains(x & 7) =>
         val regFrom=Register.getRegCode(x & 0x07)
         val regTo=Register.getRegCode((x >> 3) & 0x07)
-        returnNew(
+        returnNewReg(
           newRegister(regTo,registerController.get(regFrom)),
           1)
       // LD r,n : 00xxx110, xxx - register code
-      case x if (x & 0x06)==0x06  =>
+      case x if (x & 0xC6)==0x06 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
         val reg=Register.getRegCode((x >> 3) & 0x07)
-        returnNew(
+        returnNewReg(
           newRegister(reg,memoryController.get(PC,1)),
+          2)
+      // LD r,(HL) : 01xxx110, xxx - register code
+      case x if (x & 0xC7)==0x46 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
+        val reg=Register.getRegCode((x >> 3) & 0x07)
+        val regH=registerController.get("H")
+        val regL=registerController.get("L")
+        returnNewReg(
+          newRegister(reg,memoryController.get(regH*0x100+regL)),
+          1)
+      // LD (HL),n
+      case x if x==0x36 =>
+        val regH=registerController.get("H")
+        val regL=registerController.get("L")
+        returnNewMem(
+          newMemory(regH*0x100+regL,memoryController.get(PC,1)),
           2)
       case _ => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
@@ -27,10 +42,14 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private def newRegister(symbol:String,value:Int):RegisterController=
     RegisterController((registerController >>= RegisterController.set(symbol,value)).get)
+  private def newMemory(address:Int,value:Int):MemoryController=
+    MemoryController((memoryController >>= MemoryController.poke(address,value)).get)
 
-  private def returnNew:Z80System = returnNew(registerController,1)
-  private def returnNew(newRegister:BaseStateMonad[Register], forwardPC:Int):Z80System =
+  private def returnNewNOP:Z80System = returnNewReg(registerController,1)
+  private def returnNewReg(newRegister:BaseStateMonad[Register], forwardPC:Int):Z80System =
     new Z80System(memoryController,RegisterController(newRegister.get.movePC(forwardPC)))
+  private def returnNewMem(newMemory:BaseStateMonad[Memory], forwardPC:Int):Z80System =
+    new Z80System(MemoryController(newMemory.get),RegisterController(registerController.get.movePC(forwardPC)))
 }
 
 object Z80System {

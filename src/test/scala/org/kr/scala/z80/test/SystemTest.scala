@@ -55,4 +55,48 @@ class SystemTest extends AnyFunSuite {
     assert(sysTest.get.registerController.get("A")==0xFF)
     assert(sysTest.get.registerController.get("H")==0xFF)
   }
+
+  test("run LD C,(HL)") {
+    //given
+    val sysBlank=Z80SystemController.blank
+    val mem=sysBlank.get.memoryController >>=
+      MemoryController.poke(0,0x26) >>= //LD H,0x01
+      MemoryController.poke(1,0x01) >>=
+      MemoryController.poke(2,0x2E) >>= //LD L,0x02
+      MemoryController.poke(3,0x02) >>=
+      MemoryController.poke(4,0x4E) >>=
+      MemoryController.poke(0x0102,0xFE) //LD C,(HL)
+    //when
+    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),sysBlank.get.registerController))
+    val sysTest=sysInit >>= Z80SystemController.run(3)
+    //then
+    assert(sysTest.get.registerController.get("PC")==5)
+    assert(sysTest.get.registerController.get("H")==1)
+    assert(sysTest.get.registerController.get("L")==2)
+    assert(sysTest.get.memoryController.get(0x0102)==0xFE)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD (HL),n") {
+    //given
+    val sysBlank=Z80SystemController.blank
+    val mem=sysBlank.get.memoryController >>=
+      MemoryController.poke(0,0x26) >>= //LD H,0x01
+      MemoryController.poke(1,0x01) >>=
+      MemoryController.poke(2,0x2E) >>= //LD L,0x02
+      MemoryController.poke(3,0x02) >>=
+      MemoryController.poke(4,0x36) >>= //LD (HL),0xFF
+      MemoryController.poke(5,0xFF)
+    //when
+    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),sysBlank.get.registerController))
+    val sysTest=sysInit >>= Z80SystemController.run(3)
+    //then
+    assert(sysTest.get.registerController.get("PC")==6)
+    assert(sysTest.get.registerController.get("H")==1)
+    assert(sysTest.get.registerController.get("L")==2)
+    assert(sysTest.get.memoryController.get(0x0102)==0xFF)
+    println(sysTest.get.memoryController.get.mem.slice(0,300))
+    println(sysTest.get.registerController.get.reg)
+  }
 }
