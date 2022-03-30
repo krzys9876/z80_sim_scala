@@ -7,26 +7,29 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     oper match {
       //NOP
       case 0 =>
-        makeNew(1)
+        returnNew
       // LD r,r1 : 01xxxyyyy, yyy->xxx - register code
       case x if (x & 0x40)==0x40  =>
         val regFrom=Register.getRegCode(x & 0x07)
         val regTo=Register.getRegCode((x >> 3) & 0x07)
-        makeNew(
-          registerController >>= RegisterController.set(regTo,registerController.get(regFrom)),
+        returnNew(
+          newRegister(regTo,registerController.get(regFrom)),
           1)
       // LD r,n : 00xxx110, xxx - register code
       case x if (x & 0x06)==0x06  =>
         val reg=Register.getRegCode((x >> 3) & 0x07)
-        makeNew(
-          registerController >>= RegisterController.set(reg,memoryController.get(Z80Utils.add16bit(PC,1))),
+        returnNew(
+          newRegister(reg,memoryController.get(PC,1)),
           2)
       case _ => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
   }
-  def makeNew(forwardPC:Int):Z80System =
-    new Z80System(memoryController,RegisterController(registerController.get.movePC(forwardPC)))
-  def makeNew(newRegister:BaseStateMonad[Register], forwardPC:Int):Z80System =
+
+  private def newRegister(symbol:String,value:Int):RegisterController=
+    RegisterController((registerController >>= RegisterController.set(symbol,value)).get)
+
+  private def returnNew:Z80System = returnNew(registerController,1)
+  private def returnNew(newRegister:BaseStateMonad[Register], forwardPC:Int):Z80System =
     new Z80System(memoryController,RegisterController(newRegister.get.movePC(forwardPC)))
 }
 
