@@ -5,9 +5,10 @@ import scala.annotation.tailrec
 class Memory(val mem: Vector[Int], val size:Int) {
   def apply(address:Int):Int=mem(address)
   def apply(address:Int,offset:Int):Int=mem(Z80Utils.add16bit(address,offset))
-  def replaceAt(address:Int,value:Int):Memory={
-    new Memory((mem.slice(0,address):+value)++mem.slice(address+1,size),size)
-  }
+  def replaceAt(address:Int,value:Int):Memory=
+    new Memory((mem.slice(0,address) :+ value) ++ mem.slice(address+1,size),size)
+  def replaceAt(address:Int,values:Vector[Int]):Memory=
+    new Memory(mem.slice(0,address) ++ values ++ mem.slice(address+values.size,size),size)
 }
 
 object Memory {

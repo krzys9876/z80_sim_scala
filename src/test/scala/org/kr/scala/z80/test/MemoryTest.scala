@@ -33,6 +33,15 @@ class MemoryTest extends AnyFunSuite {
     assert(afterState.get.mem.equals(Vector[Int](12,34,0,0,56)))
   }
 
+  test("poke multiple values") {
+    //given
+    val memoryController=MemoryController.blank(5)
+    //when
+    val afterState=memoryController >>= MemoryController.pokeMulti(1,Vector(34,56,78))
+    //then
+    assert(afterState.get.mem.equals(Vector[Int](0,34,56,78,0)))
+  }
+
   test("poke memory direct function declaration") {
     //given
     val memoryController=MemoryController.blank(5)

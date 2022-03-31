@@ -9,4 +9,6 @@ object MemoryController {
 
   def poke: (Int, Int) => Memory => MemoryController = (address, value) => memory =>
     MemoryController(Memory(memory.replaceAt(address, value)))
+  def pokeMulti: (Int, Vector[Int]) => Memory => MemoryController = (address, values) => memory =>
+    MemoryController(Memory(memory.replaceAt(address, values)))
 }

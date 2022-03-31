@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.{MemoryController, Z80System, Z80SystemController}
+import org.kr.scala.z80.{MemoryController, RegisterController, Z80System, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class SystemTest extends AnyFunSuite {
@@ -59,44 +59,62 @@ class SystemTest extends AnyFunSuite {
   test("run LD C,(HL)") {
     //given
     val sysBlank=Z80SystemController.blank
+    val reg=sysBlank.get.registerController >>=
+      RegisterController.set("H",0x01) >>=
+      RegisterController.set("L",0x02)
     val mem=sysBlank.get.memoryController >>=
-      MemoryController.poke(0,0x26) >>= //LD H,0x01
-      MemoryController.poke(1,0x01) >>=
-      MemoryController.poke(2,0x2E) >>= //LD L,0x02
-      MemoryController.poke(3,0x02) >>=
-      MemoryController.poke(4,0x4E) >>=
-      MemoryController.poke(0x0102,0xFE) //LD C,(HL)
+      MemoryController.poke(0,0x4E) >>= //LD C,(HL)
+      MemoryController.poke(0x0102,0xFE) //(HL)
     //when
-    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),sysBlank.get.registerController))
-    val sysTest=sysInit >>= Z80SystemController.run(3)
+    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),RegisterController(reg.get)))
+    val sysTest=sysInit >>= Z80SystemController.run(1)
     //then
-    assert(sysTest.get.registerController.get("PC")==5)
-    assert(sysTest.get.registerController.get("H")==1)
-    assert(sysTest.get.registerController.get("L")==2)
-    assert(sysTest.get.memoryController.get(0x0102)==0xFE)
+    assert(sysTest.get.registerController.get("PC")==1)
+    assert(sysTest.get.registerController.get("C")==0xFE)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD r,(IX+d) | LD r,(IY+d)") {
+    //given
+    val sysBlank=Z80SystemController.blank
+    val reg=sysBlank.get.registerController >>=
+      RegisterController.set("IX",0x0101) >>=
+      RegisterController.set("IY",0x0103)
+    val mem=sysBlank.get.memoryController >>=
+      MemoryController.pokeMulti(0,Vector(0xDD,0x56,0x05)) >>= //LD D,(IX+5)
+      MemoryController.pokeMulti(3,Vector(0xFD,0x5E,0x04)) >>= //LD E,(IY+4)
+      MemoryController.poke(0x0106,0xFF) >>=
+      MemoryController.poke(0x0107,0xFE)
+    //when
+    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),RegisterController(reg.get)))
+    val sysTest=sysInit >>= Z80SystemController.run(2)
+    //then
+    assert(sysTest.get.registerController.get("PC")==6)
+    //assert(sysTest.get.registerController.get("D")==0xFF)
+    //assert(sysTest.get.registerController.get("E")==0xFE)
+    println(sysTest.get.memoryController.get.mem.slice(0,300))
+    println(sysTest.get.registerController.get.reg)
   }
 
   test("run LD (HL),n") {
     //given
     val sysBlank=Z80SystemController.blank
+    val reg=sysBlank.get.registerController >>=
+      RegisterController.set("H",0x01) >>=
+      RegisterController.set("L",0x02)
     val mem=sysBlank.get.memoryController >>=
-      MemoryController.poke(0,0x26) >>= //LD H,0x01
-      MemoryController.poke(1,0x01) >>=
-      MemoryController.poke(2,0x2E) >>= //LD L,0x02
-      MemoryController.poke(3,0x02) >>=
-      MemoryController.poke(4,0x36) >>= //LD (HL),0xFF
-      MemoryController.poke(5,0xFF)
+      MemoryController.poke(0,0x36) >>= //LD (HL),0xFF
+      MemoryController.poke(1,0xFF)
     //when
-    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),sysBlank.get.registerController))
-    val sysTest=sysInit >>= Z80SystemController.run(3)
+    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),RegisterController(reg.get)))
+    val sysTest=sysInit >>= Z80SystemController.run(1)
     //then
-    assert(sysTest.get.registerController.get("PC")==6)
+    assert(sysTest.get.registerController.get("PC")==2)
     assert(sysTest.get.registerController.get("H")==1)
     assert(sysTest.get.registerController.get("L")==2)
     assert(sysTest.get.memoryController.get(0x0102)==0xFF)
-    println(sysTest.get.memoryController.get.mem.slice(0,300))
-    println(sysTest.get.registerController.get.reg)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
   }
 }
