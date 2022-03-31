@@ -180,4 +180,97 @@ class SystemTest extends AnyFunSuite {
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
   }
+
+  test("run LD A,(BC)") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController >>=
+      RegisterController.set("B", 0x01) >>=
+      RegisterController.set("C", 0x02)
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.poke(0, 0x0A) >>= //LD A,(BC)
+      MemoryController.poke(0x0102,0xFE)
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.registerController.get("A") == 0xFE)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD A,(DE)") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController >>=
+      RegisterController.set("D", 0x01) >>=
+      RegisterController.set("E", 0x03)
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.poke(0, 0x1A) >>= //LD A,(DE)
+      MemoryController.poke(0x0103,0xFD)
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.registerController.get("A") == 0xFD)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD (BC),A") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController >>=
+      RegisterController.set("B", 0x01) >>=
+      RegisterController.set("C", 0x02) >>=
+      RegisterController.set("A", 0xFF)
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.poke(0, 0x02) //LD (BC),A
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.memoryController.get(0x0102) == 0xFF)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD (DE),A") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController >>=
+      RegisterController.set("D", 0x02) >>=
+      RegisterController.set("E", 0x03) >>=
+      RegisterController.set("A", 0xFE)
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.poke(0, 0x12) //LD (DE),A
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.memoryController.get(0x0203) == 0xFE)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD A,(nn)") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.pokeMulti(0, Vector(0x3A,0x02,0x01)) >>= //LD A,(nn)
+      MemoryController.poke(0x0102, 0xFE)
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), sysBlank.get.registerController))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 3)
+    assert(sysTest.get.registerController.get("A") == 0xFE)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
 }

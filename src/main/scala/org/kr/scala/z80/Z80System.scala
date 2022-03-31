@@ -52,6 +52,17 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         val offsetD=getMemFromPC(2)
         val valueFrom:Int=>Int=getMemFromReg("PC",_)
         returnNewMem(newMemory(memTo(offsetD),valueFrom(3)),4)
+      // LD A,(BC) | LD A,(DE)
+      case (x,_) if (x == 0x0A || x==0x1A) =>
+        val valueFrom:Int=>Int=getMemFromReg(if(x==0x0A) "BC" else "DE",_)
+        returnNewReg(newRegister("A",valueFrom(0)),1)
+      // LD (BC),A | LD (DE),A
+      case (x,_) if (x == 0x02 || x==0x12) =>
+        val memTo:Int=>Int=getAddressFromReg(if(x==0x02) "BC" else "DE",_)
+        returnNewMem(newMemory(memTo(0),getRegValue("A")),1)
+      // LD A,(nn)
+      case (x,_) if (x == 0x3A) =>
+        returnNewReg(newRegister("A",getMem(makeWord(getMemFromPC(2),getMemFromPC(1)))),3)
 
       // operations not implemented or invalid
       case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
@@ -60,15 +71,18 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   def getRegSymbolBit02(x:Int):String = Register.getRegCode(x & 0x07)
   def getRegSymbolBit35(x:Int):String = Register.getRegCode((x >> 3) & 0x07)
-  def getRegValue(opcode:Int,opcodeToSymbol:Int=>String):Int = registerController.get(opcodeToSymbol(opcode))
+  def getRegValue(opcode:Int,opcodeToSymbol:Int=>String):Int = getRegValue(opcodeToSymbol(opcode))
+  def getRegValue(symbol:String):Int=registerController.get(symbol)
   def getMemFromPC(offset:Int):Int = getMemFromReg("PC",offset)
   def getAddressFromReg(symbol:String,offset:Int):Int=
     offset+(symbol match {
       case "HL" => makeWord(registerController.get("H"), registerController.get("L"))
+      case "BC" => makeWord(registerController.get("B"), registerController.get("C"))
+      case "DE" => makeWord(registerController.get("D"), registerController.get("E"))
       case otherSymbol => registerController.get(otherSymbol)
     })
-  def getMemFromReg(symbol:String,offset:Int):Int =
-    memoryController.get(getAddressFromReg(symbol,offset))
+  def getMemFromReg(symbol:String,offset:Int):Int = getMem(getAddressFromReg(symbol,offset))
+  def getMem(address:Int):Int = memoryController.get(address)
   def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
 
   private def newRegister(symbol:String,value:Int):RegisterController=
