@@ -24,6 +24,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         val regTo:Int=>String=getRegSymbolBit35
         val valueFrom:Int=>Int=getMemFromReg("HL",_)
         returnNewReg(newRegister(regTo(x),valueFrom(0)),1)
+      // LD (HL),r
+      case (x,_) if (x & 0xF0)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
+        val memTo:Int=>Int=getAddressFromReg("HL",_)
+        val valueFrom:Int=>Int=getRegValue(_,getRegSymbolBit02)
+        returnNewMem(newMemory(memTo(0),valueFrom(x)),1)
      // LD (HL),n
       case (x,_) if x==0x36 =>
         val memTo:Int=>Int=getAddressFromReg("HL",_)
@@ -35,6 +40,14 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         val valueFrom:Int=>Int=getMemFromReg(if(y==0xDD) "IX" else "IY",_)
         val offsetD=getMemFromPC(2)
         returnNewReg(newRegister(regTo(x),valueFrom(offsetD)),3)
+      // LD (IX+d),r | LD (IY+d),r
+      case (y,x) if (y==0xDD || y==0xFD) && (x & 0xF8)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
+        val memTo:Int=>Int=getAddressFromReg(if(y==0xDD) "IX" else "IY",_)
+        val offsetD=getMemFromPC(2)
+        val valueFrom:Int=>Int=getRegValue(_,getRegSymbolBit02)
+        returnNewMem(newMemory(memTo(offsetD),valueFrom(x)),3)
+
+      // operations not implemented or invalid
       case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
   }
