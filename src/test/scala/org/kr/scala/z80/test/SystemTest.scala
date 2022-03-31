@@ -160,4 +160,24 @@ class SystemTest extends AnyFunSuite {
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
   }
+
+  test("run LD (IX+d),n | LD (IY+d),n") {
+    //given
+    val sysBlank=Z80SystemController.blank
+    val reg=sysBlank.get.registerController >>=
+      RegisterController.set("IX",0x0100) >>=
+      RegisterController.set("IY",0x0101)
+    val mem=sysBlank.get.memoryController >>=
+      MemoryController.pokeMulti(0,Vector(0xDD,0x36,0x02,0xFF)) >>= //LD (IX+2),0xFF
+      MemoryController.pokeMulti(4,Vector(0xFD,0x36,0x03,0xFE)) //LD (IY+3),0xFE
+    //when
+    val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),RegisterController(reg.get)))
+    val sysTest=sysInit >>= Z80SystemController.run(2)
+    //then
+    assert(sysTest.get.registerController.get("PC")==8)
+    assert(sysTest.get.memoryController.get(0x0102)==0xFF)
+    assert(sysTest.get.memoryController.get(0x0104)==0xFE)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
 }

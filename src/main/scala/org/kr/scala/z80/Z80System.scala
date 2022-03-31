@@ -46,6 +46,12 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         val offsetD=getMemFromPC(2)
         val valueFrom:Int=>Int=getRegValue(_,getRegSymbolBit02)
         returnNewMem(newMemory(memTo(offsetD),valueFrom(x)),3)
+      // LD (IX+d),n | LD (IY+d),n
+      case (y,x) if (y==0xDD || y==0xFD) && (x == 0x36) =>
+        val memTo:Int=>Int=getAddressFromReg(if(y==0xDD) "IX" else "IY",_)
+        val offsetD=getMemFromPC(2)
+        val valueFrom:Int=>Int=getMemFromReg("PC",_)
+        returnNewMem(newMemory(memTo(offsetD),valueFrom(3)),4)
 
       // operations not implemented or invalid
       case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
