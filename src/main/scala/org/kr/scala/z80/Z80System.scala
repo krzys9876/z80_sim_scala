@@ -7,8 +7,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val oper1 = memoryController.get(PC,1)
     (oper,oper1) match {
       //NOP
-      case (0,_) =>
-        returnNewNOP
+      case (0,_) => returnNewNOP
       // LD r,r1 : 01xxxyyy, yyy->xxx - register code
       case (x,_) if (x & 0xC0)==0x40 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) && List(7,0,1,2,3,4,5).contains(x & 7) =>
         val regTo:Int=>String=getRegSymbolBit35
@@ -66,6 +65,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       // LD (nn),A
       case (x,_) if x == 0x32 =>
         returnNewMem(newMemory(makeWord(getMemFromPC(2),getMemFromPC(1)),getRegValue("A")),3)
+      // LD A<->I/R
+      case (y,x) if y==0xED && (x ==0x57 || x ==0x5F || x ==0x47 || x ==0x4F) =>
+        returnNewReg(newRegister(
+          x match {case 0x47 => "I" case 0x4F => "R" case _ => "A" },getRegValue(
+            x match {case 0x57 => "I" case 0x5F => "R" case _ => "A" })),1)
 
       // operations not implemented or invalid
       case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
