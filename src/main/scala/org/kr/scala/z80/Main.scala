@@ -1,11 +1,17 @@
 package org.kr.scala.z80
 
 object Main extends App {
+
+  println(Load8BitMap.destRegSource)
+  println(Load8BitMap.destReg)
+
+  println(Load8BitMap.getDestReg(OpCode(124,0)))
+
   /*val s=MemoryController.blank(10)
   val s1 = s >>= MemoryController.poke(1,2) >>= MemoryController.poke(3,123) >>= (mem=>MemoryController(mem.replaceAt(7,77)))
   print(s1.state.mem)*/
 
-  val z=Z80SystemController.blank
+  /*val z=Z80SystemController.blank
   val initMemory=z.get.memoryController >>=
     MemoryController.poke(0,0x3E) >>=
     MemoryController.poke(1,0xFF) >>=
@@ -26,5 +32,5 @@ object Main extends App {
   println(zAfter1.state.registerController.get("PC"))
   val zAfter2=zAfter1 >>= Z80SystemController.run(65536)
   println(zAfter2.state.registerController.get("PC"))
-  println(zAfter2.state.registerController.get.reg)
+  println(zAfter2.state.registerController.get.reg)*/
 }
