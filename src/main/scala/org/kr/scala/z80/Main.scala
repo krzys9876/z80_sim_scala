@@ -2,10 +2,18 @@ package org.kr.scala.z80
 
 object Main extends App {
 
-  println(Load8Bit.destRegListMap)
-  println(Load8Bit.destReg)
+  println(LocationSpec8Bit("A",OpCode.ANY,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
+  println(LocationSpec8Bit("",0xFC,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
+  println(LocationSpec8Bit("",OpCode.ANY,0x03,"",OpCode.ANY,OpCode.ANY))
+  println(LocationSpec8Bit("",OpCode.ANY,OpCode.ANY,"HL",OpCode.ANY,OpCode.ANY))
+  println(LocationSpec8Bit("",OpCode.ANY,OpCode.ANY,"PC",0x0A,OpCode.ANY))
+  println(LocationSpec8Bit("",OpCode.ANY,OpCode.ANY,"IX",OpCode.ANY,0x0A))
 
-  println(Load8Bit.getDestReg(OpCode(124,0)))
+  //println(Load8Bit.destRegListMap)
+  //println(Load8Bit.destReg)
+
+  //println(Load8Bit.getDestReg(OpCode(124,0)))
+
 
   /*val s=MemoryController.blank(10)
   val s1 = s >>= MemoryController.poke(1,2) >>= MemoryController.poke(3,123) >>= (mem=>MemoryController(mem.replaceAt(7,77)))

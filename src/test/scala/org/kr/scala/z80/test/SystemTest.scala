@@ -55,6 +55,8 @@ class SystemTest extends AnyFunSuite {
     //assert(sysTest.get.registerController.get("PC")==3)
     //assert(sysTest.get.registerController.get("A")==0xFF)
     //assert(sysTest.get.registerController.get("H")==0xFF)
+    println(sysTest.get.memoryController.get.mem.slice(0,300))
+    println(sysTest.get.registerController.get.reg)
   }
 
   test("run LD C,(HL)") {
