@@ -5,14 +5,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val PC = registerController.get("PC")
     val oper = memoryController.get(PC)
     val oper1 = memoryController.get(PC,1)
-    if(Load8Bit.isLoad8Bit(OpCode(oper, oper1))) handleLoad8Bit (OpCode (oper, oper1))
-    else
-    (oper,oper1) match {
-      //NOP
-      case (0,_) => returnNewNOP
-      // operations not implemented or invalid
-      case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
-    }
+    val opcode = OpCode(oper,oper1)
+    // TODO: create case class with operation types
+    if(opcode.isLoad8Bit) handleLoad8Bit(opcode)
+    else if(opcode.isNop) handleNop
+    else throw new UnknownOperationException(f"Unknown operation $oper at $PC")
   }
 
   def getRegSymbolBit02(x:Int):String = Register.getRegCode(x & 0x07)
@@ -36,7 +33,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def newMemory(address:Int,value:Int):MemoryController=
     MemoryController((memoryController >>= MemoryController.poke(address,value)).get)
 
-  private def returnNewNOP:Z80System = returnNewReg(registerController,1)
   private def returnNewReg(newRegister:BaseStateMonad[Register], forwardPC:Int):Z80System =
     new Z80System(memoryController,RegisterController(newRegister.get.movePC(forwardPC)))
   private def returnNewMem(newMemory:BaseStateMonad[Memory], forwardPC:Int):Z80System =
@@ -48,6 +44,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val instrSize=Load8Bit.getInstructionSize(opcode)
     handleLoad8Bit(destLoc,value,instrSize)
   }
+
+  private def handleNop:Z80System = returnNewReg(registerController,1)
 
   private def handleLoad8Bit(dest:LocationSpec8Bit,value:Int,forwardPC:Int):Z80System= {
     dest match {
@@ -88,6 +86,9 @@ class UnknownOperationException(message : String) extends Exception(message) {}
 
 case class OpCode(main:Int,supp:Int) {
   override def toString: String = f"OpCode($main,${if(supp==OpCode.ANY) "ANY" else supp})"
+
+  def isNop:Boolean = main==0
+  def isLoad8Bit:Boolean = Load8Bit.isLoad8Bit(this)
 }
 
 object OpCode {
