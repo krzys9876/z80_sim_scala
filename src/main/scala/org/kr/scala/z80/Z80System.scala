@@ -10,16 +10,13 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case (0,_) => returnNewNOP
       // LD r,r1 : 01xxxyyy, yyy->xxx - register code
       case (x,_) if (x & 0xC0)==0x40 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) && List(7,0,1,2,3,4,5).contains(x & 7) =>
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
+        handleLoad8Bit(OpCode(oper, oper1))
       // LD r,n : 00xxx110, xxx - register code
       case (x,_) if (x & 0xC7)==0x06 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
+        handleLoad8Bit(OpCode(oper, oper1))
       // LD r,(HL) : 01xxx110, xxx - register code
       case (x,_) if (x & 0xC7)==0x46 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
+        handleLoad8Bit(OpCode(oper, oper1))
       // LD (HL),r
       case (x,_) if (x & 0xF0)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
         val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
@@ -32,9 +29,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         returnNewMem(newMemory(memTo(0),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
       // LD r,(IX+d) | LD r,(IY+d)
       case (y,x) if (y==0xDD || y==0xFD) && (x & 0xC7)==0x46 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        println(sourceLoc)
-        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
+        handleLoad8Bit(OpCode(oper, oper1))
       // LD (IX+d),r | LD (IY+d),r
       case (y,x) if (y==0xDD || y==0xFD) && (x & 0xF8)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
         val memTo:Int=>Int=getAddressFromReg(if(y==0xDD) "IX" else "IY",_)
@@ -49,8 +44,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         returnNewMem(newMemory(memTo(offsetD),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
       // LD A,(BC) | LD A,(DE)
       case (x,_) if x == 0x0A || x==0x1A =>
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
+        handleLoad8Bit(OpCode(oper, oper1))
       // LD (BC),A | LD (DE),A
       case (x,_) if x == 0x02 || x==0x12 =>
         val memTo:Int=>Int=getAddressFromReg(if(x==0x02) "BC" else "DE",_)
@@ -58,16 +52,14 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         returnNewMem(newMemory(memTo(0),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
       // LD A,(nn)
       case (x,_) if x == 0x3A =>
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
+        handleLoad8Bit(OpCode(oper, oper1))
       // LD (nn),A
       case (x,_) if x == 0x32 =>
         val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
         returnNewMem(newMemory(makeWord(getMemFromPC(2),getMemFromPC(1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
       // LD A<->I/R
       case (y,x) if y==0xED && (x ==0x57 || x ==0x5F || x ==0x47 || x ==0x4F) =>
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
+        handleLoad8Bit(OpCode(oper, oper1))
 
       // operations not implemented or invalid
       case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
@@ -101,7 +93,20 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def returnNewMem(newMemory:BaseStateMonad[Memory], forwardPC:Int):Z80System =
     new Z80System(MemoryController(newMemory.get),RegisterController(registerController.get.movePC(forwardPC)))
 
-  private def getValueFromLocation(loc:LocationSpec8Bit):Int = {
+
+  private def handleLoad8Bit(opcode:OpCode):Z80System = {
+    val sourceLoc=Load8Bit.getSourceLoc(opcode)
+    val destLoc=LocationSpec8Bit.register(Load8Bit.getDestReg(opcode))
+    val instrSize=Load8Bit.getInstructionSize(opcode)
+    handleLoad8Bit(destLoc,sourceLoc,instrSize)
+  }
+  private def handleLoad8Bit(dest:LocationSpec8Bit,source:LocationSpec8Bit,forwardPC:Int):Z80System=
+    dest match {
+      case LocationSpec8Bit(r,_,_,_,_,_) if r!="" =>
+        returnNewReg(newRegister(dest.reg,getValueFromLocation(source)),forwardPC)
+    }
+
+  private def getValueFromLocation(loc:LocationSpec8Bit):Int =
     loc match {
       case LocationSpec8Bit(r,_,_,_,_,_) if r!="" => getRegValue(r)
       case LocationSpec8Bit(_,i,_,_,_,_) if i!=OpCode.ANY => i
@@ -113,22 +118,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
           case (OpCode.ANY,o) => getMemFromReg(r,getMemFromPC(o))
         }
     }
-  }
-/*
-  private def saveValueToLocation(loc:LocationSpec8Bit,value:Int):Z80System = {
-    loc match {
-      case LocationSpec8Bit(r,_,_,_,_,_) if r!="" => returnNewReg(r)
-      case LocationSpec8Bit(_,i,_,_,_,_) if i!=OpCode.ANY => i
-      case LocationSpec8Bit(_,_,pco,_,_,_) if pco!=OpCode.ANY => getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)))
-      case LocationSpec8Bit(_,_,_,r,dirO,indirO) if r!="" =>
-        (dirO,indirO) match {
-          case (OpCode.ANY,OpCode.ANY) => getMemFromReg(r,0)
-          case (o,OpCode.ANY) => getMemFromReg(r,o)
-          case (OpCode.ANY,o) => getMemFromReg(r,getMemFromPC(o))
-        }
-    }
-  }
-*/
 }
 
 object Z80System {
@@ -208,7 +197,7 @@ object Load8Bit {
     List(OpCode(0x7F,OpCode.ANY),OpCode(0x4F,OpCode.ANY),OpCode(0x47,OpCode.ANY),OpCode(0x57,OpCode.ANY),
       OpCode(0x5F,OpCode.ANY),OpCode(0x67,OpCode.ANY),OpCode(0x6F,OpCode.ANY),OpCode(0x77,OpCode.ANY),
       OpCode(0x02,OpCode.ANY),OpCode(0x12,OpCode.ANY),OpCode(0xDD,0x77),OpCode(0xFD,0x77),
-      OpCode(0x32,OpCode.ANY),OpCode(0xED,0x47),OpCode(0xED,0x4F)) -> LocationSpec8Bit.register("A"),
+       OpCode(0x32,OpCode.ANY),OpCode(0xED,0x47),OpCode(0xED,0x4F)) -> LocationSpec8Bit.register("A"),
     List(OpCode(0x78,OpCode.ANY),OpCode(0x40,OpCode.ANY),OpCode(0x48,OpCode.ANY),OpCode(0x50,OpCode.ANY),
       OpCode(0x58,OpCode.ANY),OpCode(0x60,OpCode.ANY),OpCode(0x68,OpCode.ANY),OpCode(0x70,OpCode.ANY),
       OpCode(0xDD,0x70),OpCode(0xFD,0x70)) -> LocationSpec8Bit.register("B"),
