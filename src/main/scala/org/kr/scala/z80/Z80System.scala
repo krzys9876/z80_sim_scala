@@ -10,21 +10,19 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case (0,_) => returnNewNOP
       // LD r,r1 : 01xxxyyy, yyy->xxx - register code
       case (x,_) if (x & 0xC0)==0x40 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) && List(7,0,1,2,3,4,5).contains(x & 7) =>
-        val valueFrom:Int=>Int=getRegValue(_,getRegSymbolBit02)
-        returnNewReg(newRegister(Load8BitMap.getDestReg(OpCode(oper, oper1)),valueFrom(x)),1)
+        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getRegValue(Load8Bit.getSourceReg(OpCode(oper, oper1)))),1)
       // LD r,n : 00xxx110, xxx - register code
       case (x,_) if (x & 0xC7)==0x06 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
         val valueFrom:Int=>Int=getMemFromPC
-        returnNewReg(newRegister(Load8BitMap.getDestReg(OpCode(oper, oper1)),valueFrom(1)),2)
+        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),valueFrom(1)),2)
       // LD r,(HL) : 01xxx110, xxx - register code
       case (x,_) if (x & 0xC7)==0x46 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
         val valueFrom:Int=>Int=getMemFromReg("HL",_)
-        returnNewReg(newRegister(Load8BitMap.getDestReg(OpCode(oper, oper1)),valueFrom(0)),1)
+        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),valueFrom(0)),1)
       // LD (HL),r
       case (x,_) if (x & 0xF0)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
         val memTo:Int=>Int=getAddressFromReg("HL",_)
-        val valueFrom:Int=>Int=getRegValue(_,getRegSymbolBit02)
-        returnNewMem(newMemory(memTo(0),valueFrom(x)),1)
+        returnNewMem(newMemory(memTo(0),getRegValue(Load8Bit.getSourceReg(OpCode(oper, oper1)))),1)
      // LD (HL),n
       case (x,_) if x==0x36 =>
         val memTo:Int=>Int=getAddressFromReg("HL",_)
@@ -34,13 +32,12 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case (y,x) if (y==0xDD || y==0xFD) && (x & 0xC7)==0x46 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
         val valueFrom:Int=>Int=getMemFromReg(if(y==0xDD) "IX" else "IY",_)
         val offsetD=getMemFromPC(2)
-        returnNewReg(newRegister(Load8BitMap.getDestReg(OpCode(oper, oper1)),valueFrom(offsetD)),3)
+        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),valueFrom(offsetD)),3)
       // LD (IX+d),r | LD (IY+d),r
       case (y,x) if (y==0xDD || y==0xFD) && (x & 0xF8)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
         val memTo:Int=>Int=getAddressFromReg(if(y==0xDD) "IX" else "IY",_)
         val offsetD=getMemFromPC(2)
-        val valueFrom:Int=>Int=getRegValue(_,getRegSymbolBit02)
-        returnNewMem(newMemory(memTo(offsetD),valueFrom(x)),3)
+        returnNewMem(newMemory(memTo(offsetD),getRegValue(Load8Bit.getSourceReg(OpCode(oper, oper1)))),3)
       // LD (IX+d),n | LD (IY+d),n
       case (y,x) if (y==0xDD || y==0xFD) && (x == 0x36) =>
         val memTo:Int=>Int=getAddressFromReg(if(y==0xDD) "IX" else "IY",_)
@@ -50,21 +47,20 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       // LD A,(BC) | LD A,(DE)
       case (x,_) if x == 0x0A || x==0x1A =>
         val valueFrom:Int=>Int=getMemFromReg(if(x==0x0A) "BC" else "DE",_)
-        returnNewReg(newRegister(Load8BitMap.getDestReg(OpCode(oper, oper1)),valueFrom(0)),1)
+        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),valueFrom(0)),1)
       // LD (BC),A | LD (DE),A
       case (x,_) if x == 0x02 || x==0x12 =>
         val memTo:Int=>Int=getAddressFromReg(if(x==0x02) "BC" else "DE",_)
-        returnNewMem(newMemory(memTo(0),getRegValue("A")),1)
+        returnNewMem(newMemory(memTo(0),getRegValue(Load8Bit.getSourceReg(OpCode(oper, oper1)))),1)
       // LD A,(nn)
       case (x,_) if x == 0x3A =>
-        returnNewReg(newRegister(Load8BitMap.getDestReg(OpCode(oper, oper1)),getMem(makeWord(getMemFromPC(2),getMemFromPC(1)))),3)
+        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getMem(makeWord(getMemFromPC(2),getMemFromPC(1)))),3)
       // LD (nn),A
       case (x,_) if x == 0x32 =>
-        returnNewMem(newMemory(makeWord(getMemFromPC(2),getMemFromPC(1)),getRegValue("A")),3)
+        returnNewMem(newMemory(makeWord(getMemFromPC(2),getMemFromPC(1)),getRegValue(Load8Bit.getSourceReg(OpCode(oper, oper1)))),3)
       // LD A<->I/R
       case (y,x) if y==0xED && (x ==0x57 || x ==0x5F || x ==0x47 || x ==0x4F) =>
-        returnNewReg(newRegister(Load8BitMap.getDestReg(OpCode(oper, oper1)),getRegValue(
-            x match {case 0x57 => "I" case 0x5F => "R" case _ => "A" })),1)
+        returnNewReg(newRegister(Load8Bit.getDestReg(OpCode(oper, oper1)),getRegValue(Load8Bit.getSourceReg(OpCode(oper, oper1)))),1)
 
       // operations not implemented or invalid
       case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
@@ -115,9 +111,9 @@ object OpCode {
 }
 
 
-object Load8BitMap {
+object Load8Bit {
   // Z80 manual page 42
-  val destRegSource:Map[List[OpCode],String]=Map(
+  val destRegListMap:Map[List[OpCode],String]=Map(
     List(OpCode(0xED,0x57),OpCode(0xED,0x5F),OpCode(0x7F,OpCode.ANY),OpCode(0x78,OpCode.ANY),OpCode(0x79,OpCode.ANY),
       OpCode(0x7A,OpCode.ANY),OpCode(0x7B,OpCode.ANY),OpCode(0x7C,OpCode.ANY),OpCode(0x7D,OpCode.ANY),
       OpCode(0x7E,OpCode.ANY),OpCode(0x7F,OpCode.ANY),OpCode(0x0A,OpCode.ANY),OpCode(0x1A,OpCode.ANY),OpCode(0xDD,0x7E),
@@ -143,8 +139,35 @@ object Load8BitMap {
     List(OpCode(0xED,0x47))->"I",
     List(OpCode(0xED,0x4F))->"R"
   )
-  val destReg:Map[OpCode,String]=destRegSource.map(entry=>entry._1.flatMap(opcode=>Map(opcode->entry._2))).flatten.toMap
-
+  val destReg:Map[OpCode,String]=destRegListMap.map(entry=>entry._1.flatMap(opcode=>Map(opcode->entry._2))).flatten.toMap
   def getDestReg(opcode:OpCode):String = destReg.getOrElse(opcode,destReg(OpCode(opcode.main,OpCode.ANY)))
 
+  val sourceRegListMap:Map[List[OpCode],String]=Map(
+    List(OpCode(0xED,0x57)) -> "I",
+    List(OpCode(0xED,0x5F)) -> "R",
+    List(OpCode(0x7F,OpCode.ANY),OpCode(0x4F,OpCode.ANY),OpCode(0x47,OpCode.ANY),OpCode(0x57,OpCode.ANY),
+      OpCode(0x5F,OpCode.ANY),OpCode(0x67,OpCode.ANY),OpCode(0x6F,OpCode.ANY),OpCode(0x77,OpCode.ANY),
+      OpCode(0x02,OpCode.ANY),OpCode(0x12,OpCode.ANY),OpCode(0xDD,0x77),OpCode(0xFD,0x77),
+      OpCode(0x32,OpCode.ANY),OpCode(0xED,0x47),OpCode(0xED,0x4F)) -> "A",
+    List(OpCode(0x78,OpCode.ANY),OpCode(0x40,OpCode.ANY),OpCode(0x48,OpCode.ANY),OpCode(0x50,OpCode.ANY),
+      OpCode(0x58,OpCode.ANY),OpCode(0x60,OpCode.ANY),OpCode(0x68,OpCode.ANY),OpCode(0x70,OpCode.ANY),
+      OpCode(0xDD,0x70),OpCode(0xFD,0x70)) -> "B",
+    List(OpCode(0x79,OpCode.ANY),OpCode(0x41,OpCode.ANY),OpCode(0x49,OpCode.ANY),OpCode(0x51,OpCode.ANY),
+      OpCode(0x59,OpCode.ANY),OpCode(0x61,OpCode.ANY),OpCode(0x69,OpCode.ANY),OpCode(0x71,OpCode.ANY),
+      OpCode(0xDD,0x71),OpCode(0xFD,0x71)) -> "C",
+    List(OpCode(0x7A,OpCode.ANY),OpCode(0x42,OpCode.ANY),OpCode(0x4A,OpCode.ANY),OpCode(0x52,OpCode.ANY),
+      OpCode(0x5A,OpCode.ANY),OpCode(0x62,OpCode.ANY),OpCode(0x6A,OpCode.ANY),OpCode(0x72,OpCode.ANY),
+      OpCode(0xDD,0x72),OpCode(0xFD,0x72)) -> "D",
+    List(OpCode(0x7B,OpCode.ANY),OpCode(0x43,OpCode.ANY),OpCode(0x4B,OpCode.ANY),OpCode(0x53,OpCode.ANY),
+      OpCode(0x5B,OpCode.ANY),OpCode(0x63,OpCode.ANY),OpCode(0x6B,OpCode.ANY),OpCode(0x73,OpCode.ANY),
+      OpCode(0xDD,0x73),OpCode(0xFD,0x73)) -> "E",
+    List(OpCode(0x7C,OpCode.ANY),OpCode(0x44,OpCode.ANY),OpCode(0x4C,OpCode.ANY),OpCode(0x54,OpCode.ANY),
+      OpCode(0x5C,OpCode.ANY),OpCode(0x64,OpCode.ANY),OpCode(0x6C,OpCode.ANY),OpCode(0x74,OpCode.ANY),
+      OpCode(0xDD,0x74),OpCode(0xFD,0x74)) -> "H",
+    List(OpCode(0x7D,OpCode.ANY),OpCode(0x45,OpCode.ANY),OpCode(0x4D,OpCode.ANY),OpCode(0x55,OpCode.ANY),
+      OpCode(0x5D,OpCode.ANY),OpCode(0x65,OpCode.ANY),OpCode(0x6D,OpCode.ANY),OpCode(0x75,OpCode.ANY),
+      OpCode(0xDD,0x75),OpCode(0xFD,0x75)) -> "L")
+
+  val sourceReg:Map[OpCode,String]=sourceRegListMap.map(entry=>entry._1.flatMap(opcode=>Map(opcode->entry._2))).flatten.toMap
+  def getSourceReg(opcode:OpCode):String = sourceReg.getOrElse(opcode,sourceReg(OpCode(opcode.main,OpCode.ANY)))
 }

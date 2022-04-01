@@ -2,10 +2,10 @@ package org.kr.scala.z80
 
 object Main extends App {
 
-  println(Load8BitMap.destRegSource)
-  println(Load8BitMap.destReg)
+  println(Load8Bit.destRegListMap)
+  println(Load8Bit.destReg)
 
-  println(Load8BitMap.getDestReg(OpCode(124,0)))
+  println(Load8Bit.getDestReg(OpCode(124,0)))
 
   /*val s=MemoryController.blank(10)
   val s1 = s >>= MemoryController.poke(1,2) >>= MemoryController.poke(3,123) >>= (mem=>MemoryController(mem.replaceAt(7,77)))
