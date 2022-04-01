@@ -426,7 +426,7 @@ class SystemTest extends AnyFunSuite {
     assert(sysTest.get.registerController.get("L") == 0x14)
     assert(sysTest.get.registerController.get("SP") == 0x1716)
     assert(sysTest.get.registerController.get("IX") == 0x1918)
-    assert(sysTest.get.registerController.get("IX") == 0x1B1A)
+    assert(sysTest.get.registerController.get("IY") == 0x1B1A)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
   }
