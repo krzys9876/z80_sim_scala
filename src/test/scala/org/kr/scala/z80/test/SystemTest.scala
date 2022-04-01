@@ -431,4 +431,56 @@ class SystemTest extends AnyFunSuite {
     //println(sysTest.get.registerController.get.reg)
   }
 
+  test("run LD SP,HL") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController >>=
+      RegisterController.set("H",0x01) >>=
+      RegisterController.set("L",0x02)
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.poke(0, 0xF9)
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.registerController.get("SP") == 0x0102)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD SP,IX") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController >>=
+      RegisterController.set("IX",0x0304)
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.pokeMulti(0, Vector(0xDD,0xF9))
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 2)
+    assert(sysTest.get.registerController.get("IX") == 0x0304)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  test("run LD SP,IY") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController >>=
+      RegisterController.set("IY",0x0405)
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.pokeMulti(0, Vector(0xFD,0xF9))
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(1)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 2)
+    assert(sysTest.get.registerController.get("IY") == 0x0405)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
 }

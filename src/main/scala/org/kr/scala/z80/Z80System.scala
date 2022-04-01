@@ -15,15 +15,15 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     }
   }
 
-  private def getRegValue(symbol:String):Int=registerController.get(symbol)
+  private def getRegValue(symbol:String):Int={
+    symbol match {
+      case "AF" | "BC" | "DE" | "HL" =>
+        makeWord(registerController.get(symbol.substring(0,1)), registerController.get(symbol.substring(1,2)))
+      case _ => registerController.get(symbol)
+    }
+  }
   private def getMemFromPC(offset:Int):Int = getMemFromReg("PC",offset)
-  private def getAddressFromReg(symbol:String,offset:Int):Int=
-    offset+(symbol match {
-      case "HL" => makeWord(registerController.get("H"), registerController.get("L"))
-      case "BC" => makeWord(registerController.get("B"), registerController.get("C"))
-      case "DE" => makeWord(registerController.get("D"), registerController.get("E"))
-      case otherSymbol => registerController.get(otherSymbol)
-    })
+  private def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
   private def getMemFromReg(symbol:String,offset:Int):Int = getMem(getAddressFromReg(symbol,offset))
   private def getMem(address:Int):Int = memoryController.get(address)
   private def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
@@ -75,6 +75,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleLoad16Bit(opcode:OpCode):Z80System = {
     val sourceLoc=Load16Bit.getSourceLoc(opcode)
     val (valueH,valueL)=sourceLoc match {
+      case LoadLocation(r,_,_,_,_,_) if r!="" =>
+        val value=getRegValue(r)
+        (Z80Utils.getH(value),Z80Utils.getL(value))
       case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
         (getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))+1),getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))))
       case LoadLocation(_,_,_,r,dirO,_) if r!="" && dirO!=OpCode.ANY =>
