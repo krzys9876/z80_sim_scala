@@ -5,52 +5,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val PC = registerController.get("PC")
     val oper = memoryController.get(PC)
     val oper1 = memoryController.get(PC,1)
+    if(Load8Bit.isLoad8Bit(OpCode(oper, oper1))) handleLoad8Bit (OpCode (oper, oper1))
+    else
     (oper,oper1) match {
       //NOP
       case (0,_) => returnNewNOP
-      // LD r,r1 : 01xxxyyy, yyy->xxx - register code
-      case (x,_) if (x & 0xC0)==0x40 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) && List(7,0,1,2,3,4,5).contains(x & 7) =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD r,n : 00xxx110, xxx - register code
-      case (x,_) if (x & 0xC7)==0x06 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD r,(HL) : 01xxx110, xxx - register code
-      case (x,_) if (x & 0xC7)==0x46 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD (HL),r
-      case (x,_) if (x & 0xF0)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
-        handleLoad8Bit(OpCode(oper, oper1))
-     // LD (HL),n
-      case (x,_) if x==0x36 =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD r,(IX+d) | LD r,(IY+d)
-      case (y,x) if (y==0xDD || y==0xFD) && (x & 0xC7)==0x46 && List(7,0,1,2,3,4,5).contains((x>>3) & 7) =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD (IX+d),r | LD (IY+d),r
-      case (y,x) if (y==0xDD || y==0xFD) && (x & 0xF8)==0x70 && List(7,0,1,2,3,4,5).contains(x & 7) =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD (IX+d),n | LD (IY+d),n
-      case (y,x) if (y==0xDD || y==0xFD) && (x == 0x36) =>
-        val memTo:Int=>Int=getAddressFromReg(if(y==0xDD) "IX" else "IY",_)
-        val offsetD=getMemFromPC(2)
-        val sourceLoc=Load8Bit.getSourceLoc(OpCode(oper, oper1))
-        returnNewMem(newMemory(memTo(offsetD),getValueFromLocation(sourceLoc)),Load8Bit.getInstructionSize(OpCode(oper,oper1)))
-      // LD A,(BC) | LD A,(DE)
-      case (x,_) if x == 0x0A || x==0x1A =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD (BC),A | LD (DE),A
-      case (x,_) if x == 0x02 || x==0x12 =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD A,(nn)
-      case (x,_) if x == 0x3A =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD (nn),A
-      case (x,_) if x == 0x32 =>
-        handleLoad8Bit(OpCode(oper, oper1))
-      // LD A<->I/R
-      case (y,x) if y==0xED && (x ==0x57 || x ==0x5F || x ==0x47 || x ==0x4F) =>
-        handleLoad8Bit(OpCode(oper, oper1))
-
       // operations not implemented or invalid
       case (_, _) => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
@@ -83,7 +42,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def returnNewMem(newMemory:BaseStateMonad[Memory], forwardPC:Int):Z80System =
     new Z80System(MemoryController(newMemory.get),RegisterController(registerController.get.movePC(forwardPC)))
 
-
   private def handleLoad8Bit(opcode:OpCode):Z80System = {
     val value=getValueFromLocation(Load8Bit.getSourceLoc(opcode))
     val destLoc=Load8Bit.getDestLoc(opcode)
@@ -103,14 +61,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
             returnNewMem(newMemory(getAddressFromReg(r,0),value),forwardPC)
           case (OpCode.ANY,indir) =>
             returnNewMem(newMemory(getAddressFromReg(r,getMemFromPC(indir)),value),forwardPC)
-
-
-          //  returnNewMem(newMemory(makeWord(getMemFromReg(dest.addressReg,dest.offsetPC+1),getMemFromReg(dest.addressReg,dest.offsetPC+1)),value),forwardPC)
-
         }
     }
   }
-
 
   private def getValueFromLocation(loc:LocationSpec8Bit):Int =
     loc match {
@@ -278,9 +231,9 @@ object Load8Bit {
     List(OpCode(0x12,OpCode.ANY)) -> LocationSpec8Bit.registerAddr("DE"),
     // indirect registers with offset
     List(OpCode(0xDD,0x77),OpCode(0xDD,0x70),OpCode(0xDD,0x71),OpCode(0xDD,0x72),OpCode(0xDD,0x73),
-      OpCode(0xDD,74),OpCode(0xDD,0x75)) -> LocationSpec8Bit.registerAddrIndirOffset("IX",2),
+      OpCode(0xDD,74),OpCode(0xDD,0x75),OpCode(0xDD,0x36)) -> LocationSpec8Bit.registerAddrIndirOffset("IX",2),
     List(OpCode(0xFD,0x77),OpCode(0xFD,0x70),OpCode(0xFD,0x71),OpCode(0xFD,0x72),OpCode(0xFD,0x73),
-      OpCode(0xFD,74),OpCode(0xFD,0x75)) -> LocationSpec8Bit.registerAddrIndirOffset("IY",2),
+      OpCode(0xFD,74),OpCode(0xFD,0x75),OpCode(0xFD,0x36)) -> LocationSpec8Bit.registerAddrIndirOffset("IY",2),
     // immediate address
     List(OpCode(0x32,OpCode.ANY)) -> LocationSpec8Bit.indirAddress(1)
   )
@@ -324,6 +277,9 @@ object Load8Bit {
   )
 
   val instructionSize:Map[OpCode,Int]=instructionSizeListMap.map(entry=>entry._1.flatMap(opcode=>Map(opcode->entry._2))).flatten.toMap
-  def getInstructionSize(opcode:OpCode):Int = instructionSize.getOrElse(opcode,instructionSize(OpCode(opcode.main,OpCode.ANY)))
+  val getInstructionSize: OpCode=>Int = opcode => instructionSize.getOrElse(opcode,instructionSize(OpCode(opcode.main,OpCode.ANY)))
 
+  val isLoad8Bit: OpCode=>Boolean = opcode => {
+    instructionSize.contains(opcode) || instructionSize.contains(OpCode(opcode.main,OpCode.ANY))
+  }
 }
