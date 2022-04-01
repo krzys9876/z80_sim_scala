@@ -396,4 +396,39 @@ class SystemTest extends AnyFunSuite {
     //println(sysTest.get.registerController.get.reg)
   }
 
+  test("run LD dd,(nn)") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.pokeMulti(0, Vector(0xED,0x4B,0x01,0x02)) >>= //LD BC,(nn)
+      MemoryController.pokeMulti(4, Vector(0xED,0x5B,0x03,0x04)) >>= //LD DE,(nn)
+      MemoryController.pokeMulti(8, Vector(0x2A,0x05,0x06)) >>= //LD HL,(nn)
+      MemoryController.pokeMulti(11, Vector(0xED,0x7B,0x07,0x08)) >>= //LD SP,(nn)
+      MemoryController.pokeMulti(15, Vector(0xDD,0x2A,0x09,0x0A)) >>= //LD IX,(nn)
+      MemoryController.pokeMulti(19, Vector(0xFD,0x2A,0x0B,0x0C)) >>= //LD IY,(nn)
+      MemoryController.pokeMulti(0x0201, Vector(0x10,0x11)) >>=
+      MemoryController.pokeMulti(0x0403, Vector(0x12,0x13)) >>=
+      MemoryController.pokeMulti(0x0605, Vector(0x14,0x15)) >>=
+      MemoryController.pokeMulti(0x0807, Vector(0x16,0x17)) >>=
+      MemoryController.pokeMulti(0x0A09, Vector(0x18,0x19)) >>=
+      MemoryController.pokeMulti(0x0C0B, Vector(0x1A,0x1B))
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(6)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 23)
+    assert(sysTest.get.registerController.get("B") == 0x11)
+    assert(sysTest.get.registerController.get("C") == 0x10)
+    assert(sysTest.get.registerController.get("D") == 0x13)
+    assert(sysTest.get.registerController.get("E") == 0x12)
+    assert(sysTest.get.registerController.get("H") == 0x15)
+    assert(sysTest.get.registerController.get("L") == 0x14)
+    assert(sysTest.get.registerController.get("SP") == 0x1716)
+    assert(sysTest.get.registerController.get("IX") == 0x1918)
+    assert(sysTest.get.registerController.get("IX") == 0x1B1A)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
 }

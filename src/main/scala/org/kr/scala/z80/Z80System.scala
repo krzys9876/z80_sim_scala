@@ -75,8 +75,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleLoad16Bit(opcode:OpCode):Z80System = {
     val sourceLoc=Load16Bit.getSourceLoc(opcode)
     val (valueH,valueL)=sourceLoc match {
-      case LoadLocation(_,_,pco,_,_,_) =>
-        (getMemFromPC(pco+1),getMemFromPC(pco))
+      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
+        (getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))+1),getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))))
+      case LoadLocation(_,_,_,r,dirO,_) if r!="" && dirO!=OpCode.ANY =>
+        (getMemFromReg(r,dirO+1),getMemFromReg(r,dirO))
     }
     val destLoc=Load16Bit.getDestLoc(opcode)
     val instrSize=Load16Bit.getInstructionSize(opcode)
