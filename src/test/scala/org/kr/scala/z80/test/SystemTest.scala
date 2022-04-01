@@ -8,6 +8,8 @@ class SystemTest extends AnyFunSuite {
     assert(1==1)
   }
 
+  // TEST NOP
+
   test("run NOP and move PC") {
     //given
     val sys1=Z80SystemController.blank
@@ -25,6 +27,8 @@ class SystemTest extends AnyFunSuite {
     //then
     assert(sys2.get.registerController.get("PC")==1)
   }
+
+  // TEST LOAD 8-BIT
 
   test("run LD B,0xFE") {
     //given
@@ -357,6 +361,37 @@ class SystemTest extends AnyFunSuite {
     //then
     assert(sysTest.get.registerController.get("PC") == 2)
     assert(sysTest.get.registerController.get("R") == 0xFC)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
+  // TEST LOAD 16-BIT
+
+  test("run LD dd,nn") {
+    //given
+    val sysBlank = Z80SystemController.blank
+    val reg = sysBlank.get.registerController
+    val mem = sysBlank.get.memoryController >>=
+      MemoryController.pokeMulti(0, Vector(0x01,0x01,0x02)) >>= //LD BC,nn
+      MemoryController.pokeMulti(3, Vector(0x11,0x03,0x04)) >>= //LD DE,nn
+      MemoryController.pokeMulti(6, Vector(0x21,0x05,0x06)) >>= //LD HL,nn
+      MemoryController.pokeMulti(9, Vector(0x31,0x07,0x08)) >>= //LD SP,nn
+      MemoryController.pokeMulti(12, Vector(0xDD,0x21,0x09,0x0A)) >>= //LD IX,nn
+      MemoryController.pokeMulti(16, Vector(0xFD,0x21,0x0B,0x0C)) //LD IY,nn
+    //when
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysTest = sysInit >>= Z80SystemController.run(6)
+    //then
+    assert(sysTest.get.registerController.get("PC") == 20)
+    assert(sysTest.get.registerController.get("B") == 2)
+    assert(sysTest.get.registerController.get("C") == 1)
+    assert(sysTest.get.registerController.get("D") == 4)
+    assert(sysTest.get.registerController.get("E") == 3)
+    assert(sysTest.get.registerController.get("H") == 6)
+    assert(sysTest.get.registerController.get("L") == 5)
+    assert(sysTest.get.registerController.get("SP") == 0x0807)
+    assert(sysTest.get.registerController.get("IX") == 0x0A09)
+    assert(sysTest.get.registerController.get("IY") == 0x0C0B)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
   }

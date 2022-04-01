@@ -10,6 +10,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     opcode.opType match {
       case OpType.Nop => handleNop
       case OpType.Load8Bit => handleLoad8Bit(opcode)
+      case OpType.Load16Bit => handleLoad16Bit(opcode)
       case OpType.Unknown => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
   }
@@ -27,8 +28,17 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def getMem(address:Int):Int = memoryController.get(address)
   private def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
 
-  private def newRegister(symbol:String,value:Int):RegisterController=
-    RegisterController((registerController >>= RegisterController.set(symbol,value)).get)
+  private def newRegister(symbol:String,value:Int):RegisterController= {
+    val newReg=symbol match {
+      case "BC" | "DE" | "HL" =>
+        registerController >>=
+          RegisterController.set(symbol.substring(0,1),Z80Utils.getH(value)) >>=
+            RegisterController.set(symbol.substring(1,2),Z80Utils.getL(value))
+      case _ => registerController >>= RegisterController.set(symbol,value)
+    }
+    RegisterController(newReg.get)
+  }
+
   private def newMemory(address:Int,value:Int):MemoryController=
     MemoryController((memoryController >>= MemoryController.poke(address,value)).get)
 
@@ -61,6 +71,34 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         }
     }
   }
+
+  private def handleLoad16Bit(opcode:OpCode):Z80System = {
+    val sourceLoc=Load16Bit.getSourceLoc(opcode)
+    val (valueH,valueL)=sourceLoc match {
+      case LoadLocation(_,_,pco,_,_,_) =>
+        (getMemFromPC(pco+1),getMemFromPC(pco))
+    }
+    val destLoc=Load16Bit.getDestLoc(opcode)
+    val instrSize=Load16Bit.getInstructionSize(opcode)
+    handleLoad16Bit(destLoc,valueH,valueL,instrSize)
+  }
+
+  private def handleLoad16Bit(dest:LoadLocation, valueH:Int, valueL:Int, forwardPC:Int):Z80System= {
+    dest match {
+      case LoadLocation(r,_,_,_,_,_) if r!="" =>
+        returnNewReg(newRegister(r,makeWord(valueH,valueL)),forwardPC)
+      /*case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
+        returnNewMem(newMemory(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)),value),forwardPC)
+      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
+        (dirO,indirO) match {
+          case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
+            returnNewMem(newMemory(getAddressFromReg(r,0),value),forwardPC)
+          case (OpCode.ANY,indir) =>
+            returnNewMem(newMemory(getAddressFromReg(r,getMemFromPC(indir)),value),forwardPC)
+        }*/
+    }
+  }
+
 
   private def getValueFromLocation(loc:LoadLocation):Int =
     loc match {

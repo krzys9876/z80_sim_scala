@@ -9,6 +9,8 @@ object Main extends App {
   println(LoadLocation("",OpCode.ANY,OpCode.ANY,"PC",0x0A,OpCode.ANY))
   println(LoadLocation("",OpCode.ANY,OpCode.ANY,"IX",OpCode.ANY,0x0A))
 
+  println(OpCode(0x47,OpCode.ANY).isLoad8Bit)
+
   //println(Load8Bit.destRegListMap)
   //println(Load8Bit.destReg)
 

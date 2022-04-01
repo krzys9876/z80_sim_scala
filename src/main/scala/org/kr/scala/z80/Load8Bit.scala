@@ -1,8 +1,25 @@
 package org.kr.scala.z80
 
-object Load8Bit {
+abstract class LoadSpec {
+  val sourceLocListMap:Map[List[OpCode],LoadLocation]
+  lazy val sourceLoc:Map[OpCode,LoadLocation]=Z80Utils.flattenMapOfLists(sourceLocListMap)
+  lazy val getSourceLoc:OpCode=>LoadLocation = opcode => sourceLoc.getOrElse(opcode,sourceLoc(OpCode(opcode.main,OpCode.ANY)))
+
+  val destLocListMap:Map[List[OpCode],LoadLocation]
+  lazy val destLoc:Map[OpCode,LoadLocation]=Z80Utils.flattenMapOfLists(destLocListMap)
+  lazy val getDestLoc:OpCode=>LoadLocation = opcode => destLoc.getOrElse(opcode,destLoc(OpCode(opcode.main,OpCode.ANY)))
+
+  val instructionSizeListMap:Map[List[OpCode],Int]
+  lazy val instructionSize:Map[OpCode,Int]=Z80Utils.flattenMapOfLists(instructionSizeListMap)
+  lazy val getInstructionSize: OpCode=>Int = opcode => instructionSize.getOrElse(opcode,instructionSize(OpCode(opcode.main,OpCode.ANY)))
+
+  lazy val isOper: OpCode=>Boolean = opcode =>
+    instructionSize.contains(opcode) || instructionSize.contains(OpCode(opcode.main,OpCode.ANY))
+}
+
+object Load8Bit extends LoadSpec {
   // Z80 manual page 42
-  val sourceLocListMap:Map[List[OpCode],LoadLocation]=Map(
+  override val sourceLocListMap:Map[List[OpCode],LoadLocation]=Map(
     // registers
     List(OpCode(0xED,0x57)) -> LoadLocation.register("I"),
     List(OpCode(0xED,0x5F)) -> LoadLocation.register("R"),
@@ -47,10 +64,7 @@ object Load8Bit {
     List(OpCode(0xDD,0x36),OpCode(0xFD,0x36)) -> LoadLocation.registerAddrDirOffset("PC",3)
   )
 
-  val sourceLoc:Map[OpCode,LoadLocation]=Z80Utils.flattenMapOfLists(sourceLocListMap)
-  def getSourceLoc(opcode:OpCode):LoadLocation = sourceLoc.getOrElse(opcode,sourceLoc(OpCode(opcode.main,OpCode.ANY)))
-
-  val destLocListMap:Map[List[OpCode],LoadLocation]=Map(
+  override val destLocListMap:Map[List[OpCode],LoadLocation]=Map(
     // registers
     List(OpCode(0xED,0x57),OpCode(0xED,0x5F),OpCode(0x7F,OpCode.ANY),OpCode(0x78,OpCode.ANY),OpCode(0x79,OpCode.ANY),
       OpCode(0x7A,OpCode.ANY),OpCode(0x7B,OpCode.ANY),OpCode(0x7C,OpCode.ANY),OpCode(0x7D,OpCode.ANY),
@@ -91,11 +105,7 @@ object Load8Bit {
     List(OpCode(0x32,OpCode.ANY)) -> LoadLocation.indirAddress(1)
   )
 
-  val destLoc:Map[OpCode,LoadLocation]=Z80Utils.flattenMapOfLists(destLocListMap)
-  def getDestLoc(opcode:OpCode):LoadLocation = destLoc.getOrElse(opcode,destLoc(OpCode(opcode.main,OpCode.ANY)))
-
-
-  val instructionSizeListMap:Map[List[OpCode],Int]=Map(
+  override val instructionSizeListMap:Map[List[OpCode],Int]=Map(
     List(OpCode(0x7F,OpCode.ANY),OpCode(0x4F,OpCode.ANY),OpCode(0x47,OpCode.ANY),OpCode(0x57,OpCode.ANY),
       OpCode(0x5F,OpCode.ANY),OpCode(0x67,OpCode.ANY),OpCode(0x6F,OpCode.ANY),OpCode(0x77,OpCode.ANY),
       OpCode(0x02,OpCode.ANY),OpCode(0x12,OpCode.ANY),
@@ -128,10 +138,4 @@ object Load8Bit {
       OpCode(0xFD,66),OpCode(0xFD,0x6E),OpCode(0x3A,OpCode.ANY)) ->3,
     List(OpCode(0xDD,0x36),OpCode(0xFD,0x36)) -> 4
   )
-
-  val instructionSize:Map[OpCode,Int]=Z80Utils.flattenMapOfLists(instructionSizeListMap)
-  val getInstructionSize: OpCode=>Int = opcode => instructionSize.getOrElse(opcode,instructionSize(OpCode(opcode.main,OpCode.ANY)))
-
-  val isLoad8Bit: OpCode=>Boolean = opcode =>
-    instructionSize.contains(opcode) || instructionSize.contains(OpCode(opcode.main,OpCode.ANY))
 }
