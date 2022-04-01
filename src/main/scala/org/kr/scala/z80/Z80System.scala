@@ -46,13 +46,13 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private def handleNop:Z80System = returnNewReg(registerController,1)
 
-  private def handleLoad8Bit(dest:LocationSpec8Bit,value:Int,forwardPC:Int):Z80System= {
+  private def handleLoad8Bit(dest:LoadLocation, value:Int, forwardPC:Int):Z80System= {
     dest match {
-      case LocationSpec8Bit(r,_,_,_,_,_) if r!="" =>
+      case LoadLocation(r,_,_,_,_,_) if r!="" =>
         returnNewReg(newRegister(dest.reg,value),forwardPC)
-      case LocationSpec8Bit(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
+      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
         returnNewMem(newMemory(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)),value),forwardPC)
-      case LocationSpec8Bit(_,_,_,r,dirO,indirO) if r!="" =>
+      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
             returnNewMem(newMemory(getAddressFromReg(r,0),value),forwardPC)
@@ -62,12 +62,12 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     }
   }
 
-  private def getValueFromLocation(loc:LocationSpec8Bit):Int =
+  private def getValueFromLocation(loc:LoadLocation):Int =
     loc match {
-      case LocationSpec8Bit(r,_,_,_,_,_) if r!="" => getRegValue(r)
-      case LocationSpec8Bit(_,i,_,_,_,_) if i!=OpCode.ANY => i
-      case LocationSpec8Bit(_,_,pco,_,_,_) if pco!=OpCode.ANY => getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)))
-      case LocationSpec8Bit(_,_,_,r,dirO,indirO) if r!="" =>
+      case LoadLocation(r,_,_,_,_,_) if r!="" => getRegValue(r)
+      case LoadLocation(_,i,_,_,_,_) if i!=OpCode.ANY => i
+      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)))
+      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getMemFromReg(r,0)
           case (o,OpCode.ANY) => getMemFromReg(r,o)

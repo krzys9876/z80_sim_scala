@@ -2,12 +2,12 @@ package org.kr.scala.z80
 
 object Main extends App {
 
-  println(LocationSpec8Bit("A",OpCode.ANY,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
-  println(LocationSpec8Bit("",0xFC,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
-  println(LocationSpec8Bit("",OpCode.ANY,0x03,"",OpCode.ANY,OpCode.ANY))
-  println(LocationSpec8Bit("",OpCode.ANY,OpCode.ANY,"HL",OpCode.ANY,OpCode.ANY))
-  println(LocationSpec8Bit("",OpCode.ANY,OpCode.ANY,"PC",0x0A,OpCode.ANY))
-  println(LocationSpec8Bit("",OpCode.ANY,OpCode.ANY,"IX",OpCode.ANY,0x0A))
+  println(LoadLocation("A",OpCode.ANY,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
+  println(LoadLocation("",0xFC,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
+  println(LoadLocation("",OpCode.ANY,0x03,"",OpCode.ANY,OpCode.ANY))
+  println(LoadLocation("",OpCode.ANY,OpCode.ANY,"HL",OpCode.ANY,OpCode.ANY))
+  println(LoadLocation("",OpCode.ANY,OpCode.ANY,"PC",0x0A,OpCode.ANY))
+  println(LoadLocation("",OpCode.ANY,OpCode.ANY,"IX",OpCode.ANY,0x0A))
 
   //println(Load8Bit.destRegListMap)
   //println(Load8Bit.destReg)
