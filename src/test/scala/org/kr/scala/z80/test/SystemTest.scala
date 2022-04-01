@@ -304,7 +304,7 @@ class SystemTest extends AnyFunSuite {
     val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
-    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.registerController.get("PC") == 2)
     assert(sysTest.get.registerController.get("A") == 0xFF)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
@@ -321,7 +321,7 @@ class SystemTest extends AnyFunSuite {
     val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
-    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.registerController.get("PC") == 2)
     assert(sysTest.get.registerController.get("A") == 0xFE)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
@@ -338,7 +338,7 @@ class SystemTest extends AnyFunSuite {
     val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
-    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.registerController.get("PC") == 2)
     assert(sysTest.get.registerController.get("I") == 0xFD)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
@@ -355,7 +355,7 @@ class SystemTest extends AnyFunSuite {
     val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
-    assert(sysTest.get.registerController.get("PC") == 1)
+    assert(sysTest.get.registerController.get("PC") == 2)
     assert(sysTest.get.registerController.get("R") == 0xFC)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
