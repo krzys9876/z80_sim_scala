@@ -53,7 +53,6 @@ class SystemTest extends AnyFunSuite {
       MemoryController.poke(2,0x7C) // LD A, H
     //when
     val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),sysBlank.get.registerController))
-    println("START")
     val sysTest=sysInit >>= Z80SystemController.run(2)
     //then
     assert(sysTest.get.registerController.get("PC")==3)
@@ -682,8 +681,8 @@ class SystemTest extends AnyFunSuite {
     assert(sysTest.get.memoryController.get(0x00F5) == 0x0C)
     assert(sysTest.get.memoryController.get(0x00F4) == 0x0D)
     assert(sysTest.get.registerController.get("SP") == 0x00F4)
-    println(sysTest.get.memoryController.get.mem.slice(0,300))
-    println(sysTest.get.registerController.get.reg)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
   }
 
 }
