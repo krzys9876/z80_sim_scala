@@ -20,7 +20,7 @@ case class OpCode(main:Int,supp:Int) {
 }
 
 object OpCode {
-  val ANY:Int = -1
+  val ANY:Int = Int.MinValue
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}

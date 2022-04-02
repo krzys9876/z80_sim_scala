@@ -42,6 +42,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def newMemory(address:Int,value:Int):MemoryController=
     MemoryController((memoryController >>= MemoryController.poke(address,value)).get)
 
+  private def returnNew(newMemory:BaseStateMonad[Memory],newRegister:BaseStateMonad[Register], forwardPC:Int):Z80System =
+    new Z80System(MemoryController(newMemory.get),RegisterController(newRegister.get.movePC(forwardPC)))
   private def returnNewReg(newRegister:BaseStateMonad[Register], forwardPC:Int):Z80System =
     new Z80System(memoryController,RegisterController(newRegister.get.movePC(forwardPC)))
   private def returnNewMem(newMemory:BaseStateMonad[Memory], forwardPC:Int):Z80System =
@@ -101,13 +103,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         val address=makeWord(getMemFromPC(pco+1),getMemFromPC(pco))
         val newMem=newMemory(address+1,valueH) >>= MemoryController.poke(address,valueL)
         returnNewMem(newMem,forwardPC)
-      /*case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
-        (dirO,indirO) match {
-          case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
-            returnNewMem(newMemory(getAddressFromReg(r,0),value),forwardPC)
-          case (OpCode.ANY,indir) =>
-            returnNewMem(newMemory(getAddressFromReg(r,getMemFromPC(indir)),value),forwardPC)
-        }*/
+      case LoadLocation(_,_,_,r,dirO,_) if r!="" && dirO!=OpCode.ANY =>
+        val newMem=newMemory(getAddressFromReg(r,dirO+1),valueH) >>= MemoryController.poke(getAddressFromReg(r,dirO),valueL)
+        val newReg=registerController >>= RegisterController.setRelative("SP",stackChange)
+        returnNew(newMem,newReg,forwardPC)
     }
   }
 
