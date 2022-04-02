@@ -50,9 +50,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     new Z80System(MemoryController(newMemory.get),RegisterController(registerController.get.movePC(forwardPC)))
 
   private def handleLoad8Bit(opcode:OpCode):Z80System = {
-    val value=getValueFromLocation(Load8Bit.getSourceLoc(opcode))
-    val destLoc=Load8Bit.getDestLoc(opcode)
-    val instrSize=Load8Bit.getInstructionSize(opcode)
+    val value=getValueFromLocation(Load8Bit.sourceLoc.find(opcode))
+    val destLoc=Load8Bit.destLoc.find(opcode)
+    val instrSize=Load8Bit.instSize.find(opcode)
     handleLoad8Bit(destLoc,value,instrSize)
   }
 
@@ -75,7 +75,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handleLoad16Bit(opcode:OpCode):Z80System = {
-    val sourceLoc=Load16Bit.getSourceLoc(opcode)
+    val sourceLoc=Load16Bit.sourceLoc.find(opcode)
     val (valueH,valueL)=sourceLoc match {
       case LoadLocation(r,_,_,_,_,_) if r!="" =>
         val value=getRegValue(r)
@@ -88,8 +88,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
           case _ => (getMemFromReg(r,dirO+1),getMemFromReg(r,dirO))
         }
     }
-    val destLoc=Load16Bit.getDestLoc(opcode)
-    val instrSize=Load16Bit.getInstructionSize(opcode)
+    val destLoc=Load16Bit.destLoc.find(opcode)
+    val instrSize=Load16Bit.instSize.find(opcode)
     val stackChange=Load16Bit.getstackChange(opcode)
     handleLoad16Bit(destLoc,valueH,valueL,instrSize,stackChange)
   }

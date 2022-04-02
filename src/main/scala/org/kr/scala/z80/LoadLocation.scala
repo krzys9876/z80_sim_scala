@@ -22,4 +22,6 @@ object LoadLocation {
   def registerAddr(r:String):LoadLocation=LoadLocation("",OpCode.ANY,OpCode.ANY,r,OpCode.ANY,OpCode.ANY)
   def registerAddrDirOffset(r:String,o:Int):LoadLocation=LoadLocation("",OpCode.ANY,OpCode.ANY,r,o,OpCode.ANY)
   def registerAddrIndirOffset(r:String,o:Int):LoadLocation=LoadLocation("",OpCode.ANY,OpCode.ANY,r,OpCode.ANY,o)
+
+  def empty:LoadLocation=LoadLocation("",OpCode.ANY,OpCode.ANY,"",OpCode.ANY,OpCode.ANY)
 }
