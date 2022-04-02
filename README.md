@@ -17,7 +17,7 @@ But one thing was always missing - a simulator that I could modify myself, with 
 I use Scala at work and I was just exploring usefull functional patterns. 
 I thought that it would be great to have simple side project to excercise handling application state in immutable fashion.  
 
-And here it is :)
+And here it is :slightly_smiling_face:
 
 ## Current state of the project ##
 
@@ -45,7 +45,7 @@ And here it is :)
 
 <img src="https://img.shields.io/badge/Input%20and%20output-Planned-white.svg"/></a>
 
-Sounds like a lot of fun
+Sounds like a lot of fun :grinning:
 
 ## Ultimate goal ##
 
