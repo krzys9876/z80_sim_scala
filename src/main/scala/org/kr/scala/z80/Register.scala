@@ -4,8 +4,10 @@ class Register(val reg:Map[String,Int]) {
   def apply(regSymbol:String):Int=reg.getOrElse(regSymbol,0)
   def set(regSymbol:String,value:Int): Register=
     new Register(reg++Map(regSymbol->value))
+  def setRelative(regSymbol:String,relativeValue:Int): Register=
+    set(regSymbol,Z80Utils.add16bit(apply(regSymbol),relativeValue))
   def movePC(forward:Int): Register=
-    new Register(reg++Map("PC"->Z80Utils.add16bit(apply("PC"),forward)))
+    setRelative("PC",forward)
 }
 
 object Register {

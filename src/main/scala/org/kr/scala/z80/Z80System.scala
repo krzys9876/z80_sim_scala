@@ -30,7 +30,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private def newRegister(symbol:String,value:Int):RegisterController= {
     val newReg=symbol match {
-      case "BC" | "DE" | "HL" =>
+      case "AF" | "BC" | "DE" | "HL" =>
         registerController >>=
           RegisterController.set(symbol.substring(0,1),Z80Utils.getH(value)) >>=
             RegisterController.set(symbol.substring(1,2),Z80Utils.getL(value))
@@ -80,21 +80,28 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         (Z80Utils.getH(value),Z80Utils.getL(value))
       case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
         (getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))+1),getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))))
-      case LoadLocation(_,_,_,r,dirO,_) if r!="" && dirO!=OpCode.ANY =>
-        (getMemFromReg(r,dirO+1),getMemFromReg(r,dirO))
+      case LoadLocation(_,_,_,r,dirO,_) if r!="" =>
+        dirO match {
+          case OpCode.ANY => (getMemFromReg(r,1),getMemFromReg(r,0))
+          case _ => (getMemFromReg(r,dirO+1),getMemFromReg(r,dirO))
+        }
     }
     val destLoc=Load16Bit.getDestLoc(opcode)
     val instrSize=Load16Bit.getInstructionSize(opcode)
-    handleLoad16Bit(destLoc,valueH,valueL,instrSize)
+    val stackChange=Load16Bit.getstackChange(opcode)
+    handleLoad16Bit(destLoc,valueH,valueL,instrSize,stackChange)
   }
 
-  private def handleLoad16Bit(dest:LoadLocation, valueH:Int, valueL:Int, forwardPC:Int):Z80System= {
+  private def handleLoad16Bit(dest:LoadLocation, valueH:Int, valueL:Int, forwardPC:Int,stackChange:Int):Z80System= {
     dest match {
       case LoadLocation(r,_,_,_,_,_) if r!="" =>
-        returnNewReg(newRegister(r,makeWord(valueH,valueL)),forwardPC)
-      /*case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
-        returnNewMem(newMemory(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)),value),forwardPC)
-      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
+        val newReg=newRegister(r,makeWord(valueH,valueL)) >>= RegisterController.setRelative("SP",stackChange)
+        returnNewReg(newReg,forwardPC)
+      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
+        val address=makeWord(getMemFromPC(pco+1),getMemFromPC(pco))
+        val newMem=newMemory(address+1,valueH) >>= MemoryController.poke(address,valueL)
+        returnNewMem(newMem,forwardPC)
+      /*case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
             returnNewMem(newMemory(getAddressFromReg(r,0),value),forwardPC)
