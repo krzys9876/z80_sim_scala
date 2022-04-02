@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.opcode
 
 case class OpCode(main:Int,supp:Int) {
   override def toString: String = f"OpCode($main,${if(supp==OpCode.ANY) "ANY" else supp})"

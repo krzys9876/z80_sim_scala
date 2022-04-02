@@ -1,5 +1,7 @@
 package org.kr.scala.z80
 
+import org.kr.scala.z80.opcode.{LoadLocation, OpCode}
+
 object Main extends App {
 
   println(LoadLocation("A",OpCode.ANY,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))

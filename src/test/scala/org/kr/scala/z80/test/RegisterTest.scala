@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.RegisterController
+import org.kr.scala.z80.system.RegisterController
 import org.scalatest.funsuite.AnyFunSuite
 
 class RegisterTest extends AnyFunSuite {

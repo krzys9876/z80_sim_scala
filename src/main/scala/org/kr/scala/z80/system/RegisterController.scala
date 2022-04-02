@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.system
 
 class RegisterController(override val state:Register) extends BaseStateMonad[Register](state) {
 }

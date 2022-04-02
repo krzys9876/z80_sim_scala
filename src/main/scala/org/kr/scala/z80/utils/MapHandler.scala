@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.utils
 
 abstract class MapHandler[From,To](val mapOfLists:Map[List[From],To]) {
   lazy val m:Map[From,To]=MapHandler.flatten(mapOfLists)

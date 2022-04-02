@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.opcode
 
 abstract class LoadSpec {
   val sourceLoc:OpCodeMap[LoadLocation]

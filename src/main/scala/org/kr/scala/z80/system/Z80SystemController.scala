@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.system
 
 import scala.annotation.tailrec
 

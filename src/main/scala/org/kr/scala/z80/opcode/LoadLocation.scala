@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.opcode
 
 case class LoadLocation(reg:String, immediate:Int, offsetPC:Int, addressReg:String, directOffset:Int, indirectOffset:Int) {
   override def toString: String =

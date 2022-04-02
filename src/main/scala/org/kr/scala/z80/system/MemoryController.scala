@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.system
 
 class MemoryController(override val state:Memory) extends BaseStateMonad[Memory](state) {
 }

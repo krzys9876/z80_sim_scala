@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.{Memory, MemoryController}
+import org.kr.scala.z80.system.{Memory, MemoryController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class MemoryTest extends AnyFunSuite {

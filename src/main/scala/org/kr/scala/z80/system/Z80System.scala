@@ -1,4 +1,7 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.system
+
+import org.kr.scala.z80.opcode._
+import org.kr.scala.z80.utils.Z80Utils
 
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController) {
   def step:Z80System= {

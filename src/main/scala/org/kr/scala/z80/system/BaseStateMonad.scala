@@ -1,4 +1,4 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.system
 
 class BaseStateMonad[StateType](val state:StateType) {
   def >>= (fChangeState: StateType=>BaseStateMonad[StateType]):BaseStateMonad[StateType]=fChangeState(state)

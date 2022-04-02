@@ -1,4 +1,6 @@
-package org.kr.scala.z80
+package org.kr.scala.z80.system
+
+import org.kr.scala.z80.utils.Z80Utils
 
 class Register(val reg:Map[String,Int]) {
   def apply(regSymbol:String):Int=reg.getOrElse(regSymbol,0)
