@@ -61,6 +61,8 @@ object Load16Bit extends LoadSpec {
       OpCode(0xDD,0x22),OpCode(0xFD,0x22)) -> 4
   )
 
+  override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap,0)
+
   val stackChangeListMap:Map[List[OpCode],Int]=Map(
     // POP (SP+2)
     List(OpCode(0xF1,OpCode.ANY),OpCode(0xC1,OpCode.ANY),OpCode(0xD1,OpCode.ANY),OpCode(0xE1,OpCode.ANY),
@@ -69,9 +71,6 @@ object Load16Bit extends LoadSpec {
     List(OpCode(0xF6,OpCode.ANY),OpCode(0xC6,OpCode.ANY),OpCode(0xD6,OpCode.ANY),OpCode(0xE6,OpCode.ANY),
       OpCode(0xDD,0xE6),OpCode(0xFD,0xE6)) -> -2
   )
-  lazy val stackChange:Map[OpCode,Int]=Z80Utils.flattenMapOfLists(stackChangeListMap)
-  lazy val getstackChange: OpCode=>Int = opcode =>
-    stackChange.getOrElse(opcode,stackChange.getOrElse(OpCode(opcode.main,OpCode.ANY),0))
 
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap,0)
+  val stackChange:OpCodeMap[Int] = new OpCodeMap(stackChangeListMap,0)
 }

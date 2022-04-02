@@ -90,7 +90,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     }
     val destLoc=Load16Bit.destLoc.find(opcode)
     val instrSize=Load16Bit.instSize.find(opcode)
-    val stackChange=Load16Bit.getstackChange(opcode)
+    val stackChange=Load16Bit.stackChange.find(opcode)
     handleLoad16Bit(destLoc,valueH,valueL,instrSize,stackChange)
   }
 

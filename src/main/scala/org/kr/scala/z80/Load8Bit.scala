@@ -1,29 +1,5 @@
 package org.kr.scala.z80
 
-abstract class MapHandler[From,To](val mapOfLists:Map[List[From],To]) {
-  lazy val m:Map[From,To]=MapHandler.flatten(mapOfLists)
-  val defaultFrom:From=>From
-  val defaultTo:To
-  lazy val find:From=>To = from => m.getOrElse(from,m.getOrElse(defaultFrom(from),defaultTo))
-  lazy val contains:From=>Boolean = from => m.contains(from) || m.contains(defaultFrom(from))
-}
-
-object MapHandler {
-  def flatten[A,B](mapOfLists:Map[List[A],B]):Map[A,B]=
-    mapOfLists.map(entry=>entry._1.flatMap(opcode=>Map(opcode->entry._2))).flatten.toMap
-}
-
-class OpCodeMap[To](override val mapOfLists:Map[List[OpCode],To],override val defaultTo:To) extends MapHandler[OpCode,To](mapOfLists)  {
-  override lazy val defaultFrom:OpCode=>OpCode = opcode => OpCode(opcode.main,OpCode.ANY)
-}
-
-abstract class LoadSpec {
-  val sourceLoc:OpCodeMap[LoadLocation]
-  val destLoc:OpCodeMap[LoadLocation]
-  val instSize:OpCodeMap[Int]
-  lazy val isOper: OpCode=>Boolean = opcode => instSize.contains(opcode)
-}
-
 object Load8Bit extends LoadSpec {
   // Z80 manual page 42
   val sourceLocListMap:Map[List[OpCode],LoadLocation]=Map(
