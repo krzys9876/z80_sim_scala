@@ -27,7 +27,7 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Load%2016--bit-Done-green.svg"/></a>
 
-<img src="https://img.shields.io/badge/Exchange-Planned-white.svg"/></a>
+<img src="https://img.shields.io/badge/Exchange-In%20progress-blue.svg"/></a>
 
 <img src="https://img.shields.io/badge/Block%20transfer-Planned-white.svg"/></a>
 

@@ -11,4 +11,6 @@ object Z80Utils {
   def getH(word: Int): Int = (word >> 8) & 0xFF
 
   def getL(word: Int): Int = word & 0xFF
+
+  def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
 }

@@ -14,31 +14,25 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case OpType.Nop => handleNop
       case OpType.Load8Bit => handleLoad8Bit(opcode)
       case OpType.Load16Bit => handleLoad16Bit(opcode)
+      case OpType.Exchange => handleExchange(opcode)
       case OpType.Unknown => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
   }
 
-  private def getRegValue(symbol:String):Int={
-    symbol match {
-      case "AF" | "BC" | "DE" | "HL" =>
-        makeWord(registerController.get(symbol.substring(0,1)), registerController.get(symbol.substring(1,2)))
-      case _ => registerController.get(symbol)
-    }
-  }
+  private def getRegValue(symbol:String):Int=registerController.get(symbol)
   private def getMemFromPC(offset:Int):Int = getMemFromReg("PC",offset)
   private def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
   private def getMemFromReg(symbol:String,offset:Int):Int = getMem(getAddressFromReg(symbol,offset))
   private def getMem(address:Int):Int = memoryController.get(address)
-  private def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
 
   private def newRegister(symbol:String,value:Int):RegisterController= {
-    val newReg=symbol match {
-      case "AF" | "BC" | "DE" | "HL" =>
-        registerController >>=
-          RegisterController.set(symbol.substring(0,1),Z80Utils.getH(value)) >>=
-            RegisterController.set(symbol.substring(1,2),Z80Utils.getL(value))
-      case _ => registerController >>= RegisterController.set(symbol,value)
-    }
+    val newReg=registerController >>= RegisterController.set(symbol,value)
+    RegisterController(newReg.get)
+  }
+
+  private def newRegister(regList:List[(String,Int)]):RegisterController= {
+    val newReg=regList.foldLeft(registerController)(
+      (regC, regValuePair)=>RegisterController((regC >>= RegisterController.set(regValuePair._1,regValuePair._2)).get))
     RegisterController(newReg.get)
   }
 
@@ -66,7 +60,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case LoadLocation(r,_,_,_,_,_) if r!="" =>
         returnNewReg(newRegister(dest.reg,value),forwardPC)
       case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
-        returnNewMem(newMemory(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)),value),forwardPC)
+        returnNewMem(newMemory(Z80Utils.makeWord(getMemFromPC(pco+1),getMemFromPC(pco)),value),forwardPC)
       case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
@@ -84,7 +78,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         val value=getRegValue(r)
         (Z80Utils.getH(value),Z80Utils.getL(value))
       case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
-        (getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))+1),getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco))))
+        (getMem(Z80Utils.makeWord(getMemFromPC(pco+1),getMemFromPC(pco))+1),getMem(Z80Utils.makeWord(getMemFromPC(pco+1),getMemFromPC(pco))))
       case LoadLocation(_,_,_,r,dirO,_) if r!="" =>
         dirO match {
           case OpCode.ANY => (getMemFromReg(r,1),getMemFromReg(r,0))
@@ -100,10 +94,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleLoad16Bit(dest:LoadLocation, valueH:Int, valueL:Int, forwardPC:Int,stackChange:Int):Z80System= {
     dest match {
       case LoadLocation(r,_,_,_,_,_) if r!="" =>
-        val newReg=newRegister(r,makeWord(valueH,valueL)) >>= RegisterController.setRelative("SP",stackChange)
+        val newReg=newRegister(r,Z80Utils.makeWord(valueH,valueL)) >>= RegisterController.setRelative("SP",stackChange)
         returnNewReg(newReg,forwardPC)
       case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
-        val address=makeWord(getMemFromPC(pco+1),getMemFromPC(pco))
+        val address=Z80Utils.makeWord(getMemFromPC(pco+1),getMemFromPC(pco))
         val newMem=newMemory(address+1,valueH) >>= MemoryController.poke(address,valueL)
         returnNewMem(newMem,forwardPC)
       case LoadLocation(_,_,_,r,dirO,_) if r!="" && dirO!=OpCode.ANY =>
@@ -113,12 +107,25 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     }
   }
 
+  private def handleExchange(opcode:OpCode):Z80System = {
+    val sourceLoc=Exchange.sourceLoc.find(opcode)
+    val destLoc=Exchange.destLoc.find(opcode)
+    val instrSize=Exchange.instSize.find(opcode)
+    handleExchange(sourceLoc.reg,destLoc.reg,instrSize)
+  }
+
+  private def handleExchange(sourceReg:String,destReg:String,forwardPC:Int):Z80System = {
+    val sourceValue=getRegValue(sourceReg)
+    val destValue=getRegValue(destReg)
+    val newReg=newRegister(List((sourceReg,destValue),(destReg,sourceValue)))
+    returnNewReg(newReg,forwardPC)
+  }
 
   private def getValueFromLocation(loc:LoadLocation):Int =
     loc match {
       case LoadLocation(r,_,_,_,_,_) if r!="" => getRegValue(r)
       case LoadLocation(_,i,_,_,_,_) if i!=OpCode.ANY => i
-      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => getMem(makeWord(getMemFromPC(pco+1),getMemFromPC(pco)))
+      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => getMem(Z80Utils.makeWord(getMemFromPC(pco+1),getMemFromPC(pco)))
       case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getMemFromReg(r,0)
