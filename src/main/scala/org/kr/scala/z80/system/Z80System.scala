@@ -107,14 +107,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     }
   }
 
-  private def handleExchange(opcode:OpCode):Z80System = {
-    val exchangeLoc=Exchange.exchangeLoc.find(opcode)
-    val value1=getRegValue(exchangeLoc.reg1)
-    val value2=getRegValue(exchangeLoc.reg2)
-    val newReg=newRegister(List((exchangeLoc.reg1,value2),(exchangeLoc.reg2,value1)))
-    returnNewReg(newReg,Exchange.instSize.find(opcode))
-  }
-
   private def getValueFromLocation(loc:LoadLocation):Int =
     loc match {
       case LoadLocation(r,_,_,_,_,_) if r!="" => getRegValue(r)
@@ -127,6 +119,15 @@ class Z80System(val memoryController: MemoryController, val registerController: 
           case (OpCode.ANY,o) => getMemFromReg(r,getMemFromPC(o))
         }
     }
+
+  private def handleExchange(opcode:OpCode):Z80System = {
+    val exchangeLocList=Exchange.exchangeLoc.find(opcode)
+    val regModifyList=exchangeLocList.foldLeft(List[(String,Int)]())(
+      (list,entry)=>list++List[(String,Int)](
+        (entry.reg1,getRegValue(entry.reg2)),(entry.reg2,getRegValue(entry.reg1))))
+    val newReg=newRegister(regModifyList)
+    returnNewReg(newReg,Exchange.instSize.find(opcode))
+  }
 }
 
 object Z80System {
