@@ -31,9 +31,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def newRegister(regList:List[(String,Int)]):RegisterController= {
-    val newReg=regList.foldLeft(registerController)(
-      (regC, regValuePair)=>RegisterController((regC >>= RegisterController.set(regValuePair._1,regValuePair._2)).get))
-    RegisterController(newReg.get)
+    val newReg=regList.foldLeft(registerController.get)(
+      (register, regValuePair)=>(RegisterController(register) >>= RegisterController.set(regValuePair._1,regValuePair._2)).get)
+    RegisterController(newReg)
   }
 
   private def newMemory(address:Int,value:Int):MemoryController=
