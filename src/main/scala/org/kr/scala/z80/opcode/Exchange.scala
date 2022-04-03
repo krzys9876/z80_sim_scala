@@ -1,5 +1,11 @@
 package org.kr.scala.z80.opcode
 
+case class ExchangeLocation(reg1:String, reg2: String)
+
+object ExchangeLocation {
+  val empty:ExchangeLocation=ExchangeLocation("","")
+}
+
 object Exchange extends LoadSpec{
   val sourceLocListMap: Map[List[OpCode], LoadLocation] = Map(
     //register pair
@@ -14,6 +20,12 @@ object Exchange extends LoadSpec{
   )
 
   override val destLoc: OpCodeMap[LoadLocation] = new OpCodeMap(destLocListMap, LoadLocation.empty)
+
+  val exchangeListMap: Map[List[OpCode],ExchangeLocation] = Map(
+    //register pair
+    List(OpCode(0xEB, OpCode.ANY)) -> ExchangeLocation("DE","HL")
+  )
+  val exchangeLoc: OpCodeMap[ExchangeLocation] = new OpCodeMap(exchangeListMap, ExchangeLocation.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0xEB, OpCode.ANY)) -> 1

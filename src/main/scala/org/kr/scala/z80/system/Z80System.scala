@@ -108,17 +108,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handleExchange(opcode:OpCode):Z80System = {
-    val sourceLoc=Exchange.sourceLoc.find(opcode)
-    val destLoc=Exchange.destLoc.find(opcode)
-    val instrSize=Exchange.instSize.find(opcode)
-    handleExchange(sourceLoc.reg,destLoc.reg,instrSize)
-  }
-
-  private def handleExchange(sourceReg:String,destReg:String,forwardPC:Int):Z80System = {
-    val sourceValue=getRegValue(sourceReg)
-    val destValue=getRegValue(destReg)
-    val newReg=newRegister(List((sourceReg,destValue),(destReg,sourceValue)))
-    returnNewReg(newReg,forwardPC)
+    val exchangeLoc=Exchange.exchangeLoc.find(opcode)
+    val value1=getRegValue(exchangeLoc.reg1)
+    val value2=getRegValue(exchangeLoc.reg2)
+    val newReg=newRegister(List((exchangeLoc.reg1,value2),(exchangeLoc.reg2,value1)))
+    returnNewReg(newReg,Exchange.instSize.find(opcode))
   }
 
   private def getValueFromLocation(loc:LoadLocation):Int =
