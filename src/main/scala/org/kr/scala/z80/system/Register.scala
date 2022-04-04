@@ -35,7 +35,7 @@ object Register {
   def apply(register: Register):Register=new Register(register.reg)
 }
 
-sealed abstract class FlagSymbol(symbol:String, bit:Int) {
+sealed abstract class FlagSymbol(val symbol:String, val bit:Int) {
   val extract:Int=>Boolean= flagValue=>((flagValue >> bit) & 1)==1
 }
 
@@ -46,4 +46,13 @@ object Flag {
   case object P extends FlagSymbol("P",2)
   case object N extends FlagSymbol("N",1)
   case object C extends FlagSymbol("C",0)
+
+  def set(s:Boolean,z:Boolean,h:Boolean,p:Boolean,n:Boolean,c:Boolean):Int={
+    (if(s) 1 << 7 else 0) |
+    (if(z) 1 << 6 else 0) |
+    (if(h) 1 << 4 else 0) |
+    (if(p) 1 << 2 else 0) |
+    (if(n) 1 << 1 else 0) |
+    (if(c) 1 << 0 else 0)
+  }
 }

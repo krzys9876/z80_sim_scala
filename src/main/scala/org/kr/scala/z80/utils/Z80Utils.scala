@@ -13,4 +13,8 @@ object Z80Utils {
   def getL(word: Int): Int = word & 0xFF
 
   def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
+
+  def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-((raw>>7)&1)*0x80
+
+  def getBitFromString(stringAsBoolean:String, bit:Int):Boolean = stringAsBoolean.substring(7-bit,7-bit+1)=="1"
 }
