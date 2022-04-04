@@ -9,6 +9,7 @@ object ExchangeLocationBase {
 }
 
 object Exchange extends OperationSpec {
+  // Z80 manual page 47
   val exchangeListMap: Map[List[OpCode],List[ExchangeLocationBase]] = Map(
     //register pair
     List(OpCode(0xEB, OpCode.ANY)) -> List(new ExchangeLocation("DE","HL")),

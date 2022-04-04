@@ -123,12 +123,29 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     returnAfterChange(chgList,instrSize)
   }
 
+  /*
+      loc match {
+      case LoadLocation(r,_,_,_,_,_) if r!="" => getRegValue(r)
+      case LoadLocation(_,i,_,_,_,_) if i!=OpCode.ANY => i
+      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => getByte(getWordFromPC(pco))
+      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
+        (dirO,indirO) match {
+          case (OpCode.ANY,OpCode.ANY) => getByteFromReg(r,0)
+          case (o,OpCode.ANY) => getByteFromReg(r,o)
+          case (OpCode.ANY,off2Compl) => getByteFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(off2Compl)))
+        }
+    }
+
+   */
   private def handleArithmetic8Bit(code: OpCode):Z80System = {
-    val oper = Arithmetic8Bit.arithOperation.find(code).head
+    val oper = Arithmetic8Bit.arithOperation.find(code)
     val instrSize = Arithmetic8Bit.instSize.find(code)
+    val operandLoc=Arithmetic8Bit.operand.find(code)
+    val operand=getValueFromLocation(operandLoc)
+
     val chgList = oper match {
-      case o: Arith8BitAccumReg =>
-        val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),getRegValue(o.operandReg))
+      case o: Arith8BitAccum =>
+        val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),operand)
         List(new RegisterChange("A", value), new RegisterChange("F", flags))
     }
     returnAfterChange(chgList, instrSize)
