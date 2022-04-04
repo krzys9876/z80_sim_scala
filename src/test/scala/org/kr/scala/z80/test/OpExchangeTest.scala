@@ -81,7 +81,7 @@ class OpExchangeTest extends AnyFunSuite {
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
   }
-/*
+
   test("run EX (SP),HL") {
     //given
     val sysBlank = Z80SystemController.blank
@@ -96,12 +96,11 @@ class OpExchangeTest extends AnyFunSuite {
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
-    /*assert(sysTest.get.registerController.get("HL") == 0xF2F1)
+    assert(sysTest.get.registerController.get("HL") == 0xF2F1)
     assert(sysTest.get.registerController.get("SP") == 0x0102)
     assert(sysTest.get.memoryController.get(0x0102)==0xA2)
-    assert(sysTest.get.memoryController.get(0x0103)==0xA1)*/
-    println(sysTest.get.memoryController.get.mem.slice(0,300))
-    println(sysTest.get.registerController.get.reg)
+    assert(sysTest.get.memoryController.get(0x0103)==0xA1)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
   }
-*/
 }
