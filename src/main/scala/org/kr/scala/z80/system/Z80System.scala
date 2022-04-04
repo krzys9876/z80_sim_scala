@@ -135,20 +135,21 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handleArithmetic8Bit(operation:ArithmeticOperation,prevValue:Int,operand:Int):(Int,Int)={
-    //TODO: change hardcode to multi operand implementation
-    val prevA2C=Z80Utils.rawByteTo2Compl(prevValue)
-    val operand2C=Z80Utils.rawByteTo2Compl(operand)
-    val value2C=prevA2C+operand2C
-    val valueRaw=prevValue+operand
-    val valueByte=valueRaw & 0xFF
-    val flagS=Z80Utils.rawByteTo2Compl(valueByte)<0
-    val flagZ=valueByte==0
-    val flagH=(prevValue & 0x0F)+(operand & 0x0F)>0x0F
-    val flagP=(value2C > 0x7F) || (value2C < -0x80)
-    val flagN=false
-    val flagC=valueRaw>valueByte
+    val (valueUnsigned,valueSigned)=operation match {
+      case Arith8Bit.Add => (prevValue+operand,Z80Utils.rawByteTo2Compl(prevValue)+Z80Utils.rawByteTo2Compl(operand))
+      case Arith8Bit.Sub => (prevValue-operand,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand))
+    }
+    val valueOut=valueUnsigned & 0xFF
+    val flagS=Z80Utils.rawByteTo2Compl(valueOut)<0
+    val flagP=(valueSigned > 0x7F) || (valueSigned < -0x80)
+    val flagZ=valueOut==0
+    val (flagH,flagN,flagC)=operation match {
+      case Arith8Bit.Add => ((prevValue & 0x0F)+(operand & 0x0F)>0x0F,false,valueUnsigned>valueOut)
+      case Arith8Bit.Sub => ((prevValue & 0x0F)-(operand & 0x0F)<0x00,true,valueUnsigned<valueOut)
+    }
+
     val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)
-    (valueByte,newF)
+    (valueOut,newF)
   }
 }
 
