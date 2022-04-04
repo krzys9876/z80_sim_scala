@@ -81,10 +81,10 @@ class OpLoad8BitTest extends AnyFunSuite {
     val sysBlank=Z80SystemController.blank
     val reg=sysBlank.get.registerController >>=
       RegisterController.set("IX",0x0101) >>=
-      RegisterController.set("IY",0x0103)
+      RegisterController.set("IY",0x0109)
     val mem=sysBlank.get.memoryController >>=
       MemoryController.pokeMulti(0,Vector(0xDD,0x56,0x05)) >>= //LD D,(IX+5)
-      MemoryController.pokeMulti(3,Vector(0xFD,0x5E,0x04)) >>= //LD E,(IY+4)
+      MemoryController.pokeMulti(3,Vector(0xFD,0x5E,0xFE)) >>= //LD E,(IY-2)
       MemoryController.poke(0x0106,0xFF) >>=
       MemoryController.poke(0x0107,0xFE)
     //when
@@ -103,12 +103,12 @@ class OpLoad8BitTest extends AnyFunSuite {
     val sysBlank=Z80SystemController.blank
     val reg=sysBlank.get.registerController >>=
       RegisterController.set("IX",0x0100) >>=
-      RegisterController.set("IY",0x0101) >>=
+      RegisterController.set("IY",0x0109) >>=
       RegisterController.set("A",0x01) >>=
       RegisterController.set("B",0x02)
     val mem=sysBlank.get.memoryController >>=
       MemoryController.pokeMulti(0,Vector(0xDD,0x77,0x03)) >>= //LD (IX+3),A
-      MemoryController.pokeMulti(3,Vector(0xFD,0x70,0x04)) >>= //LD (IY+4),B
+      MemoryController.pokeMulti(3,Vector(0xFD,0x70,0xFC)) >>= //LD (IY-4),B
       MemoryController.poke(0x0103,0x01) >>=
       MemoryController.poke(0x0105,0x02)
     //when
@@ -147,10 +147,10 @@ class OpLoad8BitTest extends AnyFunSuite {
     //given
     val sysBlank=Z80SystemController.blank
     val reg=sysBlank.get.registerController >>=
-      RegisterController.set("IX",0x0100) >>=
+      RegisterController.set("IX",0x0104) >>=
       RegisterController.set("IY",0x0101)
     val mem=sysBlank.get.memoryController >>=
-      MemoryController.pokeMulti(0,Vector(0xDD,0x36,0x02,0xFF)) >>= //LD (IX+2),0xFF
+      MemoryController.pokeMulti(0,Vector(0xDD,0x36,0xFE,0xFF)) >>= //LD (IX-2),0xFF
       MemoryController.pokeMulti(4,Vector(0xFD,0x36,0x03,0xFE)) //LD (IY+3),0xFE
     //when
     val sysInit=Z80SystemController(new Z80System(MemoryController(mem.get),RegisterController(reg.get)))

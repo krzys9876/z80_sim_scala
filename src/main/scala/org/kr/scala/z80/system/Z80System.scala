@@ -55,8 +55,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
             new MemoryChangeByte(getAddressFromReg(r,0),value)
-          case (OpCode.ANY,indir) =>
-            new MemoryChangeByte(getAddressFromReg(r,getByteFromPC(indir)),value)
+          case (OpCode.ANY,indirOff2Compl) =>
+            new MemoryChangeByte(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(indirOff2Compl))),value)
         }
     }
     returnAfterOneChange(change,forwardPC)
@@ -102,7 +102,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getByteFromReg(r,0)
           case (o,OpCode.ANY) => getByteFromReg(r,o)
-          case (OpCode.ANY,o) => getByteFromReg(r,getByteFromPC(o))
+          case (OpCode.ANY,off2Compl) => getByteFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(off2Compl)))
         }
     }
 

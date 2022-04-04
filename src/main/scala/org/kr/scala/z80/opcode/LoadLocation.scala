@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-case class LoadLocation(reg:String, immediate:Int, offsetPC:Int, addressReg:String, directOffset:Int, indirectOffset:Int) {
+case class LoadLocation(reg:String, immediate:Int, offsetPC:Int, addressReg:String, directOffset:Int, indirectOffset2Compl:Int) {
   override def toString: String =
     this match {
       case LoadLocation(r,_,_,_,_,_) if r!="" => f"$r"

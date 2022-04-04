@@ -16,6 +16,7 @@ object Arith8Bit {
 
 class Arith8BitBase (val operation:ArithmeticOperation)
 class Arith8BitAccumReg(override val operation:ArithmeticOperation, val operandReg:String) extends Arith8BitBase(operation)
+//class Arith8BitAccumReg(override val operation:ArithmeticOperation, val operandReg:String) extends Arith8BitBase(operation)
 
 object Arith8BitBase {
   val empty:Arith8BitBase=new Arith8BitBase(Arith8Bit.None)

@@ -17,7 +17,7 @@ class OpArithmetic8BitTest extends AnyFunSuite {
       RegisterController.set("A",inputA) >>=
       RegisterController.set(regSymbol,inputR)
     val mem = sysBlank.get.memoryController >>=
-      MemoryController.poke(0,opcode) // ADD A,r
+      MemoryController.poke(0,opcode)
     //when
     val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
     val sysTest = sysInit >>= Z80SystemController.run(1)
