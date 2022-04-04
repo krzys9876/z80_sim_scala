@@ -124,23 +124,31 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handleArithmetic8Bit(code: OpCode):Z80System = {
+    val oper = Arithmetic8Bit.arithOperation.find(code).head
+    val instrSize = Arithmetic8Bit.instSize.find(code)
+    val chgList = oper match {
+      case o: Arith8BitAccumReg =>
+        val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),getRegValue(o.operandReg))
+        List(new RegisterChange("A", value), new RegisterChange("F", flags))
+    }
+    returnAfterChange(chgList, instrSize)
+  }
+
+  private def handleArithmetic8Bit(operation:ArithmeticOperation,prevValue:Int,operand:Int):(Int,Int)={
     //TODO: change hardcode to multi operand implementation
-    val prevA=getRegValue("A")
-    val operand=getRegValue("B")
-    val prevA2C=Z80Utils.rawByteTo2Compl(prevA)
+    val prevA2C=Z80Utils.rawByteTo2Compl(prevValue)
     val operand2C=Z80Utils.rawByteTo2Compl(operand)
     val value2C=prevA2C+operand2C
-    val valueRaw=prevA+operand
+    val valueRaw=prevValue+operand
     val valueByte=valueRaw & 0xFF
     val flagS=Z80Utils.rawByteTo2Compl(valueByte)<0
     val flagZ=valueByte==0
-    val flagH=(prevA & 0x0F)+(operand & 0x0F)>0x0F
+    val flagH=(prevValue & 0x0F)+(operand & 0x0F)>0x0F
     val flagP=(value2C > 0x7F) || (value2C < -0x80)
     val flagN=false
     val flagC=valueRaw>valueByte
     val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)
-    val chgList=List(new RegisterChange("A",valueByte),new RegisterChange("F",newF))
-    returnAfterChange(chgList,Arithmetic8Bit.instSize.find(code))
+    (valueByte,newF)
   }
 }
 
