@@ -111,10 +111,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
     val chgList=exchangeLocList.flatMap(entry=>{
       entry match {
-        case loc if !loc.reg1Indirect=>
+        case loc : ExchangeLocation =>
           List(new RegisterChange(loc.reg1,getRegValue(entry.reg2)),
             new RegisterChange(loc.reg2,getRegValue(entry.reg1)))
-        case loc if loc.reg1Indirect=>
+        case loc : ExchangeLocationIndirect =>
           List(new MemoryChangeWord(getAddressFromReg(loc.reg1,0),getRegValue(loc.reg2)),
             new RegisterChange(loc.reg2,getWordFromReg(loc.reg1,0)))
       }

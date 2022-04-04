@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.RegisterController
+import org.kr.scala.z80.system.{RegisterController,Flag}
 import org.scalatest.funsuite.AnyFunSuite
 
 class RegisterTest extends AnyFunSuite {
@@ -77,5 +77,37 @@ class RegisterTest extends AnyFunSuite {
     assert(afterState.get("BC").equals(0x0304))
     assert(afterState.get("DE").equals(0x0506))
     assert(afterState.get("HL").equals(0x0708))
+  }
+
+  test("check flags 1") {
+    //given
+    val registerController=RegisterController.blank
+    //when
+    val afterState=registerController >>=
+      RegisterController.set("F",0xAA)
+    //then
+    assert(afterState.get("F")==0xAA)
+    assert(afterState.get(Flag.S))
+    assert(!afterState.get(Flag.Z))
+    assert(!afterState.get(Flag.H))
+    assert(!afterState.get(Flag.P))
+    assert(afterState.get(Flag.N))
+    assert(!afterState.get(Flag.C))
+  }
+
+  test("check flags 2") {
+    //given
+    val registerController=RegisterController.blank
+    //when
+    val afterState=registerController >>=
+      RegisterController.set("F",0x55)
+    //then
+    assert(afterState.get("F")==0x55)
+    assert(!afterState.get(Flag.S))
+    assert(afterState.get(Flag.Z))
+    assert(afterState.get(Flag.H))
+    assert(afterState.get(Flag.P))
+    assert(!afterState.get(Flag.N))
+    assert(afterState.get(Flag.C))
   }
 }
