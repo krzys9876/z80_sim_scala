@@ -18,7 +18,6 @@ object Arith8Bit {
 
 class Arith8BitBase (val operation:ArithmeticOperation)
 class Arith8BitAccum(override val operation:ArithmeticOperation) extends Arith8BitBase(operation)
-//class Arith8BitAccumRegIndirect(override val operation:ArithmeticOperation, val operandReg:String) extends Arith8BitBase(operation)
 
 object Arith8BitBase {
   val empty:Arith8BitBase=new Arith8BitBase(Arith8Bit.None)
@@ -27,23 +26,16 @@ object Arith8BitBase {
 object Arithmetic8Bit extends OperationSpec {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
   val arithOperationListMap: Map[List[OpCode],Arith8BitBase] = Map(
-    List(OpCode(0x87),OpCode(0x80),OpCode(0x81),OpCode(0x82),
-      OpCode(0x83),OpCode(0x84),OpCode(0x85),
-      OpCode(0x86),OpCode(0xDD, 0x86),OpCode(0xFD, 0x86),
-      OpCode(0xC6)) -> new Arith8BitAccum(Arith8Bit.Add),
-    List(OpCode(0x8F),OpCode(0x88),OpCode(0x89),OpCode(0x8A),
-      OpCode(0x8B),OpCode(0x8C),OpCode(0x8D),
-      OpCode(0x8E),OpCode(0xDD, 0x8E),OpCode(0xFD, 0x8E),
-      OpCode(0xCE)) -> new Arith8BitAccum(Arith8Bit.AddC),
-    List(OpCode(0x97),OpCode(0x90),OpCode(0x91),OpCode(0x92),
-      OpCode(0x93),OpCode(0x94),OpCode(0x95),
-      OpCode(0x96),OpCode(0xDD, 0x96),OpCode(0xFD, 0x96),
-      OpCode(0xD6)) -> new Arith8BitAccum(Arith8Bit.Sub),
-    List(OpCode(0x9F),OpCode(0x98),OpCode(0x99),OpCode(0x9A),
-      OpCode(0x9B),OpCode(0x9C),OpCode(0x9D),
-      OpCode(0x9E),OpCode(0xDD, 0x9E),OpCode(0xFD, 0x9E),
-      OpCode(0xDE)) -> new Arith8BitAccum(Arith8Bit.Sub)
+    List(OpCode(0x87),OpCode(0x80),OpCode(0x81),OpCode(0x82),OpCode(0x83),OpCode(0x84),OpCode(0x85),
+      OpCode(0x86),OpCode(0xDD, 0x86),OpCode(0xFD, 0x86),OpCode(0xC6)) -> new Arith8BitAccum(Arith8Bit.Add),
+    List(OpCode(0x8F),OpCode(0x88),OpCode(0x89),OpCode(0x8A),OpCode(0x8B),OpCode(0x8C),OpCode(0x8D),
+      OpCode(0x8E),OpCode(0xDD, 0x8E),OpCode(0xFD, 0x8E),OpCode(0xCE)) -> new Arith8BitAccum(Arith8Bit.AddC),
+    List(OpCode(0x97),OpCode(0x90),OpCode(0x91),OpCode(0x92),OpCode(0x93),OpCode(0x94),OpCode(0x95),
+      OpCode(0x96),OpCode(0xDD, 0x96),OpCode(0xFD, 0x96),OpCode(0xD6)) -> new Arith8BitAccum(Arith8Bit.Sub),
+    List(OpCode(0x9F),OpCode(0x98),OpCode(0x99),OpCode(0x9A),OpCode(0x9B),OpCode(0x9C),OpCode(0x9D),
+      OpCode(0x9E),OpCode(0xDD, 0x9E),OpCode(0xFD, 0x9E),OpCode(0xDE)) -> new Arith8BitAccum(Arith8Bit.SubC)
   )
+
   val arithOperation: OpCodeMap[Arith8BitBase] = new OpCodeMap(arithOperationListMap, Arith8BitBase.empty)
 
   val operandListMap: Map[List[OpCode],LoadLocation] = Map(
