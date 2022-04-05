@@ -297,12 +297,12 @@ class OpLoad16BitTest extends AnyFunSuite {
       RegisterController.set("IX",0x0A0B) >>=
       RegisterController.set("IY",0x00C0D)
     val mem = sysBlank.get.memoryController >>=
-      MemoryController.poke(0,0xF6) >>= // PUSH AF
-      MemoryController.poke(1,0xC6) >>= // PUSH BC
-      MemoryController.poke(2,0xD6) >>= // PUSH DE
-      MemoryController.poke(3,0xE6) >>= // PUSH HL
-      MemoryController.pokeMulti(4,Vector(0xDD,0xE6)) >>= // PUSH IX
-      MemoryController.pokeMulti(6,Vector(0xFD,0xE6)) // PUSH IY
+      MemoryController.poke(0,0xF5) >>= // PUSH AF
+      MemoryController.poke(1,0xC5) >>= // PUSH BC
+      MemoryController.poke(2,0xD5) >>= // PUSH DE
+      MemoryController.poke(3,0xE5) >>= // PUSH HL
+      MemoryController.pokeMulti(4,Vector(0xDD,0xE5)) >>= // PUSH IX
+      MemoryController.pokeMulti(6,Vector(0xFD,0xE5)) // PUSH IY
     //when
     val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
     val sysTest = sysInit >>= Z80SystemController.run(6)

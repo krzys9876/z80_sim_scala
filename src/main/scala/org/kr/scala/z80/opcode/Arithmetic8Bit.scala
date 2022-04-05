@@ -23,7 +23,7 @@ object Arith8BitBase {
 }
 
 object Arithmetic8Bit extends OperationSpec {
-  // Z80 manual page 50
+  // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
   val arithOperationListMap: Map[List[OpCode],Arith8BitBase] = Map(
     //register
     List(OpCode(0x87, OpCode.ANY),OpCode(0x80, OpCode.ANY),OpCode(0x81, OpCode.ANY),OpCode(0x82, OpCode.ANY),
@@ -68,21 +68,42 @@ object Arithmetic8Bit extends OperationSpec {
       OpCode(0x2C, OpCode.ANY),OpCode(0x2D, OpCode.ANY)
     ) -> LoadLocation.register("L"),
     //indirect register
-    List(OpCode(0x88, OpCode.ANY),OpCode(0x8E, OpCode.ANY),OpCode(0x96, OpCode.ANY),OpCode(0x9E, OpCode.ANY),
+    List(OpCode(0x86, OpCode.ANY),OpCode(0x8E, OpCode.ANY),OpCode(0x96, OpCode.ANY),OpCode(0x9E, OpCode.ANY),
       OpCode(0xA6, OpCode.ANY),OpCode(0xAE, OpCode.ANY),OpCode(0xB6, OpCode.ANY),OpCode(0xBE, OpCode.ANY),
       OpCode(0x34, OpCode.ANY),OpCode(0x35, OpCode.ANY)
-    ) -> LoadLocation.registerAddr("HL")
+    ) -> LoadLocation.registerAddr("HL"),
+    //indirect registers with offset
+    List(OpCode(0xDD, 0x86),OpCode(0xDD, 0x8E),OpCode(0xDD, 0x96),OpCode(0xDD, 0x9E),
+      OpCode(0xDD, 0xA6),OpCode(0xDD, 0xAE),OpCode(0xDD, 0xB6),OpCode(0xDD, 0xBE),
+      OpCode(0xDD, 0x34),OpCode(0xDD, 0x35)
+    ) -> LoadLocation.registerAddrIndirOffset("IX",2),
+    List(OpCode(0xFD, 0x86),OpCode(0xFD, 0x8E),OpCode(0xFD, 0x96),OpCode(0xFD, 0x9E),
+      OpCode(0xFD, 0xA6),OpCode(0xFD, 0xAE),OpCode(0xFD, 0xB6),OpCode(0xFD, 0xBE),
+      OpCode(0xFD, 0x34),OpCode(0xFD, 0x35)
+    ) -> LoadLocation.registerAddrIndirOffset("IY",2),
+    // immediate
+    List(OpCode(0xC6, OpCode.ANY), OpCode(0xCE, OpCode.ANY), OpCode(0xD6, OpCode.ANY), OpCode(0xDE, OpCode.ANY),
+      OpCode(0xE6, OpCode.ANY), OpCode(0xEE, OpCode.ANY), OpCode(0xF6, OpCode.ANY),
+      OpCode(0xFE, OpCode.ANY)) -> LoadLocation.registerAddrDirOffset("PC", 1)
   )
 
   val operand: OpCodeMap[LoadLocation] = new OpCodeMap(operandListMap, LoadLocation.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0x87, OpCode.ANY),OpCode(0x80, OpCode.ANY),OpCode(0x81, OpCode.ANY),OpCode(0x82, OpCode.ANY),
-      OpCode(0x83, OpCode.ANY),OpCode(0x84, OpCode.ANY),OpCode(0x85, OpCode.ANY),
-      OpCode(0x86, OpCode.ANY),OpCode(0xDD, 0x86),OpCode(0xFD, 0x86),OpCode(0xC6, OpCode.ANY),
-      OpCode(0x97, OpCode.ANY),OpCode(0x90, OpCode.ANY),OpCode(0x91, OpCode.ANY),OpCode(0x92, OpCode.ANY),
-      OpCode(0x93, OpCode.ANY),OpCode(0x94, OpCode.ANY),OpCode(0x95, OpCode.ANY),
-      OpCode(0x96, OpCode.ANY),OpCode(0xDD, 0x96),OpCode(0xFD, 0x96),OpCode(0xD6, OpCode.ANY)) -> 1
+      OpCode(0x83, OpCode.ANY),OpCode(0x84, OpCode.ANY),OpCode(0x85, OpCode.ANY),OpCode(0x86, OpCode.ANY),
+      OpCode(0x97, OpCode.ANY),OpCode(0x90, OpCode.ANY),OpCode(0x91, OpCode.ANY),
+      OpCode(0x92, OpCode.ANY),OpCode(0x93, OpCode.ANY),OpCode(0x94, OpCode.ANY),OpCode(0x95, OpCode.ANY),
+      OpCode(0x96, OpCode.ANY),OpCode(0x88, OpCode.ANY),OpCode(0x8E, OpCode.ANY),
+      OpCode(0x96, OpCode.ANY),OpCode(0x9E, OpCode.ANY),OpCode(0xA6, OpCode.ANY),OpCode(0xAE, OpCode.ANY),
+      OpCode(0xB6, OpCode.ANY),OpCode(0xBE, OpCode.ANY),OpCode(0x34, OpCode.ANY),OpCode(0x35, OpCode.ANY)) -> 1,
+    List(OpCode(0xC6, OpCode.ANY),OpCode(0xCE, OpCode.ANY),OpCode(0xD6, OpCode.ANY),OpCode(0xDE, OpCode.ANY),
+      OpCode(0xE6, OpCode.ANY),OpCode(0xEE, OpCode.ANY),OpCode(0xF6, OpCode.ANY),OpCode(0xFE, OpCode.ANY)) -> 2,
+    List(OpCode(0xDD, 0x86),OpCode(0xDD, 0x8E),OpCode(0xDD, 0x96),OpCode(0xDD, 0x9E),
+      OpCode(0xDD, 0xA6),OpCode(0xDD, 0xAE),OpCode(0xDD, 0xB6),OpCode(0xDD, 0xBE),
+      OpCode(0xDD, 0x34),OpCode(0xDD, 0x35),OpCode(0xFD, 0x86),OpCode(0xFD, 0x8E),OpCode(0xFD, 0x96),OpCode(0xFD, 0x9E),
+      OpCode(0xFD, 0xA6),OpCode(0xFD, 0xAE),OpCode(0xFD, 0xB6),OpCode(0xFD, 0xBE),
+      OpCode(0xFD, 0x34),OpCode(0xFD, 0x35)) -> 3
   )
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
 
