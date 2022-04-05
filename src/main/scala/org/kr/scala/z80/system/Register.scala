@@ -31,7 +31,7 @@ class Register(val reg:Map[String,Int]) {
 }
 
 object Register {
-  def blank:Register=new Register(Map())
+  def blank:Register=new Register(Map("F"->0xFF))
   def apply(register: Register):Register=new Register(register.reg)
 }
 

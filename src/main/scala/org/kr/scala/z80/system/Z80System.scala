@@ -21,6 +21,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def getRegValue(symbol:String):Int=registerController.get(symbol)
+  private def getFlag(flag:FlagSymbol):Boolean=registerController.get(flag)
+  private def getFlagValue(flag:FlagSymbol):Int=if(getFlag(flag)) 1 else 0
   private def getByteFromPC(offset:Int):Int = getByteFromReg("PC",offset)
   private def getWordFromPC(offset:Int):Int = getWordFromReg("PC",offset)
   private def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
@@ -140,6 +142,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleArithmetic8Bit(operation:ArithmeticOperation,prevValue:Int,operand:Int):(Int,Int)={
     val (valueUnsigned,valueSigned)=operation match {
       case Arith8Bit.Add => (prevValue+operand,Z80Utils.rawByteTo2Compl(prevValue)+Z80Utils.rawByteTo2Compl(operand))
+      case Arith8Bit.AddC =>
+        val carry=getFlagValue(Flag.C)
+        (prevValue+operand+carry,Z80Utils.rawByteTo2Compl(prevValue)+Z80Utils.rawByteTo2Compl(operand)+carry)
       case Arith8Bit.Sub => (prevValue-operand,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand))
     }
     val valueOut=valueUnsigned & 0xFF
@@ -147,7 +152,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val flagP=(valueSigned > 0x7F) || (valueSigned < -0x80)
     val flagZ=valueOut==0
     val (flagH,flagN,flagC)=operation match {
-      case Arith8Bit.Add => ((prevValue & 0x0F)+(operand & 0x0F)>0x0F,false,valueUnsigned>valueOut)
+      case Arith8Bit.Add | Arith8Bit.AddC  => ((prevValue & 0x0F)+(operand & 0x0F)>0x0F,false,valueUnsigned>valueOut)
       case Arith8Bit.Sub => ((prevValue & 0x0F)-(operand & 0x0F)<0x00,true,valueUnsigned<valueOut)
     }
 

@@ -13,9 +13,9 @@ class RegisterTest extends AnyFunSuite {
     val registerController=RegisterController.blank
     //when
     //then
-    assert(registerController.get.reg.equals(Map()))
     assert(registerController.get("A").equals(0))
     assert(registerController.get("PC").equals(0))
+    assert(registerController.get("F").equals(0xFF))
   }
 
   test("set register") {

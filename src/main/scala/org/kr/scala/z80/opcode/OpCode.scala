@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-case class OpCode(main:Int,supp:Int) {
+case class OpCode(main:Int,supp:Int=OpCode.ANY) {
   override def toString: String = f"OpCode($main,${if(supp==OpCode.ANY) "ANY" else supp})"
 
   lazy val isNop:Boolean = main==0
