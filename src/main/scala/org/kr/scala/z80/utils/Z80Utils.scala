@@ -17,4 +17,8 @@ object Z80Utils {
   def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-((raw>>7)&1)*0x80
 
   def getBitFromString(stringAsBoolean:String, bit:Int):Boolean = stringAsBoolean.substring(7-bit,7-bit+1)=="1"
+
+  def countBits(byte:Int):Int = List.range(0,8).foldLeft(0)((bits,bit)=>bits + (if((byte & (1 << bit))>0) 1 else 0))
+  def isEven(value:Int):Boolean=(value & 1)==0
+  def isEvenBits(byte:Int):Boolean=isEven(countBits(byte))
 }
