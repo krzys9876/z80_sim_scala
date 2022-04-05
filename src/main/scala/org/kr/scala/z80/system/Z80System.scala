@@ -148,6 +148,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case Arith8Bit.Sub => (prevValue-operand,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand))
       case Arith8Bit.SubC => (prevValue-operand-carry,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand)-carry)
       case Arith8Bit.And => (prevValue & operand,prevValue & operand)
+      case Arith8Bit.Xor => (prevValue ^ operand,prevValue ^ operand)
+      case Arith8Bit.Or => (prevValue | operand,prevValue | operand)
     }
     val valueOut=valueUnsigned & 0xFF
     val flagS=Z80Utils.rawByteTo2Compl(valueOut)<0
@@ -156,7 +158,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case Arith8Bit.Add | Arith8Bit.AddC | Arith8Bit.Sub | Arith8Bit.SubC =>
         (valueSigned > 0x7F) || (valueSigned < -0x80)
       //parity
-      case Arith8Bit.And => Z80Utils.isEvenBits(valueUnsigned)
+      case Arith8Bit.And | Arith8Bit.Xor | Arith8Bit.Or => Z80Utils.isEvenBits(valueUnsigned)
     }
     val flagZ=valueOut==0
     val (flagH,flagN,flagC)=operation match {
@@ -165,6 +167,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case Arith8Bit.Sub => ((prevValue & 0x0F)-(operand & 0x0F)<0x00,true,valueUnsigned<valueOut)
       case Arith8Bit.SubC => ((prevValue & 0x0F)-(operand & 0x0F)-carry<0x00,true,valueUnsigned<valueOut)
       case Arith8Bit.And => (true,false,false)
+      case Arith8Bit.Xor | Arith8Bit.Or => (false,false,false)
     }
 
     val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)
