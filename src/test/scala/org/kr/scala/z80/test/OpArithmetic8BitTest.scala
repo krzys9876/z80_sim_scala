@@ -1,5 +1,6 @@
 package org.kr.scala.z80.test
 
+import org.kr.scala.z80.opcode.OpCode
 import org.kr.scala.z80.system.{Flag, MemoryController, RegisterController, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
 import org.scalatest.funsuite.AnyFunSuite
@@ -23,7 +24,7 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == pcAfter)
-    assert(sysTest.get.registerController.get("A") == result)
+    assert(sysTest.get.registerController.get("A") == result || result==OpCode.ANY)
     assert(sysTest.get.registerController.get(Flag.S) == Z80Utils.getBitFromString(flagsAsString,Flag.S.bit))
     assert(sysTest.get.registerController.get(Flag.Z) == Z80Utils.getBitFromString(flagsAsString,Flag.Z.bit))
     assert(sysTest.get.registerController.get(Flag.H) == Z80Utils.getBitFromString(flagsAsString,Flag.H.bit))
@@ -154,5 +155,26 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     testArith(List(("A",0x80),("IY",0x1020)),List((0x0000,0xFD),(0x0001,0xB6),(0x0002,0xF0),(0x1010,0x07)),0x87,"10_0_100",3)
     testArith(List(("A",0x80)),List((0x0000,0xF6),(0x0001,0x07)),0x87,"10_0_100",2)
   }
+
+  test("run CP r/(HL)/(IX+d)/(IY+d)/n") {
+    // based on "real" Z80 emulator
+    testArith(List(("A",0x1D),("B",0x3E)),List((0x0000,0xB8)),OpCode.ANY,"10_1_011")
+    testArith(List(("A",0xDF),("IX",0x0302)),List((0x0000,0xDD),(0x0001,0xBE),(0x0002,0x01),(0x0303,0x3E)),OpCode.ANY,"10_0_010",3)
+    testArith(List(("A",0xA1),("IY",0x0405)),List((0x0000,0xFD),(0x0001,0xBE),(0x0002,0xFD),(0x0402,0x3E)),OpCode.ANY,"00_1_110",3)
+    testArith(List(("A",0x63),("HL",0x0503)),List((0x0000,0xBE),(0x0503,0x3E)),OpCode.ANY,"00_1_010")
+
+    testArith(List(("A",0x00)),List((0x0000,0xFE),(0x0001,0x40)),OpCode.ANY,"10_0_011",2)
+    testArith(List(("A",0xC0),("E",0x40)),List((0x0000,0xBB)),OpCode.ANY,"10_0_010")
+    testArith(List(("A",0x80),("B",0x40)),List((0x0000,0xB8)),OpCode.ANY,"00_0_110")
+    testArith(List(("A",0x40),("C",0x40)),List((0x0000,0xB9)),OpCode.ANY,"01_0_010")
+
+    testArith(List(("A",0xE0),("D",0xF0)),List((0x0000,0xBA)),OpCode.ANY,"10_0_011")
+    testArith(List(("A",0xF0)),List((0x0000,0xBF)),OpCode.ANY,"01_0_010")
+    testArith(List(("A",0x00),("H",0xF0)),List((0x0000,0xBC)),OpCode.ANY,"00_0_011")
+    testArith(List(("A",0x10),("L",0xF0)),List((0x0000,0xBD)),OpCode.ANY,"00_0_011")
+
+    testArith(List(("A",0x70),("B",0xF0)),List((0x0000,0xB8)),OpCode.ANY,"10_0_111")
+  }
+
 }
 
