@@ -19,6 +19,7 @@ object Arith8Bit {
 class Arith8BitBase (val operation:ArithmeticOperation)
 class Arith8BitAccum(override val operation:ArithmeticOperation) extends Arith8BitBase(operation)
 class Arith8BitFlagsOnly(override val operation:ArithmeticOperation) extends Arith8BitBase(operation)
+class Arith8BitLocation(override val operation:ArithmeticOperation) extends Arith8BitBase(operation)
 
 object Arith8BitBase {
   val empty:Arith8BitBase=new Arith8BitBase(Arith8Bit.None)
@@ -42,8 +43,11 @@ object Arithmetic8Bit extends OperationSpec {
     List(OpCode(0xB7),OpCode(0xB0),OpCode(0xB1),OpCode(0xB2),OpCode(0xB3),OpCode(0xB4),OpCode(0xB5),
       OpCode(0xB6),OpCode(0xDD, 0xB6),OpCode(0xFD, 0xB6),OpCode(0xF6)) -> new Arith8BitAccum(Arith8Bit.Or),
     List(OpCode(0xBF),OpCode(0xB8),OpCode(0xB9),OpCode(0xBA),OpCode(0xBB),OpCode(0xBC),OpCode(0xBD),
-      OpCode(0xBE),OpCode(0xDD, 0xBE),OpCode(0xFD, 0xBE),OpCode(0xFE)) -> new Arith8BitFlagsOnly(Arith8Bit.Comp)
-
+      OpCode(0xBE),OpCode(0xDD, 0xBE),OpCode(0xFD, 0xBE),OpCode(0xFE)) -> new Arith8BitFlagsOnly(Arith8Bit.Comp),
+    List(OpCode(0x3C),OpCode(0x04),OpCode(0x0C),OpCode(0x14),OpCode(0x1C),OpCode(0x24),OpCode(0x2C),
+      OpCode(0x34),OpCode(0xDD, 0x34),OpCode(0xFD, 0x34)) -> new Arith8BitLocation(Arith8Bit.Inc),
+    List(OpCode(0x3D),OpCode(0x05),OpCode(0x0D),OpCode(0x15),OpCode(0x1D),OpCode(0x25),OpCode(0x2D),
+      OpCode(0x35),OpCode(0xDD, 0x35),OpCode(0xFD, 0x35)) -> new Arith8BitLocation(Arith8Bit.Dec)
   )
 
   val arithOperation: OpCodeMap[Arith8BitBase] = new OpCodeMap(arithOperationListMap, Arith8BitBase.empty)
