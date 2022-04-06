@@ -31,7 +31,7 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Block%20transfer-Planned-white.svg"/></a>
 
-<img src="https://img.shields.io/badge/8--bit%20arithmetic-In%20progress-blue.svg"/></a>
+<img src="https://img.shields.io/badge/8--bit%20arithmetic-Done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/16--bit%20arithmetic-Planned-white.svg"/></a>
 
