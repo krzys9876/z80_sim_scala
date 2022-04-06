@@ -223,7 +223,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val (valueUnsigned,valueSigned)=operation match {
       case ArithmeticOpType.Add | ArithmeticOpType.Inc => (prevValue+operand,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand))
       //case ArithmeticOpType.Dec => (prevValue-operand,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand))
-      //case ArithmeticOpType.AddC => (prevValue+operand+carry,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand)+carry)
+      case ArithmeticOpType.AddC => (prevValue+operand+carry,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand)+carry)
       //case ArithmeticOpType.SubC => (prevValue-operand-carry,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand)-carry)
     }
     val valueOut=valueUnsigned & 0xFFFF
@@ -237,7 +237,15 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         n=false,
         valueUnsigned>valueOut
       )
-      case ArithmeticOpType.Inc | ArithmeticOpType.Inc => getRegValue("F")
+      case ArithmeticOpType.AddC => Flag.set(
+        Z80Utils.rawWordTo2Compl(valueOut)<0,
+        valueOut==0,
+        (prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF,
+        (valueSigned > 0x7FFF) || (valueSigned < -0x8000),
+        n=false,
+        valueUnsigned>valueOut
+      )
+      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => getRegValue("F")
     }
 
     /*val flagS=Z80Utils.rawWordTo2Compl(valueOut)<0
