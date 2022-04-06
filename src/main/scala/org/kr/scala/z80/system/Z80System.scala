@@ -16,6 +16,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case OpType.Load16Bit => handleLoad16Bit(opcode)
       case OpType.Exchange => handleExchange(opcode)
       case OpType.Arithmetic8Bit => handleArithmetic8Bit(opcode)
+      case OpType.Arithmetic16Bit => handleArithmetic16Bit(opcode)
       case OpType.Unknown => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
   }
@@ -126,19 +127,19 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handleArithmetic8Bit(code: OpCode):Z80System = {
-    val oper = Arithmetic8Bit.arithOperation.find(code)
+    val oper = Arithmetic8Bit.operation.find(code)
     val instrSize = Arithmetic8Bit.instSize.find(code)
     val operandLoc=Arithmetic8Bit.operand.find(code)
     val operand=getValueFromLocation(operandLoc)
 
     val chgList = oper match {
-      case o: Arith8BitAccum =>
+      case o: ArithmeticOpLocationAccum =>
         val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),operand)
         List(new RegisterChange("A", value), new RegisterChange("F", flags))
-      case o: Arith8BitFlagsOnly =>
+      case o: ArithmeticOpLocationFlags =>
         val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),operand)
         List(new RegisterChange("F", flags))
-      case o: Arith8BitLocation =>
+      case o: ArithmeticOpVariableLocation =>
         val (value, flags) = handleArithmetic8Bit(o.operation, 0, operand, changeCarry = false)
         val oldCarry=getFlagValue(Flag.C)
         operandLoc match {
@@ -160,41 +161,100 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleArithmetic8Bit(operation:ArithmeticOperation,prevValueIn:Int,operandIn:Int,changeCarry:Boolean=true):(Int,Int)={
     //http://www.z80.info/z80sflag.htm
     val (prevValue,operand)=operation match {
-      case Arith8Bit.Inc | Arith8Bit.Dec => (operandIn,1)
+      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => (operandIn,1)
       case _ => (prevValueIn,operandIn)
     }
     val carry=getFlagValue(Flag.C)
     val (valueUnsigned,valueSigned)=operation match {
-      case Arith8Bit.Add | Arith8Bit.Inc => (prevValue+operand,Z80Utils.rawByteTo2Compl(prevValue)+Z80Utils.rawByteTo2Compl(operand))
-      case Arith8Bit.AddC => (prevValue+operand+carry,Z80Utils.rawByteTo2Compl(prevValue)+Z80Utils.rawByteTo2Compl(operand)+carry)
-      case Arith8Bit.Sub | Arith8Bit.Comp | Arith8Bit.Dec => (prevValue-operand,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand))
-      case Arith8Bit.SubC => (prevValue-operand-carry,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand)-carry)
-      case Arith8Bit.And => (prevValue & operand,prevValue & operand)
-      case Arith8Bit.Xor => (prevValue ^ operand,prevValue ^ operand)
-      case Arith8Bit.Or => (prevValue | operand,prevValue | operand)
+      case ArithmeticOpType.Add | ArithmeticOpType.Inc => (prevValue+operand,Z80Utils.rawByteTo2Compl(prevValue)+Z80Utils.rawByteTo2Compl(operand))
+      case ArithmeticOpType.AddC => (prevValue+operand+carry,Z80Utils.rawByteTo2Compl(prevValue)+Z80Utils.rawByteTo2Compl(operand)+carry)
+      case ArithmeticOpType.Sub | ArithmeticOpType.Comp | ArithmeticOpType.Dec => (prevValue-operand,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand))
+      case ArithmeticOpType.SubC => (prevValue-operand-carry,Z80Utils.rawByteTo2Compl(prevValue)-Z80Utils.rawByteTo2Compl(operand)-carry)
+      case ArithmeticOpType.And => (prevValue & operand,prevValue & operand)
+      case ArithmeticOpType.Xor => (prevValue ^ operand,prevValue ^ operand)
+      case ArithmeticOpType.Or => (prevValue | operand,prevValue | operand)
     }
     val valueOut=valueUnsigned & 0xFF
     val flagS=Z80Utils.rawByteTo2Compl(valueOut)<0
     val flagP=operation match {
       //parity
-      case Arith8Bit.And | Arith8Bit.Xor | Arith8Bit.Or => Z80Utils.isEvenBits(valueUnsigned)
+      case ArithmeticOpType.And | ArithmeticOpType.Xor | ArithmeticOpType.Or => Z80Utils.isEvenBits(valueUnsigned)
       // overflow
       case _ =>
         (valueSigned > 0x7F) || (valueSigned < -0x80)
     }
     val flagZ=valueOut==0
     val (flagH,flagN,flagC)=operation match {
-      case Arith8Bit.Add | Arith8Bit.Inc => ((prevValue & 0x0F)+(operand & 0x0F)>0x0F,false,valueUnsigned>valueOut)
-      case Arith8Bit.AddC => ((prevValue & 0x0F)+(operand & 0x0F)+carry>0x0F,false,valueUnsigned>valueOut)
-      case Arith8Bit.Sub | Arith8Bit.Comp | Arith8Bit.Dec => ((prevValue & 0x0F)-(operand & 0x0F)<0x00,true,valueUnsigned<valueOut)
-      case Arith8Bit.SubC => ((prevValue & 0x0F)-(operand & 0x0F)-carry<0x00,true,valueUnsigned<valueOut)
-      case Arith8Bit.And => (true,false,false)
-      case Arith8Bit.Xor | Arith8Bit.Or => (false,false,false)
+      case ArithmeticOpType.Add | ArithmeticOpType.Inc => ((prevValue & 0x0F)+(operand & 0x0F)>0x0F,false,valueUnsigned>valueOut)
+      case ArithmeticOpType.AddC => ((prevValue & 0x0F)+(operand & 0x0F)+carry>0x0F,false,valueUnsigned>valueOut)
+      case ArithmeticOpType.Sub | ArithmeticOpType.Comp | ArithmeticOpType.Dec => ((prevValue & 0x0F)-(operand & 0x0F)<0x00,true,valueUnsigned<valueOut)
+      case ArithmeticOpType.SubC => ((prevValue & 0x0F)-(operand & 0x0F)-carry<0x00,true,valueUnsigned<valueOut)
+      case ArithmeticOpType.And => (true,false,false)
+      case ArithmeticOpType.Xor | ArithmeticOpType.Or => (false,false,false)
     }
 
     val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,if(changeCarry) flagC else carry==1)
     (valueOut,newF)
   }
+
+  private def handleArithmetic16Bit(code: OpCode):Z80System = {
+    val oper = Arithmetic16Bit.operation.find(code)
+    val instrSize = Arithmetic16Bit.instSize.find(code)
+    val sourceLoc=Arithmetic16Bit.source.find(code)
+    val destLoc=Arithmetic16Bit.destination.find(code)
+    val prevValue=getValueFromLocation(sourceLoc)
+    val operand=getValueFromLocation(destLoc)
+
+    val chgList=oper match {
+      case o : ArithmeticOpVariableLocation =>
+        val (value, flags) = handleArithmetic16Bit(o.operation, prevValue, operand)
+        List(new RegisterChange(destLoc.reg, value), new RegisterChange("F", flags))
+    }
+    returnAfterChange(chgList, instrSize)
+  }
+
+  private def handleArithmetic16Bit(operation:ArithmeticOperation,prevValueIn:Int,operandIn:Int):(Int,Int)={
+    //http://www.z80.info/z80sflag.htm
+    val (prevValue,operand)=operation match {
+      //case ArithmeticOpType.Inc | ArithmeticOpType.Dec => (operandIn,1)
+      case _ => (prevValueIn,operandIn)
+    }
+    val carry=getFlagValue(Flag.C)
+    val (valueUnsigned,valueSigned)=operation match {
+      case ArithmeticOpType.Add | ArithmeticOpType.Inc => (prevValue+operand,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand))
+      //case ArithmeticOpType.Dec => (prevValue-operand,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand))
+      //case ArithmeticOpType.AddC => (prevValue+operand+carry,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand)+carry)
+      //case ArithmeticOpType.SubC => (prevValue-operand-carry,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand)-carry)
+    }
+    val valueOut=valueUnsigned & 0xFFFF
+
+    val newF=operation match {
+      case ArithmeticOpType.Add => Flag.set(
+        getFlag(Flag.S),
+        getFlag(Flag.Z),
+        ((prevValue >> 8) & 0x0F)+((operand >> 8) & 0x0F) > 0x0F,
+        getFlag(Flag.P),
+        n=false,
+        valueUnsigned>valueOut
+      )
+      case ArithmeticOpType.Inc | ArithmeticOpType.Inc => getRegValue("F")
+    }
+
+    /*val flagS=Z80Utils.rawWordTo2Compl(valueOut)<0
+    val flagP=(valueSigned > 0x7FFF) || (valueSigned < -0x8000)
+    }
+    val flagZ=valueOut==0
+    val (flagH,flagN,flagC)=operation match {
+      case ArithmeticOpType.Add | ArithmeticOpType.Inc => ((prevValue & 0x0F)+(operand & 0x0F)>0x0F,false,valueUnsigned>valueOut)
+      case ArithmeticOpType.AddC => ((prevValue & 0x0F)+(operand & 0x0F)+carry>0x0F,false,valueUnsigned>valueOut)
+      case ArithmeticOpType.Dec => ((prevValue & 0x0F)-(operand & 0x0F)<0x00,true,valueUnsigned<valueOut)
+      case ArithmeticOpType.SubC => ((prevValue & 0x0F)-(operand & 0x0F)-carry<0x00,true,valueUnsigned<valueOut)
+    }
+
+    val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)*/
+    (valueOut,newF)
+  }
+
 }
 
 object Z80System {

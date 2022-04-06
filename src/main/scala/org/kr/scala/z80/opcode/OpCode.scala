@@ -8,6 +8,7 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY) {
   lazy val isLoad16Bit:Boolean = Load16Bit.isOper(this)
   lazy val isExchange:Boolean = Exchange.isOper(this)
   lazy val isArithmetic8Bit:Boolean = Arithmetic8Bit.isOper(this)
+  lazy val isArithmetic16Bit:Boolean = Arithmetic16Bit.isOper(this)
   lazy val opType:OpType=
     isNop match {
       case true => OpType.Nop
@@ -19,7 +20,10 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY) {
             case true => OpType.Exchange
             case _ => isArithmetic8Bit match {
               case true => OpType.Arithmetic8Bit
-              case _ => OpType.Unknown
+              case _ => isArithmetic16Bit match {
+                case true => OpType.Arithmetic16Bit
+                case _ => OpType.Unknown
+              }
             }
           }
         }
@@ -41,5 +45,6 @@ object OpType {
   case object Load16Bit extends OpType("Load16Bit")
   case object Exchange extends OpType("Exchange")
   case object Arithmetic8Bit extends OpType("Arithmetic8Bit")
+  case object Arithmetic16Bit extends OpType("Arithmetic16Bit")
   case object Unknown extends OpType("Unknown")
 }
