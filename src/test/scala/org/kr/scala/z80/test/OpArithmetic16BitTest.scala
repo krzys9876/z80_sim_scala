@@ -49,4 +49,22 @@ class OpArithmetic16BitTest extends AnyFunSuite{
     testArithReg(List(("F", 0x00), ("HL", 0x1234),("BC", 0x1235)), List((0x0000, 0xED),(0x0001, 0x42)), "HL",0xFFFF, "10_1_011",2)
   }
 
+  test("run INC qq") {
+    testArithReg(List(("F", 0x00), ("BC", 0x0000)), List((0x0000, 0x03)), "BC",0x0001, "00_0_000")
+    testArithReg(List(("F", 0xFF), ("DE", 0xFFFF)), List((0x0000, 0x13)), "DE",0x0000, "11_1_111")
+    testArithReg(List(("F", 0xFF), ("HL", 0x7FFF)), List((0x0000, 0x23)), "HL",0x8000, "11_1_111")
+    testArithReg(List(("F", 0x00), ("SP", 0x7FFF)), List((0x0000, 0x33)), "SP",0x8000, "00_0_000")
+    testArithReg(List(("F", 0x00), ("IX", 0x7FFF)), List((0x0000, 0xDD),(0x0001, 0x23)), "IX",0x8000, "00_0_000",2)
+    testArithReg(List(("F", 0x00), ("IY", 0x7FFF)), List((0x0000, 0xFD),(0x0001, 0x23)), "IY",0x8000, "00_0_000",2)
+  }
+
+  test("run DEC qq") {
+    testArithReg(List(("F", 0x00), ("BC", 0x0001)), List((0x0000, 0xDB)), "BC",0x0000, "00_0_000")
+    testArithReg(List(("F", 0xFF), ("DE", 0x0000)), List((0x0000, 0x1B)), "DE",0xFFFF, "11_1_111")
+    testArithReg(List(("F", 0xFF), ("HL", 0x8000)), List((0x0000, 0x2B)), "HL",0x7FFF, "11_1_111")
+    testArithReg(List(("F", 0x00), ("SP", 0x8000)), List((0x0000, 0x3B)), "SP",0x7FFF, "00_0_000")
+    testArithReg(List(("F", 0x00), ("IX", 0x8000)), List((0x0000, 0xDD),(0x0001, 0x2B)), "IX",0x7FFF, "00_0_000",2)
+    testArithReg(List(("F", 0x00), ("IY", 0x8000)), List((0x0000, 0xFD),(0x0001, 0x2B)), "IY",0x7FFF, "00_0_000",2)
+  }
+
 }

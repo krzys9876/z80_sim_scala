@@ -216,13 +216,13 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleArithmetic16Bit(operation:ArithmeticOperation,prevValueIn:Int,operandIn:Int):(Int,Int)={
     //http://www.z80.info/z80sflag.htm
     val (prevValue,operand)=operation match {
-      //case ArithmeticOpType.Inc | ArithmeticOpType.Dec => (operandIn,1)
+      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => (operandIn,1)
       case _ => (prevValueIn,operandIn)
     }
     val carry=getFlagValue(Flag.C)
     val (valueUnsigned,valueSigned)=operation match {
       case ArithmeticOpType.Add | ArithmeticOpType.Inc => (prevValue+operand,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand))
-      //case ArithmeticOpType.Dec => (prevValue-operand,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand))
+      case ArithmeticOpType.Dec => (prevValue-operand,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand))
       case ArithmeticOpType.AddC => (prevValue+operand+carry,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand)+carry)
       case ArithmeticOpType.SubC => (prevValue-operand-carry,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand)-carry)
     }
