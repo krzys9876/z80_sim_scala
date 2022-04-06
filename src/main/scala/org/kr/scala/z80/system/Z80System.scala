@@ -232,7 +232,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case ArithmeticOpType.Add => Flag.set(
         getFlag(Flag.S),
         getFlag(Flag.Z),
-        ((prevValue >> 8) & 0x0F)+((operand >> 8) & 0x0F) > 0x0F,
+        (prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF,
         getFlag(Flag.P),
         n=false,
         valueUnsigned>valueOut
