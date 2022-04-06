@@ -139,23 +139,25 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),operand)
         List(new RegisterChange("F", flags))
       case o: Arith8BitLocation =>
-        val (value, flags) = handleArithmetic8Bit(o.operation, 0, operand)
+        val (value, flags) = handleArithmetic8Bit(o.operation, 0, operand, changeCarry = false)
         val oldCarry=getFlagValue(Flag.C)
         operandLoc match {
           case LoadLocation(r,_,_,_,_,_) if r!="" =>
-            List(new RegisterChange(r,value),new RegisterChange("F",(flags & 0xFE) + oldCarry))
-          /*case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
-            val address=getWordFromPC(pco)
-            List(new MemoryChangeWord(address,value))
-          case LoadLocation(_,_,_,r,dirO,_) if r!="" && dirO!=OpCode.ANY =>
-            List(new MemoryChangeWord(getAddressFromReg(r,dirO),value),
-              new RegisterChangeRelative("SP",stackChange))*/
+            List(new RegisterChange(r,value),new RegisterChange("F",flags))
+          case LoadLocation(_,_,_,r,_,indirO) if r!="" =>
+            indirO match {
+              case OpCode.ANY => getAddressFromReg(r, 0)
+                List(new MemoryChangeByte(getAddressFromReg(r, 0), value), new RegisterChange("F",flags))
+              case indirOff2Compl =>
+                List(new MemoryChangeByte(getAddressFromReg(r, Z80Utils.rawByteTo2Compl(getByteFromPC(indirOff2Compl))), value),
+                  new RegisterChange("F",flags))
+            }
         }
     }
     returnAfterChange(chgList, instrSize)
   }
 
-  private def handleArithmetic8Bit(operation:ArithmeticOperation,prevValueIn:Int,operandIn:Int):(Int,Int)={
+  private def handleArithmetic8Bit(operation:ArithmeticOperation,prevValueIn:Int,operandIn:Int,changeCarry:Boolean=true):(Int,Int)={
     //http://www.z80.info/z80sflag.htm
     val (prevValue,operand)=operation match {
       case Arith8Bit.Inc | Arith8Bit.Dec => (operandIn,1)
@@ -190,7 +192,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case Arith8Bit.Xor | Arith8Bit.Or => (false,false,false)
     }
 
-    val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)
+    val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,if(changeCarry) flagC else carry==1)
     (valueOut,newF)
   }
 }
