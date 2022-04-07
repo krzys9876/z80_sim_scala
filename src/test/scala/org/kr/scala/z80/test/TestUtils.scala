@@ -28,4 +28,20 @@ object TestUtils {
     val sysTest = sysInit >>= Z80SystemController.run(1)
     Z80SystemController(sysTest.get)
   }
+
+  def testRegOrAddrWithFlags(regList: List[(String, Int)], memList: List[(Int, Int)], resultReg: String, resultAddr: Int,
+                               result: Int, flagsAsString: String, pcAfter: Int = 1): Unit = {
+    //given when
+    val sysTest = TestUtils.prepareTest(regList, memList)
+    //then
+    assert(sysTest.get.registerController.get("PC") == pcAfter)
+    val resultTest=
+      if(resultReg!="") sysTest.get.registerController.get(resultReg)
+      else sysTest.get.memoryController.get(resultAddr)
+    assert(resultTest == result)
+    TestUtils.testFlags(sysTest.get.registerController.get, flagsAsString)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
 }

@@ -18,6 +18,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case OpType.Exchange => handleExchange(opcode)
       case OpType.Arithmetic8Bit => handleArithmetic8Bit(opcode)
       case OpType.Arithmetic16Bit => handleArithmetic16Bit(opcode)
+      case OpType.RotateShift => handleRotateShift(opcode)
       case OpType.Unknown => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
   }
@@ -248,6 +249,45 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case ArithmeticOpType.Inc | ArithmeticOpType.Dec => getRegValue("F")
     }
     (valueOut,newF)
+  }
+
+
+  private def handleRotateShift(code: OpCode):Z80System = {
+    val oper = RotateShift.operation.find(code)
+    val instrSize = RotateShift.instSize.find(code)
+    val location=RotateShift.location.find(code)
+    val prevValue=getValueFromLocation(location)
+
+    val (value, flags) = handleRotateShift(oper, prevValue)
+
+    val chgList= location match {
+      case LoadLocation(r,_,_,_,_,_) if r!="" =>
+        List(new RegisterChange(r,value))
+      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
+        (dirO,indirO) match {
+          case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
+            List(new MemoryChangeByte(getAddressFromReg(r,0),value))
+          case (OpCode.ANY,indirOff2Compl) =>
+            List(new MemoryChangeByte(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(indirOff2Compl))),value))
+        }
+    }
+    returnAfterChange(chgList++List(new RegisterChange("F", flags)),instrSize)
+  }
+
+  private def handleRotateShift(operation:ArithmeticOperation,prevValueIn:Int):(Int,Int)={
+    //http://www.z80.info/z80sflag.htm
+    val flagS=getFlag(Flag.S)
+    val flagZ=getFlag(Flag.Z)
+    val flagP=getFlag(Flag.P)
+    val carry=getFlagValue(Flag.C)
+    val (value,newCarry)=operation match {
+      case ArithmeticOpType.Rcl =>
+        val bit7=Z80Utils.getBit(prevValueIn,7)
+        val newValue=((prevValueIn << 1) & 0xFF) + (if(bit7) 1 else 0)
+        (newValue,bit7)
+    }
+    val newF=Flag.set(flagS,flagZ,h = false,p = flagP,n = false,c = newCarry)
+    (value,newF)
   }
 
 }
