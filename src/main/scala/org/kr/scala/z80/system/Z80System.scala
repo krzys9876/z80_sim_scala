@@ -8,7 +8,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val PC = registerController.get("PC")
     val oper = memoryController.get(PC)
     val oper1 = memoryController.get(PC,1)
-    val opcode = OpCode(oper,oper1)
+    val oper2 = memoryController.get(PC,3)
+    val opcode = OpCode(oper,oper1,oper2)
 
     opcode.opType match {
       case OpType.Nop => handleNop

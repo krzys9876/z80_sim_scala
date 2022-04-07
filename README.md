@@ -37,7 +37,7 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Control%20incl INT-Planned-white.svg"/></a>
 
-<img src="https://img.shields.io/badge/Rotate%20and%20shift-Planned-white.svg"/></a>
+<img src="https://img.shields.io/badge/Rotate%20and%20shift-In%20progress-blue.svg"/></a>
 
 <img src="https://img.shields.io/badge/Bit%20manipulation-Planned-white.svg"/></a>
 

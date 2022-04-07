@@ -13,6 +13,15 @@ object ArithmeticOpType {
   case object Comp extends ArithmeticOperation("CP")
   case object Inc extends ArithmeticOperation("INC")
   case object Dec extends ArithmeticOperation("DEC")
+  case object Rcl extends ArithmeticOperation("RCL")
+  case object Rrc extends ArithmeticOperation("RRC")
+  case object Rl extends ArithmeticOperation("RL")
+  case object Rr extends ArithmeticOperation("RR")
+  case object Sla extends ArithmeticOperation("SLA")
+  case object Sra extends ArithmeticOperation("SRA")
+  case object Srl extends ArithmeticOperation("SRL")
+  case object Rld extends ArithmeticOperation("RLD")
+  case object Rrd extends ArithmeticOperation("RRD")
   case object None extends ArithmeticOperation("NONE")
 }
 
