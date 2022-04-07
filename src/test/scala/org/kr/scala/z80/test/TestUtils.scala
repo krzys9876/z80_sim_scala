@@ -16,13 +16,15 @@ object TestUtils {
   def prepareTest(regList: List[(String, Int)], memList: List[(Int, Int)]): Z80SystemController = {
     //given
     val sysBlank = Z80SystemController.blank
-    val reg = regList.foldLeft(sysBlank.get.registerController)((regC, entry) =>
-      RegisterController((regC >>= RegisterController.set(entry._1, entry._2)).get))
+    val reg = regList.foldLeft(sysBlank.get.registerController)(
+      (regC, entry) => regC >>= RegisterController.set(entry._1, entry._2)
+    )
 
-    val mem = memList.foldLeft(sysBlank.get.memoryController)((memC, entry) =>
-      MemoryController((memC >>= MemoryController.poke(entry._1, entry._2)).get))
+    val mem = memList.foldLeft(sysBlank.get.memoryController)(
+      (memC, entry) => memC >>= MemoryController.poke(entry._1, entry._2)
+    )
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysInit = Z80SystemController(new Z80System(mem, reg))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     Z80SystemController(sysTest.get)
   }

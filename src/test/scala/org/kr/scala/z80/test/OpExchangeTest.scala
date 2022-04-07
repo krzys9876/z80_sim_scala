@@ -18,7 +18,7 @@ class OpExchangeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.poke(0,0xEB) // EX DE,HL
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysInit = Z80SystemController(new Z80System(mem, reg))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -40,7 +40,7 @@ class OpExchangeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.poke(0,0x08) // EX AF,AF1
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysInit = Z80SystemController(new Z80System(mem, reg))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -66,7 +66,7 @@ class OpExchangeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.poke(0,0xD9) // EXX
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysInit = Z80SystemController(new Z80System(mem, reg))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -92,7 +92,7 @@ class OpExchangeTest extends AnyFunSuite {
       MemoryController.poke(0,0xE3) >>= // EX (SP),HL
       MemoryController.pokeMulti(0x0102,Vector(0xF1,0xF2))
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysInit = Z80SystemController(new Z80System(mem, reg))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -114,7 +114,7 @@ class OpExchangeTest extends AnyFunSuite {
       MemoryController.pokeMulti(0,Vector(0xDD,0xE3)) >>= // EX (SP),IX
       MemoryController.pokeMulti(0x0103,Vector(0xE1,0xE2))
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysInit = Z80SystemController(new Z80System(mem, reg))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 2)
@@ -136,7 +136,7 @@ class OpExchangeTest extends AnyFunSuite {
       MemoryController.pokeMulti(0,Vector(0xFD,0xE3)) >>= // EX (SP),IY
       MemoryController.pokeMulti(0x0103,Vector(0xE1,0xE2))
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), RegisterController(reg.get)))
+    val sysInit = Z80SystemController(new Z80System(mem, reg))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 2)

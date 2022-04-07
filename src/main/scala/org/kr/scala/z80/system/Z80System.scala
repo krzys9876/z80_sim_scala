@@ -230,44 +230,22 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
     val newF=operation match {
       case ArithmeticOpType.Add => Flag.set(
-        getFlag(Flag.S),
-        getFlag(Flag.Z),
+        getFlag(Flag.S),getFlag(Flag.Z),
         (prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF,
-        getFlag(Flag.P),
-        n=false,
-        valueUnsigned>valueOut
+        getFlag(Flag.P),n=false,valueUnsigned>valueOut
       )
       case ArithmeticOpType.AddC => Flag.set(
-        Z80Utils.rawWordTo2Compl(valueOut)<0,
-        valueOut==0,
+        Z80Utils.rawWordTo2Compl(valueOut)<0, valueOut==0,
         (prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF,
-        (valueSigned > 0x7FFF) || (valueSigned < -0x8000),
-        n=false,
-        valueUnsigned>valueOut
+        (valueSigned > 0x7FFF) || (valueSigned < -0x8000),n=false,valueUnsigned>valueOut
       )
       case ArithmeticOpType.SubC => Flag.set(
-        Z80Utils.rawWordTo2Compl(valueOut)<0,
-        valueOut==0,
+        Z80Utils.rawWordTo2Compl(valueOut)<0,valueOut==0,
         (prevValue & 0x0FFF) - (operand & 0x0FFF) < 0x0000,
-        (valueSigned > 0x7FFF) || (valueSigned < -0x8000),
-        n=true,
-        valueUnsigned<valueOut
+        (valueSigned > 0x7FFF) || (valueSigned < -0x8000), n=true,valueUnsigned<valueOut
       )
       case ArithmeticOpType.Inc | ArithmeticOpType.Dec => getRegValue("F")
     }
-
-    /*val flagS=Z80Utils.rawWordTo2Compl(valueOut)<0
-    val flagP=(valueSigned > 0x7FFF) || (valueSigned < -0x8000)
-    }
-    val flagZ=valueOut==0
-    val (flagH,flagN,flagC)=operation match {
-      case ArithmeticOpType.Add | ArithmeticOpType.Inc => ((prevValue & 0x0F)+(operand & 0x0F)>0x0F,false,valueUnsigned>valueOut)
-      case ArithmeticOpType.AddC => ((prevValue & 0x0F)+(operand & 0x0F)+carry>0x0F,false,valueUnsigned>valueOut)
-      case ArithmeticOpType.Dec => ((prevValue & 0x0F)-(operand & 0x0F)<0x00,true,valueUnsigned<valueOut)
-      case ArithmeticOpType.SubC => ((prevValue & 0x0F)-(operand & 0x0F)-carry<0x00,true,valueUnsigned<valueOut)
-    }
-
-    val newF=Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)*/
     (valueOut,newF)
   }
 

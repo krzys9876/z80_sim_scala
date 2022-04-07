@@ -1,6 +1,7 @@
 package org.kr.scala.z80.system
 
 class MemoryController(override val state:Memory) extends BaseStateMonad[Memory](state) {
+  def >>= (fChangeState: Memory=>MemoryController):MemoryController=fChangeState(state)
 }
 
 object MemoryController {

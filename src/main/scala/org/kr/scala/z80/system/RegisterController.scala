@@ -1,6 +1,7 @@
 package org.kr.scala.z80.system
 
 class RegisterController(override val state:Register) extends BaseStateMonad[Register](state) {
+  def >>= (fChangeState: Register=>RegisterController):RegisterController=fChangeState(state)
 }
 
 object RegisterController {
