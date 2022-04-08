@@ -46,26 +46,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val value=getValueFromLocation(Load8Bit.sourceLoc.find(opcode))
     val destLoc=Load8Bit.destLoc.find(opcode)
     val instrSize=Load8Bit.instSize.find(opcode)
-    handleLoad8Bit(destLoc,value,instrSize)
+    returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
   }
 
   private def handleNop:Z80System = returnAfterChange(List[SystemChangeBase](),1)
-
-  private def handleLoad8Bit(dest:LoadLocation, value:Int, forwardPC:Int):Z80System= {
-    val change= dest match {
-      case LoadLocation(r,_,_,_,_,_) if r!="" => new RegisterChange(dest.reg,value)
-      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
-        new MemoryChangeByte(getWordFromPC(pco),value)
-      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
-        (dirO,indirO) match {
-          case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
-            new MemoryChangeByte(getAddressFromReg(r,0),value)
-          case (OpCode.ANY,indirOff2Compl) =>
-            new MemoryChangeByte(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(indirOff2Compl))),value)
-        }
-    }
-    returnAfterOneChange(change,forwardPC)
-  }
 
   private def handleLoad16Bit(opcode:OpCode):Z80System = {
     val sourceLoc=Load16Bit.sourceLoc.find(opcode)
@@ -85,17 +69,13 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handleLoad16Bit(dest:LoadLocation, value:Int, forwardPC:Int,stackChange:Int):Z80System= {
-    val chgList= dest match {
-      case LoadLocation(r,_,_,_,_,_) if r!="" =>
-        List(new RegisterChange(r,value),new RegisterChangeRelative("SP",stackChange))
-      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY =>
-        val address=getWordFromPC(pco)
-        List(new MemoryChangeWord(address,value))
-      case LoadLocation(_,_,_,r,dirO,_) if r!="" && dirO!=OpCode.ANY =>
-        List(new MemoryChangeWord(getAddressFromReg(r,dirO),value),
-          new RegisterChangeRelative("SP",stackChange))
+    val chgList= List(putValueToLocation(dest,value,isWord = true))
+    val stackChgList=dest match {
+      case LoadLocation(r,_,_,rd,dirO,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
+        List(new RegisterChangeRelative("SP",stackChange))
+      case _ => List()
     }
-    returnAfterChange(chgList,forwardPC)
+    returnAfterChange(chgList++stackChgList,forwardPC)
   }
 
   private def getValueFromLocation(loc:LoadLocation):Int =
@@ -108,6 +88,23 @@ class Z80System(val memoryController: MemoryController, val registerController: 
           case (OpCode.ANY,OpCode.ANY) => getByteFromReg(r,0)
           case (o,OpCode.ANY) => getByteFromReg(r,o)
           case (OpCode.ANY,off2Compl) => getByteFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(off2Compl)))
+        }
+    }
+
+  private def putValueToMemory(address:Int, value:Int, isWord:Boolean):SystemChangeBase =
+    if(isWord) new MemoryChangeWord(address,value)
+    else new MemoryChangeByte(address,value)
+
+  private def putValueToLocation(location:LoadLocation,value:Int,isWord:Boolean=false):SystemChangeBase =
+    location match {
+      case LoadLocation(r,_,_,_,_,_) if r!="" => new RegisterChange(r,value)
+      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromPC(pco),value,isWord)
+      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
+        (dirO,indirO) match {
+          case (dirO,OpCode.ANY) if dirO!=OpCode.ANY => putValueToMemory(getAddressFromReg(r,dirO),value,isWord)
+          case (OpCode.ANY,OpCode.ANY) => putValueToMemory(getAddressFromReg(r,0),value,isWord)
+          case (OpCode.ANY,indirOff2Compl) =>
+            putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(indirOff2Compl))),value,isWord)
         }
     }
 
@@ -134,30 +131,22 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val operandLoc=Arithmetic8Bit.operand.find(code)
     val operand=getValueFromLocation(operandLoc)
 
-    val chgList = oper match {
+    val (value,destLocation,flags) = oper match {
       case o: ArithmeticOpLocationAccum =>
         val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),operand)
-        List(new RegisterChange("A", value), new RegisterChange("F", flags))
+        (value,LoadLocation.register("A"),flags)
       case o: ArithmeticOpLocationFlags =>
         val (value, flags) = handleArithmetic8Bit(o.operation, getRegValue("A"),operand)
-        List(new RegisterChange("F", flags))
+        (value,LoadLocation.empty,flags)
       case o: ArithmeticOpVariableLocation =>
         val (value, flags) = handleArithmetic8Bit(o.operation, 0, operand, changeCarry = false)
-        val oldCarry=getFlagValue(Flag.C)
-        operandLoc match {
-          case LoadLocation(r,_,_,_,_,_) if r!="" =>
-            List(new RegisterChange(r,value),new RegisterChange("F",flags))
-          case LoadLocation(_,_,_,r,_,indirO) if r!="" =>
-            indirO match {
-              case OpCode.ANY => getAddressFromReg(r, 0)
-                List(new MemoryChangeByte(getAddressFromReg(r, 0), value), new RegisterChange("F",flags))
-              case indirOff2Compl =>
-                List(new MemoryChangeByte(getAddressFromReg(r, Z80Utils.rawByteTo2Compl(getByteFromPC(indirOff2Compl))), value),
-                  new RegisterChange("F",flags))
-            }
-        }
+        (value,operandLoc,flags)
     }
-    returnAfterChange(chgList, instrSize)
+    val chgList=destLocation match {
+      case loc if loc==LoadLocation.empty => List()
+      case _ => List(putValueToLocation(destLocation,value))
+    }
+    returnAfterChange(chgList++List(new RegisterChange("F", flags)), instrSize)
   }
 
   private def handleArithmetic8Bit(operation:ArithmeticOperation,prevValueIn:Int,operandIn:Int,changeCarry:Boolean=true):(Int,Int)={
@@ -210,7 +199,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val chgList=oper match {
       case o : ArithmeticOpVariableLocation =>
         val (value, flags) = handleArithmetic16Bit(o.operation, prevValue, operand)
-        List(new RegisterChange(destLoc.reg, value), new RegisterChange("F", flags))
+        List(putValueToLocation(destLoc,value), new RegisterChange("F", flags))
     }
     returnAfterChange(chgList, instrSize)
   }
@@ -259,19 +248,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val prevValue=getValueFromLocation(location)
 
     val (value, flags) = handleRotateShift(oper, prevValue)
+    val change=putValueToLocation(location,value)
 
-    val chgList= location match {
-      case LoadLocation(r,_,_,_,_,_) if r!="" =>
-        List(new RegisterChange(r,value))
-      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
-        (dirO,indirO) match {
-          case (OpCode.ANY,OpCode.ANY) => getAddressFromReg(r,0)
-            List(new MemoryChangeByte(getAddressFromReg(r,0),value))
-          case (OpCode.ANY,indirOff2Compl) =>
-            List(new MemoryChangeByte(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromPC(indirOff2Compl))),value))
-        }
-    }
-    returnAfterChange(chgList++List(new RegisterChange("F", flags)),instrSize)
+    returnAfterChange(List(change,new RegisterChange("F", flags)),instrSize)
   }
 
   private def handleRotateShift(operation:ArithmeticOperation,prevValueIn:Int):(Int,Int)={
