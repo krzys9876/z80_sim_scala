@@ -13,7 +13,7 @@ object ArithmeticOpType {
   case object Comp extends ArithmeticOperation("CP")
   case object Inc extends ArithmeticOperation("INC")
   case object Dec extends ArithmeticOperation("DEC")
-  case object Rcl extends ArithmeticOperation("RCL")
+  case object Rlc extends ArithmeticOperation("RLC")
   case object Rrc extends ArithmeticOperation("RRC")
   case object Rl extends ArithmeticOperation("RL")
   case object Rr extends ArithmeticOperation("RR")
