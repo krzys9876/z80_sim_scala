@@ -258,7 +258,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val flagS=getFlag(Flag.S)
     val flagZ=getFlag(Flag.Z)
     val flagP=getFlag(Flag.P)
-    val carry=getFlagValue(Flag.C)
+    val prevCarry=getFlagValue(Flag.C)
     val (value,newCarry)=operation match {
       case ArithmeticOpType.Rlc =>
         val bit7=Z80Utils.getBit(prevValueIn,7)
@@ -267,6 +267,14 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case ArithmeticOpType.Rrc =>
         val bit0=Z80Utils.getBit(prevValueIn,0)
         val newValue=((prevValueIn >> 1) & 0xFF) + (if(bit0) 0x80 else 0)
+        (newValue,bit0)
+      case ArithmeticOpType.Rl =>
+        val bit7=Z80Utils.getBit(prevValueIn,7)
+        val newValue=((prevValueIn << 1) & 0xFF) + prevCarry
+        (newValue,bit7)
+      case ArithmeticOpType.Rr =>
+        val bit0=Z80Utils.getBit(prevValueIn,0)
+        val newValue=((prevValueIn >> 1) & 0xFF) + (prevCarry << 7)
         (newValue,bit0)
     }
     val newF=Flag.set(flagS,flagZ,h = false,p = flagP,n = false,c = newCarry)
