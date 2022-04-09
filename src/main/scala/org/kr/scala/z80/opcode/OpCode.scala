@@ -17,6 +17,12 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
       case 3 => OpCode(main,supp,value)
     }
 
+  def getCode(codeNo:Int):Int=
+    codeNo match {
+      case 1 => main
+      case 2 => supp
+      case 3 => supp2
+    }
 }
 
 object OpCode {
@@ -30,22 +36,34 @@ object OpCode {
     4->LoadLocation.register("H"),
     5->LoadLocation.register("L"))
 
-  def codeGenReg(base:Int,bit:Int):Map[Int,LoadLocation]={
+  private def codeGenReg(base:Int,bit:Int):Map[Int,LoadLocation]={
     val baseOper=base & (~(0x07 << bit))
     registerMap.foldLeft(Map[Int,LoadLocation]())((m,entry)=>m++Map(baseOper+(entry._1 << bit)->entry._2))
   }
 
-  def opCodeGenReg(base:OpCode,codeNo:Int,bit:Int):Map[List[OpCode],LoadLocation]={
-    val numBase=codeNo match {
-      case 1 => base.main
-      case 2 => base.supp
-      case 3 => base.supp2
-    }
-    val numMap=codeGenReg(numBase,bit)
-    numMap.map(entry=>List(base.replaceCode(codeNo,entry._1))->entry._2)
+  private def codeGenBit(base:Int,bit:Int):Map[Int,Int]={
+    val baseOper=base & (~(0x07 << bit))
+    List.range(0,8).foldLeft(Map[Int,Int]())((m,elem)=>m++Map(baseOper+(elem << bit)->elem))
   }
-  def opCodeGen(base:OpCode,codeNo:Int,bit:Int):List[OpCode]=
-    opCodeGenReg(base, codeNo, bit).keys.flatten.toList
+
+  private def mapToOpCodeMap[To](base:OpCode,codeNo:Int,baseMap:Map[Int,To]):Map[List[OpCode],To]=
+    baseMap.map(entry=>List(base.replaceCode(codeNo,entry._1))->entry._2)
+
+  def generateMapByReg(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],LoadLocation]={
+    val regMap=codeGenReg(base.getCode(codeNo),bit)
+    mapToOpCodeMap[LoadLocation](base,codeNo,regMap)
+  }
+
+  def generateMapByBit(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],Int]={
+    val bitMap=codeGenBit(base.getCode(codeNo),bit)
+    mapToOpCodeMap[Int](base,codeNo,bitMap)
+  }
+
+  def generateListByReg(base:OpCode, codeNo:Int, bit:Int):List[OpCode]=
+    generateMapByReg(base, codeNo, bit).keys.flatten.toList
+
+  def generateListByBit(base:OpCode, codeNo:Int, bit:Int):List[OpCode]=
+    generateMapByBit(base, codeNo, bit).keys.flatten.toList
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}

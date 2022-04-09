@@ -48,16 +48,16 @@ object Arithmetic8Bit extends OperationSpec {
       OpCode(0xFE)) -> LoadLocation.registerAddrDirOffset("PC", 1)
   )++
     //register
-    OpCode.opCodeGenReg(OpCode(0x80),1,0)++
-    OpCode.opCodeGenReg(OpCode(0x88),1,0)++
-    OpCode.opCodeGenReg(OpCode(0x90),1,0)++
-    OpCode.opCodeGenReg(OpCode(0x98),1,0)++
-    OpCode.opCodeGenReg(OpCode(0xA0),1,0)++
-    OpCode.opCodeGenReg(OpCode(0xA8),1,0)++
-    OpCode.opCodeGenReg(OpCode(0xB0),1,0)++
-    OpCode.opCodeGenReg(OpCode(0xB8),1,0)++
-    OpCode.opCodeGenReg(OpCode(0x04),1,3)++
-    OpCode.opCodeGenReg(OpCode(0x05),1,3)
+    OpCode.generateMapByReg(OpCode(0x80),1,0)++
+    OpCode.generateMapByReg(OpCode(0x88),1,0)++
+    OpCode.generateMapByReg(OpCode(0x90),1,0)++
+    OpCode.generateMapByReg(OpCode(0x98),1,0)++
+    OpCode.generateMapByReg(OpCode(0xA0),1,0)++
+    OpCode.generateMapByReg(OpCode(0xA8),1,0)++
+    OpCode.generateMapByReg(OpCode(0xB0),1,0)++
+    OpCode.generateMapByReg(OpCode(0xB8),1,0)++
+    OpCode.generateMapByReg(OpCode(0x04),1,3)++
+    OpCode.generateMapByReg(OpCode(0x05),1,3)
 
   val operand: OpCodeMap[LoadLocation] = new OpCodeMap(operandListMap, LoadLocation.empty)
 
@@ -71,16 +71,16 @@ object Arithmetic8Bit extends OperationSpec {
       OpCode(0xFD, 0x86),OpCode(0xFD, 0x8E),OpCode(0xFD, 0x96),OpCode(0xFD, 0x9E),
       OpCode(0xFD, 0xA6),OpCode(0xFD, 0xAE),OpCode(0xFD, 0xB6),OpCode(0xFD, 0xBE),
       OpCode(0xFD, 0x34),OpCode(0xFD, 0x35)) -> 3,
-      OpCode.opCodeGen(OpCode(0x80),1,0)->1,
-      OpCode.opCodeGen(OpCode(0x88),1,0)->1,
-      OpCode.opCodeGen(OpCode(0x90),1,0)->1,
-      OpCode.opCodeGen(OpCode(0x98),1,0)->1,
-      OpCode.opCodeGen(OpCode(0xA0),1,0)->1,
-      OpCode.opCodeGen(OpCode(0xA8),1,0)->1,
-      OpCode.opCodeGen(OpCode(0xB0),1,0)->1,
-      OpCode.opCodeGen(OpCode(0xB8),1,0)->1,
-      OpCode.opCodeGen(OpCode(0x04),1,3)->1,
-      OpCode.opCodeGen(OpCode(0x05),1,3)->1
+      OpCode.generateListByReg(OpCode(0x80),1,0)->1,
+      OpCode.generateListByReg(OpCode(0x88),1,0)->1,
+      OpCode.generateListByReg(OpCode(0x90),1,0)->1,
+      OpCode.generateListByReg(OpCode(0x98),1,0)->1,
+      OpCode.generateListByReg(OpCode(0xA0),1,0)->1,
+      OpCode.generateListByReg(OpCode(0xA8),1,0)->1,
+      OpCode.generateListByReg(OpCode(0xB0),1,0)->1,
+      OpCode.generateListByReg(OpCode(0xB8),1,0)->1,
+      OpCode.generateListByReg(OpCode(0x04),1,3)->1,
+      OpCode.generateListByReg(OpCode(0x05),1,3)->1
   )
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
 

@@ -44,13 +44,13 @@ object RotateShift extends OperationSpec {
     ) -> LoadLocation.registerAddrIndirOffset("IY",2)
   )++
   //registers
-    OpCode.opCodeGenReg(OpCode(0xCB,0x00),2,0)++
-    OpCode.opCodeGenReg(OpCode(0xCB,0x08),2,0)++
-    OpCode.opCodeGenReg(OpCode(0xCB,0x10),2,0)++
-    OpCode.opCodeGenReg(OpCode(0xCB,0x18),2,0)++
-    OpCode.opCodeGenReg(OpCode(0xCB,0x20),2,0)++
-    OpCode.opCodeGenReg(OpCode(0xCB,0x28),2,0)++
-    OpCode.opCodeGenReg(OpCode(0xCB,0x03),2,0)
+    OpCode.generateMapByReg(OpCode(0xCB,0x00),2,0)++
+    OpCode.generateMapByReg(OpCode(0xCB,0x08),2,0)++
+    OpCode.generateMapByReg(OpCode(0xCB,0x10),2,0)++
+    OpCode.generateMapByReg(OpCode(0xCB,0x18),2,0)++
+    OpCode.generateMapByReg(OpCode(0xCB,0x20),2,0)++
+    OpCode.generateMapByReg(OpCode(0xCB,0x28),2,0)++
+    OpCode.generateMapByReg(OpCode(0xCB,0x03),2,0)
 
   val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
 
@@ -62,13 +62,13 @@ object RotateShift extends OperationSpec {
       OpCode(0xDD,0xCB,0x16),OpCode(0xFD,0xCB,0x16),OpCode(0xDD,0xCB,0x1E),OpCode(0xFD,0xCB,0x1E),
       OpCode(0xDD,0xCB,0x26),OpCode(0xFD,0xCB,0x26),OpCode(0xDD,0xCB,0x2E),OpCode(0xFD,0xCB,0x2E),
       OpCode(0xDD,0xCB,0x3E),OpCode(0xFD,0xCB,0x3E)) ->4,
-    OpCode.opCodeGen(OpCode(0xCB,0x00),2,0)->2,
-    OpCode.opCodeGen(OpCode(0xCB,0x08),2,0)->2,
-    OpCode.opCodeGen(OpCode(0xCB,0x10),2,0)->2,
-    OpCode.opCodeGen(OpCode(0xCB,0x18),2,0)->2,
-    OpCode.opCodeGen(OpCode(0xCB,0x20),2,0)->2,
-    OpCode.opCodeGen(OpCode(0xCB,0x28),2,0)->2,
-    OpCode.opCodeGen(OpCode(0xCB,0x38),2,0)->2
+    OpCode.generateListByReg(OpCode(0xCB,0x00),2,0)->2,
+    OpCode.generateListByReg(OpCode(0xCB,0x08),2,0)->2,
+    OpCode.generateListByReg(OpCode(0xCB,0x10),2,0)->2,
+    OpCode.generateListByReg(OpCode(0xCB,0x18),2,0)->2,
+    OpCode.generateListByReg(OpCode(0xCB,0x20),2,0)->2,
+    OpCode.generateListByReg(OpCode(0xCB,0x28),2,0)->2,
+    OpCode.generateListByReg(OpCode(0xCB,0x38),2,0)->2
   )
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
 }
