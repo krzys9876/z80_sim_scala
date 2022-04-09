@@ -37,9 +37,9 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Control%20incl INT-Planned-white.svg"/></a>
 
-<img src="https://img.shields.io/badge/Rotate%20and%20shift-done-green.svg"/></a>
+<img src="https://img.shields.io/badge/Rotate%20and%20shift-Done-green.svg"/></a>
 
-<img src="https://img.shields.io/badge/Bit%20manipulation-Planned-white.svg"/></a>
+<img src="https://img.shields.io/badge/Bit%20manipulation-In%20progress-blue.svg"/></a>
 
 <img src="https://img.shields.io/badge/Jump%20call%20return-Planned-white.svg"/></a>
 
