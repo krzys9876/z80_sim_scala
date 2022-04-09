@@ -6,28 +6,27 @@ import org.kr.scala.z80.utils.Z80Utils
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController) {
   def step:Z80System= {
     val PC = registerController.get("PC")
-    val oper = memoryController.get(PC)
-    val oper1 = memoryController.get(PC,1)
-    val oper2 = memoryController.get(PC,3)
-    val opcode = OpCode(oper,oper1,oper2)
+    val opcode = OpCode(
+      memoryController.get(PC),
+      memoryController.get(PC,1),
+      memoryController.get(PC,3))
 
-    opcode.opTypeSpec match {
-      case Nop => handleNop(opcode)
-      case Load8Bit => handleLoad8Bit(opcode)
-      case Load16Bit => handleLoad16Bit(opcode)
-      case Exchange => handleExchange(opcode)
-      case Arithmetic8Bit => handleArithmetic8Bit(opcode)
-      case Arithmetic16Bit => handleArithmetic16Bit(opcode)
-      case RotateShift => handleRotateShift(opcode)
-      case RotateDigit => handleRotateDigit(opcode)
-      case Unknown => handleUnknown(opcode)
-    }
+    val opTypeSpec=specsHandlerMap.keys.find(_.isOper(opcode)).getOrElse(Unknown)
+    val opCodeHandler=specsHandlerMap.getOrElse(opTypeSpec, handleUnknown(_))
+    opCodeHandler(opcode)
   }
 
-  private def handleUnknown(code: OpCode):Z80System = {
-    throw new UnknownOperationException(f"Unknown operation $code at ${getRegValue("PC")}")
-    this
-  }
+  private val specsHandlerMap:Map[OperationSpec,OpCode=>Z80System]=Map(
+    Load8Bit->handleLoad8Bit,
+    Load16Bit->handleLoad16Bit,
+    Exchange->handleExchange,
+    Arithmetic8Bit->handleArithmetic8Bit,
+    Arithmetic16Bit->handleArithmetic16Bit,
+    RotateShift->handleRotateShift,
+    RotateDigit->handleRotateDigit,
+    Nop->handleNop,
+    Unknown->handleUnknown
+  )
 
   private def getRegValue(symbol:String):Int=registerController.get(symbol)
   private def getFlag(flag:FlagSymbol):Boolean=registerController.get(flag)
@@ -48,16 +47,21 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private def returnAfterOneChange(chg:SystemChangeBase,forwardPC:Int):Z80System = returnAfterChange(List(chg),forwardPC)
 
-  private def handleLoad8Bit(opcode:OpCode):Z80System = {
-    val value=getValueFromLocation(Load8Bit.sourceLoc.find(opcode))
-    val destLoc=Load8Bit.destLoc.find(opcode)
-    val instrSize=Load8Bit.instSize.find(opcode)
-    returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
+  private def handleUnknown(code: OpCode):Z80System = {
+    throw new UnknownOperationException(f"Unknown operation $code at ${getRegValue("PC")}")
+    this
   }
 
   private def handleNop(code:OpCode):Z80System = {
     val instrSize=Nop.instSize.find(code)
     returnAfterChange(List[SystemChangeBase](),instrSize)
+  }
+
+  private def handleLoad8Bit(opcode:OpCode):Z80System = {
+    val value=getValueFromLocation(Load8Bit.sourceLoc.find(opcode))
+    val destLoc=Load8Bit.destLoc.find(opcode)
+    val instrSize=Load8Bit.instSize.find(opcode)
+    returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
   }
 
   private def handleLoad16Bit(opcode:OpCode):Z80System = {

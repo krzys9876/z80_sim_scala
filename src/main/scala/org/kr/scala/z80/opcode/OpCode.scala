@@ -9,13 +9,10 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   supp2 - second supplementary OpCode for 4-byte opcodes (some IX+d/IY+d) (4th byte)
    */
   override def toString: String = f"OpCode($main${if(supp!=OpCode.ANY) ","+supp}${if(supp2!=OpCode.ANY) ","+supp2})"
-  lazy val opTypeSpec:OperationSpec=OpCode.specs.find(_.isOper(this)).getOrElse(Unknown)
 }
 
 object OpCode {
   val ANY:Int = Int.MinValue
-  val specs:List[OperationSpec]=
-    List(Load8Bit,Load16Bit,Exchange,Arithmetic8Bit,Arithmetic16Bit,RotateShift,RotateDigit,Nop,Unknown)
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}
