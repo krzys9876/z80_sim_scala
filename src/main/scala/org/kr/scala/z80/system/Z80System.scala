@@ -266,10 +266,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca => ((prevValueIn >> 1) & 0xFF) + (if(bit0) 0x80 else 0)
       case ArithmeticOpType.Rl | ArithmeticOpType.Rla => ((prevValueIn << 1) & 0xFF) + prevCarry
       case ArithmeticOpType.Rr | ArithmeticOpType.Rra => ((prevValueIn >> 1) & 0xFF) + (prevCarry << 7)
+      case ArithmeticOpType.Sla => (prevValueIn << 1) & 0xFF
     }
 
     val newCarry=operation match {
-      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca => bit7
+      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca | ArithmeticOpType.Sla => bit7
       case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca => bit0
       case ArithmeticOpType.Rl | ArithmeticOpType.Rla => bit7
       case ArithmeticOpType.Rr | ArithmeticOpType.Rra => bit0
