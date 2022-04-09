@@ -19,6 +19,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case OpType.Arithmetic8Bit => handleArithmetic8Bit(opcode)
       case OpType.Arithmetic16Bit => handleArithmetic16Bit(opcode)
       case OpType.RotateShift => handleRotateShift(opcode)
+      case OpType.RotateDigit => handleRotateDigit(opcode)
       case OpType.Unknown => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
     }
   }
@@ -290,6 +291,39 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     (valueOut,newF)
   }
 
+  private def handleRotateDigit(code: OpCode):Z80System = {
+    val oper = RotateDigit.operation.find(code)
+    val instrSize = RotateDigit.instSize.find(code)
+    val location=RotateDigit.location.find(code)
+    val prevValueR=getValueFromLocation(location)
+    val prevValueA=getRegValue("A")
+
+    val (valueR, valueA, flags) = handleRotateDigit(oper, prevValueR, prevValueA)
+    val change=List(putValueToLocation(location,valueR),new RegisterChange("A",valueA))
+
+    returnAfterChange(change++List(new RegisterChange("F", flags)),instrSize)
+  }
+
+  private def handleRotateDigit(operation:ArithmeticOperation,prevValueR:Int,prevValueA:Int):(Int,Int,Int)={
+    //http://www.z80.info/z80sflag.htm
+    val prevCarry=getFlag(Flag.C)
+    val digit1A=(prevValueA & 0xF0) >> 4
+    val digit2A=prevValueA & 0x0F
+    val digit1R=(prevValueR & 0xF0) >> 4
+    val digit2R=prevValueR & 0x0F
+    val (valueOutR, valueOutA)=operation match {
+      case ArithmeticOpType.Rld => ((digit2R << 4) + digit2A,(digit1A << 4) + digit1R)
+      case ArithmeticOpType.Rrd => ((digit2A << 4) + digit1R,(digit1A << 4) + digit2R)
+    }
+
+    val valueSigned=Z80Utils.rawByteTo2Compl(valueOutA)
+    val flagS=valueSigned<0
+    val flagZ=valueOutA==0
+    val flagP=Z80Utils.isEvenBits(valueOutA)
+
+    val newF=Flag.set(flagS,flagZ,h = false,flagP,n = false,prevCarry)
+    (valueOutR,valueOutA,newF)
+  }
 }
 
 object Z80System {

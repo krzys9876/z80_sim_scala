@@ -17,6 +17,7 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   lazy val isArithmetic8Bit:Boolean = Arithmetic8Bit.isOper(this)
   lazy val isArithmetic16Bit:Boolean = Arithmetic16Bit.isOper(this)
   lazy val isRotateShift:Boolean = RotateShift.isOper(this)
+  lazy val isRotateDigit:Boolean = RotateDigit.isOper(this)
   lazy val opType:OpType=
     isNop match {
       case true => OpType.Nop
@@ -32,7 +33,10 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
                 case true => OpType.Arithmetic16Bit
                 case _ => isRotateShift match {
                   case true => OpType.RotateShift
-                  case _ => OpType.Unknown
+                  case _ => isRotateDigit match {
+                    case true => OpType.RotateDigit
+                    case _ => OpType.Unknown
+                  }
                 }
               }
             }
@@ -58,5 +62,6 @@ object OpType {
   case object Arithmetic8Bit extends OpType("Arithmetic8Bit")
   case object Arithmetic16Bit extends OpType("Arithmetic16Bit")
   case object RotateShift extends OpType("RotateShift")
+  case object RotateDigit extends OpType("RotateDigit")
   case object Unknown extends OpType("Unknown")
 }
