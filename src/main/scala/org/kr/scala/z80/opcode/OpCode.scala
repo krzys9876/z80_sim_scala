@@ -10,40 +10,17 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
    */
   override def toString: String = f"OpCode($main${if(supp!=OpCode.ANY) ","+supp}${if(supp2!=OpCode.ANY) ","+supp2})"
 
-  lazy val isNop:Boolean = main==0
-  lazy val isLoad8Bit:Boolean = Load8Bit.isOper(this)
-  lazy val isLoad16Bit:Boolean = Load16Bit.isOper(this)
-  lazy val isExchange:Boolean = Exchange.isOper(this)
-  lazy val isArithmetic8Bit:Boolean = Arithmetic8Bit.isOper(this)
-  lazy val isArithmetic16Bit:Boolean = Arithmetic16Bit.isOper(this)
-  lazy val isRotateShift:Boolean = RotateShift.isOper(this)
-  lazy val isRotateDigit:Boolean = RotateDigit.isOper(this)
-  lazy val opType:OpType=
-    isNop match {
-      case true => OpType.Nop
-      case _ => isLoad8Bit match {
-        case true => OpType.Load8Bit
-        case _ => isLoad16Bit match {
-          case true => OpType.Load16Bit
-          case _ => isExchange match {
-            case true => OpType.Exchange
-            case _ => isArithmetic8Bit match {
-              case true => OpType.Arithmetic8Bit
-              case _ => isArithmetic16Bit match {
-                case true => OpType.Arithmetic16Bit
-                case _ => isRotateShift match {
-                  case true => OpType.RotateShift
-                  case _ => isRotateDigit match {
-                    case true => OpType.RotateDigit
-                    case _ => OpType.Unknown
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+  lazy val isNop:Option[OpType] = Nop.opType(this)
+  lazy val isLoad8Bit:Option[OpType] = Load8Bit.opType(this)
+  lazy val isLoad16Bit:Option[OpType] = Load16Bit.opType(this)
+  lazy val isExchange:Option[OpType] = Exchange.opType(this)
+  lazy val isArithmetic8Bit:Option[OpType] = Arithmetic8Bit.opType(this)
+  lazy val isArithmetic16Bit:Option[OpType] = Arithmetic16Bit.opType(this)
+  lazy val isRotateShift:Option[OpType] = RotateShift.opType(this)
+  lazy val isRotateDigit:Option[OpType] = RotateDigit.opType(this)
+
+  lazy val opTypeList:List[Option[OpType]]=OpType.specs.map(_.opType(this))
+  lazy val opType:OpType= if(main==0) OpType.NopType else opTypeList.find(_.isDefined).flatten.getOrElse(OpType.UnknownType)
 }
 
 object OpCode {
@@ -55,13 +32,15 @@ class UnknownOperationException(message : String) extends Exception(message) {}
 sealed abstract class OpType(name:String)
 
 object OpType {
-  case object Nop extends OpType("NOP")
-  case object Load8Bit extends OpType("Load8Bit")
-  case object Load16Bit extends OpType("Load16Bit")
-  case object Exchange extends OpType("Exchange")
-  case object Arithmetic8Bit extends OpType("Arithmetic8Bit")
-  case object Arithmetic16Bit extends OpType("Arithmetic16Bit")
-  case object RotateShift extends OpType("RotateShift")
-  case object RotateDigit extends OpType("RotateDigit")
-  case object Unknown extends OpType("Unknown")
+  case object NopType extends OpType("NOP")
+  case object Load8BitType extends OpType("Load8Bit")
+  case object Load16BitType extends OpType("Load16Bit")
+  case object ExchangeType extends OpType("Exchange")
+  case object Arithmetic8BitType extends OpType("Arithmetic8Bit")
+  case object Arithmetic16BitType extends OpType("Arithmetic16Bit")
+  case object RotateShiftType extends OpType("RotateShift")
+  case object RotateDigitType extends OpType("RotateDigit")
+  case object UnknownType extends OpType("Unknown")
+
+  val specs:List[OperationSpec]=List(Load8Bit,Load16Bit,Exchange,Arithmetic8Bit,Arithmetic16Bit,RotateShift,RotateDigit,Nop)
 }

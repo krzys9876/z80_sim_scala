@@ -3,7 +3,7 @@ package org.kr.scala.z80.test
 import org.kr.scala.z80.system.{MemoryController, RegisterController, Z80System, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
-class OpLoad16BitTest extends AnyFunSuite {
+class OpLoad16BitTypeTest extends AnyFunSuite {
   // TEST LOAD 16-BIT
 
   test("run LD dd,nn") {

@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-object Arithmetic8Bit extends OperationSpec {
+object Arithmetic8Bit extends OperationSpec(OpType.Arithmetic8BitType) {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
   val operationListMap: Map[List[OpCode],AritheticOpLocationBase] = Map(
     List(OpCode(0x87),OpCode(0x80),OpCode(0x81),OpCode(0x82),OpCode(0x83),OpCode(0x84),OpCode(0x85),

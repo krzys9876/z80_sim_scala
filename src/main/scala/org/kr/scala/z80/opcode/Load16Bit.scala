@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-object Load16Bit extends LoadSpec {
+object Load16Bit extends LoadSpec(OpType.Load16BitType) {
   // Z80 manual page 45 (NOTE: PUSH qq are X5, not X6!)
   val sourceLocListMap: Map[List[OpCode], LoadLocation] = Map(
     //registers

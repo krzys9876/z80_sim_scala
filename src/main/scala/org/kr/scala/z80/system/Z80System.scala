@@ -12,16 +12,21 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val opcode = OpCode(oper,oper1,oper2)
 
     opcode.opType match {
-      case OpType.Nop => handleNop
-      case OpType.Load8Bit => handleLoad8Bit(opcode)
-      case OpType.Load16Bit => handleLoad16Bit(opcode)
-      case OpType.Exchange => handleExchange(opcode)
-      case OpType.Arithmetic8Bit => handleArithmetic8Bit(opcode)
-      case OpType.Arithmetic16Bit => handleArithmetic16Bit(opcode)
-      case OpType.RotateShift => handleRotateShift(opcode)
-      case OpType.RotateDigit => handleRotateDigit(opcode)
-      case OpType.Unknown => throw new UnknownOperationException(f"Unknown operation $oper at $PC")
+      case OpType.NopType => handleNop(opcode)
+      case OpType.Load8BitType => handleLoad8Bit(opcode)
+      case OpType.Load16BitType => handleLoad16Bit(opcode)
+      case OpType.ExchangeType => handleExchange(opcode)
+      case OpType.Arithmetic8BitType => handleArithmetic8Bit(opcode)
+      case OpType.Arithmetic16BitType => handleArithmetic16Bit(opcode)
+      case OpType.RotateShiftType => handleRotateShift(opcode)
+      case OpType.RotateDigitType => handleRotateDigit(opcode)
+      case OpType.UnknownType => handleUnknown(opcode)
     }
+  }
+
+  private def handleUnknown(code: OpCode):Z80System = {
+    throw new UnknownOperationException(f"Unknown operation $code at ${getRegValue("PC")}")
+    this
   }
 
   private def getRegValue(symbol:String):Int=registerController.get(symbol)
@@ -50,7 +55,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
   }
 
-  private def handleNop:Z80System = returnAfterChange(List[SystemChangeBase](),1)
+  private def handleNop(code:OpCode):Z80System = {
+    val instrSize=Nop.instSize.find(code)
+    returnAfterChange(List[SystemChangeBase](),instrSize)
+  }
 
   private def handleLoad16Bit(opcode:OpCode):Z80System = {
     val sourceLoc=Load16Bit.sourceLoc.find(opcode)

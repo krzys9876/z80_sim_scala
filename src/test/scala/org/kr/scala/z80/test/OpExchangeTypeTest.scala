@@ -3,7 +3,7 @@ package org.kr.scala.z80.test
 import org.kr.scala.z80.system.{MemoryController, RegisterController, Z80System, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
-class OpExchangeTest extends AnyFunSuite {
+class OpExchangeTypeTest extends AnyFunSuite {
   test("always pass") {
     assert(1==1)
   }
