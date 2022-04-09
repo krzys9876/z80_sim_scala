@@ -11,16 +11,16 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val oper2 = memoryController.get(PC,3)
     val opcode = OpCode(oper,oper1,oper2)
 
-    opcode.opType match {
-      case OpType.NopType => handleNop(opcode)
-      case OpType.Load8BitType => handleLoad8Bit(opcode)
-      case OpType.Load16BitType => handleLoad16Bit(opcode)
-      case OpType.ExchangeType => handleExchange(opcode)
-      case OpType.Arithmetic8BitType => handleArithmetic8Bit(opcode)
-      case OpType.Arithmetic16BitType => handleArithmetic16Bit(opcode)
-      case OpType.RotateShiftType => handleRotateShift(opcode)
-      case OpType.RotateDigitType => handleRotateDigit(opcode)
-      case OpType.UnknownType => handleUnknown(opcode)
+    opcode.opTypeSpec match {
+      case Nop => handleNop(opcode)
+      case Load8Bit => handleLoad8Bit(opcode)
+      case Load16Bit => handleLoad16Bit(opcode)
+      case Exchange => handleExchange(opcode)
+      case Arithmetic8Bit => handleArithmetic8Bit(opcode)
+      case Arithmetic16Bit => handleArithmetic16Bit(opcode)
+      case RotateShift => handleRotateShift(opcode)
+      case RotateDigit => handleRotateDigit(opcode)
+      case Unknown => handleUnknown(opcode)
     }
   }
 

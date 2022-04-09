@@ -1,7 +1,6 @@
 package org.kr.scala.z80.opcode
 
-object Nop extends OperationSpec {
-
+object Unknown extends OperationSpec {
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0x00)) -> 1
   )

@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-object Load8Bit extends LoadSpec(OpType.Load8BitType) {
+object Load8Bit extends LoadSpec {
   // Z80 manual page 42
   val sourceLocListMap: Map[List[OpCode], LoadLocation] = Map(
     // registers
