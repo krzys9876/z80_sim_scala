@@ -37,7 +37,7 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Control%20incl INT-Planned-white.svg"/></a>
 
-<img src="https://img.shields.io/badge/Rotate%20and%20shift-In%20progress-blue.svg"/></a>
+<img src="https://img.shields.io/badge/Rotate%20and%20shift-done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/Bit%20manipulation-Planned-white.svg"/></a>
 
@@ -45,8 +45,8 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Input%20and%20output-Planned-white.svg"/></a>
 
-Sounds like a lot of fun :grinning:
-
 ## Ultimate goal ##
 
 To be able to run 1978 Microsoft Basic with simulated I/O console.
+
+If you've never tried old Basic give it a try and for a moment feel like a kid in 70's and 80's. 
