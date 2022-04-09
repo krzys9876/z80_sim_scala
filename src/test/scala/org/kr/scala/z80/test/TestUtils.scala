@@ -1,5 +1,6 @@
 package org.kr.scala.z80.test
 
+import org.kr.scala.z80.opcode.OpCode
 import org.kr.scala.z80.system.{Flag, MemoryController, Register, RegisterController, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
 
@@ -35,10 +36,11 @@ object TestUtils {
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
     assert(sysTest.get.registerController.get("PC") == pcAfter)
-    val resultTest=
-      if(resultReg!="") sysTest.get.registerController.get(resultReg)
-      else sysTest.get.memoryController.get(resultAddr)
-    assert(resultTest == result)
+    (resultReg,resultAddr) match {
+      case (reg,_) if reg!="" => assert(sysTest.get.registerController.get(resultReg) == result)
+      case (_,addr) if addr!=OpCode.ANY => assert(sysTest.get.memoryController.get(resultAddr) == result)
+      case _ =>
+    }
     TestUtils.testFlags(sysTest.get.registerController.get, flagsAsString)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.registerController.get.reg)
