@@ -68,9 +68,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleLoad16Bit(opcode:OpCode):Z80System = {
     val sourceLoc=Load16Bit.sourceLoc.find(opcode)
     val value=sourceLoc match {
-      case LoadLocation(r,_,_,_,_,_) if r!="" => getRegValue(r)
-      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => getWord(getWordFromPC(pco))
-      case LoadLocation(_,_,_,r,dirO,_) if r!="" =>
+      case LoadLocation(r,_,_,_,_) if r!="" => getRegValue(r)
+      case LoadLocation(_,pco,_,_,_) if pco!=OpCode.ANY => getWord(getWordFromPC(pco))
+      case LoadLocation(_,_,r,dirO,_) if r!="" =>
         dirO match {
           case OpCode.ANY => getWordFromReg(r,0)
           case _ => getWordFromReg(r,dirO)
@@ -85,7 +85,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handleLoad16Bit(dest:LoadLocation, value:Int, forwardPC:Int,stackChange:Int):Z80System= {
     val chgList= List(putValueToLocation(dest,value,isWord = true))
     val stackChgList=dest match {
-      case LoadLocation(r,_,_,rd,dirO,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
+      case LoadLocation(r,_,rd,dirO,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
         List(new RegisterChangeRelative("SP",stackChange))
       case _ => List()
     }
@@ -94,10 +94,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private def getValueFromLocation(loc:LoadLocation):Int =
     loc match {
-      case LoadLocation(r,_,_,_,_,_) if r!="" => getRegValue(r)
-      case LoadLocation(_,i,_,_,_,_) if i!=OpCode.ANY => i
-      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => getByte(getWordFromPC(pco))
-      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
+      case LoadLocation(r,_,_,_,_) if r!="" => getRegValue(r)
+      case LoadLocation(_,pco,_,_,_) if pco!=OpCode.ANY => getByte(getWordFromPC(pco))
+      case LoadLocation(_,_,r,dirO,indirO) if r!="" =>
         (dirO,indirO) match {
           case (OpCode.ANY,OpCode.ANY) => getByteFromReg(r,0)
           case (o,OpCode.ANY) => getByteFromReg(r,o)
@@ -111,9 +110,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private def putValueToLocation(location:LoadLocation,value:Int,isWord:Boolean=false):SystemChangeBase =
     location match {
-      case LoadLocation(r,_,_,_,_,_) if r!="" => new RegisterChange(r,value)
-      case LoadLocation(_,_,pco,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromPC(pco),value,isWord)
-      case LoadLocation(_,_,_,r,dirO,indirO) if r!="" =>
+      case LoadLocation(r,_,_,_,_) if r!="" => new RegisterChange(r,value)
+      case LoadLocation(_,pco,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromPC(pco),value,isWord)
+      case LoadLocation(_,_,r,dirO,indirO) if r!="" =>
         (dirO,indirO) match {
           case (dirO,OpCode.ANY) if dirO!=OpCode.ANY => putValueToMemory(getAddressFromReg(r,dirO),value,isWord)
           case (OpCode.ANY,OpCode.ANY) => putValueToMemory(getAddressFromReg(r,0),value,isWord)
