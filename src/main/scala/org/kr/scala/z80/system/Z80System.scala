@@ -209,16 +209,17 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val destLoc=Arithmetic16Bit.destination.find(code)
     val operand=getValueFromLocation(sourceLoc)
     val prevValue=getValueFromLocation(destLoc)
+    val prevFlags=getRegValue("F")
 
     val chgList=oper match {
       case o : ArithmeticOpVariableLocation =>
-        val (value, flags) = handleArithmetic16Bit(o.operation, prevValue, operand)
+        val (value, flags) = handleArithmetic16Bit(o.operation, prevValue, prevFlags, operand)
         List(putValueToLocation(destLoc,value), new RegisterChange("F", flags))
     }
     returnAfterChange(chgList, instrSize)
   }
 
-  private def handleArithmetic16Bit(operation:ArithmeticOperation,prevValueIn:Int,operandIn:Int):(Int,Int)={
+  private def handleArithmetic16Bit(operation:ArithmeticOperation,prevValueIn:Int,prevFlags:Int,operandIn:Int):(Int,Int)={
     //http://www.z80.info/z80sflag.htm
     val (prevValue,operand)=operation match {
       case ArithmeticOpType.Inc | ArithmeticOpType.Dec => (operandIn,1)
@@ -234,11 +235,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val valueOut=valueUnsigned & 0xFFFF
 
     val newF=operation match {
-      case ArithmeticOpType.Add => Flag.set(
-        getFlag(Flag.S),getFlag(Flag.Z),
-        (prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF,
-        getFlag(Flag.P),n=false,valueUnsigned>valueOut
-      )
+      case ArithmeticOpType.Add =>
+        new Flag(prevFlags)
+          .set(Flag.H,(prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF)
+          .reset(Flag.N)
+          .set(Flag.C,valueUnsigned>valueOut)()
       case ArithmeticOpType.AddC => Flag.set(
         Z80Utils.rawWordTo2Compl(valueOut)<0, valueOut==0,
         (prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF,
@@ -249,7 +250,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         (prevValue & 0x0FFF) - (operand & 0x0FFF) < 0x0000,
         (valueSigned > 0x7FFF) || (valueSigned < -0x8000), n=true,valueUnsigned<valueOut
       )
-      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => getRegValue("F")
+      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => prevFlags
     }
     (valueOut,newF)
   }
@@ -260,18 +261,16 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val instrSize = RotateShift.instSize.find(code)
     val location=RotateShift.location.find(code)
     val prevValue=getValueFromLocation(location)
+    val prevFlags=getRegValue("F")
 
-    val (value, flags) = handleRotateShift(oper, prevValue)
+    val (value, flags) = handleRotateShift(oper, prevValue, prevFlags)
     val change=putValueToLocation(location,value)
 
     returnAfterChange(List(change,new RegisterChange("F", flags)),instrSize)
   }
 
-  private def handleRotateShift(operation:ArithmeticOperation,prevValueIn:Int):(Int,Int)={
+  private def handleRotateShift(operation:ArithmeticOperation,prevValueIn:Int,prevFlags:Int):(Int,Int)={
     //http://www.z80.info/z80sflag.htm
-    val prevFlagS=getFlag(Flag.S)
-    val prevFlagZ=getFlag(Flag.Z)
-    val prevFlagP=getFlag(Flag.P)
     val prevCarry=getFlagValue(Flag.C)
     val bit7=Z80Utils.getBit(prevValueIn,7)
     val bit0=Z80Utils.getBit(prevValueIn,0)
@@ -297,7 +296,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
     val newF=operation match {
       case ArithmeticOpType.Rlca | ArithmeticOpType.Rrca | ArithmeticOpType.Rla |  ArithmeticOpType.Rra =>
-        Flag.set(prevFlagS,prevFlagZ,h = false,prevFlagP,n = false,newCarry)
+        new Flag(prevFlags).reset(Flag.H).reset(Flag.N).set(Flag.C,newCarry)()
       case _ => Flag.set(flagS,flagZ,h = false,flagP,n = false,newCarry)
     }
 

@@ -19,12 +19,12 @@ class OpBasicTest extends AnyFunSuite {
     assert(sys2.get.registerController.get("PC")==1000)
   }
 
-  /*test("run NOP with memory overflow") {
+  test("run NOP with memory overflow") {
     //given
-    val sys1=Z80SystemController.blank
+    val sys1=Z80SystemController.blank >>= Z80SystemController.changeRegister("PC",65534)
     //when
-    val sys2=sys1 >>= Z80SystemController.run(1) >>= Z80SystemController.run(65536)
+    val sys2=sys1 >>= Z80SystemController.run(3)
     //then
     assert(sys2.get.registerController.get("PC")==1)
-  }*/
+  }
 }
