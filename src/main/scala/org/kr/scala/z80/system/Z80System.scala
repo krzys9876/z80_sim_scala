@@ -24,6 +24,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     Arithmetic16Bit->handleArithmetic16Bit,
     RotateShift->handleRotateShift,
     RotateDigit->handleRotateDigit,
+    BitManipulation->handleBitManipulation,
     Nop->handleNop,
     Unknown->handleUnknown
   )
@@ -335,6 +336,34 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
     val newF=Flag.set(flagS,flagZ,h = false,flagP,n = false,prevCarry)
     (valueOutR,valueOutA,newF)
+  }
+
+  private def handleBitManipulation(code: OpCode):Z80System = {
+    val oper = BitManipulation.operation.find(code)
+    val bit = BitManipulation.bit.find(code)
+    val instrSize = BitManipulation.instSize.find(code)
+    val location=BitManipulation.location.find(code)
+    val prevValue=getValueFromLocation(location)
+
+    val (value, flags) = handleBitManipulation(oper, prevValue, bit)
+    val change=List(putValueToLocation(location,value))
+
+    returnAfterChange(change++List(new RegisterChange("F", flags)),instrSize)
+  }
+
+  private def handleBitManipulation(oper: BitOperation, prevValue: Int, bit: Int):(Int,Int)={
+
+    val prevFlagS=getFlag(Flag.S)
+    val prevFlagP=getFlag(Flag.P)
+    val prevFlagC=getFlag(Flag.C)
+
+    val prevF=getRegValue("F")
+    oper match {
+      case BitOpType.Test =>
+        val newZ=Z80Utils.getBit(prevValue,bit)
+        val newF=Flag.set(prevFlagS,!newZ,h=true,prevFlagP,n=false,prevFlagC)
+        (prevValue,newF)
+    }
   }
 }
 
