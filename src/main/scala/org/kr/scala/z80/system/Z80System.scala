@@ -344,25 +344,24 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val instrSize = BitManipulation.instSize.find(code)
     val location=BitManipulation.location.find(code)
     val prevValue=getValueFromLocation(location)
+    val prevFlags=getRegValue("F")
 
-    val (value, flags) = handleBitManipulation(oper, prevValue, bit)
-    val change=List(putValueToLocation(location,value))
+    val (value, flags) = handleBitManipulation(oper,bit,prevValue,prevFlags)
+    val change=
+      (if(value!=prevValue) List(putValueToLocation(location,value)) else List())++
+        (if(flags!=prevFlags) List(new RegisterChange("F", flags)) else List())
 
-    returnAfterChange(change++List(new RegisterChange("F", flags)),instrSize)
+    returnAfterChange(change,instrSize)
   }
 
-  private def handleBitManipulation(oper: BitOperation, prevValue: Int, bit: Int):(Int,Int)={
-
-    val prevFlagS=getFlag(Flag.S)
-    val prevFlagP=getFlag(Flag.P)
-    val prevFlagC=getFlag(Flag.C)
-
-    val prevF=getRegValue("F")
+  private def handleBitManipulation(oper: BitOperation, bit: Int, prevValue: Int, prevFlags:Int):(Int,Int)={
     oper match {
       case BitOpType.Test =>
-        val newZ=Z80Utils.getBit(prevValue,bit)
-        val newF=Flag.set(prevFlagS,!newZ,h=true,prevFlagP,n=false,prevFlagC)
+        val newZ= !Z80Utils.getBit(prevValue,bit)
+        val newF=new Flag(prevFlags).set(Flag.Z,newZ).set(Flag.H).reset(Flag.N)()
         (prevValue,newF)
+      case BitOpType.Reset => (Z80Utils.resetBit(prevValue,bit),prevFlags)
+      case BitOpType.Set => (Z80Utils.setBit(prevValue,bit),prevFlags)
     }
   }
 }

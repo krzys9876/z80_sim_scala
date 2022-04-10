@@ -1,11 +1,13 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.opcode.{LoadLocation, OpCode}
+import org.kr.scala.z80.opcode.{BitManipulation, LoadLocation, OpCode}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
 
-  println(Z80Utils.rawByteTo2Compl(0))
+  println(BitManipulation.bit.find(OpCode(0xC8,0x9E)))
+
+  /*println(Z80Utils.rawByteTo2Compl(0))
   println(Z80Utils.rawByteTo2Compl(1))
   println(Z80Utils.rawByteTo2Compl(2))
   println(Z80Utils.rawByteTo2Compl(126))
@@ -24,7 +26,7 @@ object Main extends App {
   println(Z80Utils.rawByteTo2Compl(Z80Utils.rawByteTo2Compl(254)+Z80Utils.rawByteTo2Compl(3)))
   println(Z80Utils.add8bit(254,3))
   println(Z80Utils.rawByteTo2Compl(Z80Utils.add8bit(254,3)))
-
+*/
   /*println(LoadLocation("A",OpCode.ANY,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
   println(LoadLocation("",0xFC,OpCode.ANY,"",OpCode.ANY,OpCode.ANY))
   println(LoadLocation("",OpCode.ANY,0x03,"",OpCode.ANY,OpCode.ANY))

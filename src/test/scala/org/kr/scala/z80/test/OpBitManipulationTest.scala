@@ -22,4 +22,16 @@ class OpBitManipulationTest extends AnyFunSuite {
       "", OpCode.ANY, 0x00, "00_1_000",4)
   }
 
+  test ("run RES b, r/(HL)/(IX/IY+d)") {
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0xFF)), List((0x0000, 0xC8),(0x0001, 0x87)), "A", OpCode.ANY, 0xFE, "00_0_000",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("B", 0xFD)), List((0x0000, 0xC8),(0x0001, 0x88)), "B", OpCode.ANY, 0xFD, "00_0_000",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0xFF), ("C", 0x04)), List((0x0000, 0xC8),(0x0001, 0x91)), "C", OpCode.ANY, 0x00, "11_1_111",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("D", 0x08)), List((0x0000, 0xC8),(0x0001, 0x9A)), "D", OpCode.ANY, 0x00, "00_0_000",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("E", 0x1F)), List((0x0000, 0xC8),(0x0001, 0xA3)), "E", OpCode.ANY, 0x0F, "00_0_000",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0xFF), ("H", 0xFF)), List((0x0000, 0xC8),(0x0001, 0xAC)), "H", OpCode.ANY, 0xDF, "11_1_111",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0xFF), ("L", 0xFF)), List((0x0000, 0xC8),(0x0001, 0xB5)), "L", OpCode.ANY, 0xBF, "11_1_111",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("HL", 0x1020)), List((0x0000, 0xC8),(0x0001, 0xBE),(0x1020, 0xFF)),
+      "", 0x1020, 0x7F, "00_0_000",2)
+
+  }
 }

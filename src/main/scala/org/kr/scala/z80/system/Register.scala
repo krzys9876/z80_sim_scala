@@ -39,6 +39,14 @@ sealed abstract class FlagSymbol(val symbol:String, val bit:Int) {
   val extract:Int=>Boolean= flagValue=>((flagValue >> bit) & 1)==1
 }
 
+class Flag(val value:Int) {
+  def apply(newValue:Int):Flag=new Flag(newValue)
+  def apply():Int=value
+  def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag))
+  def set(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=true))
+  def reset(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=false))
+}
+
 object Flag {
   case object S extends FlagSymbol("S",7)
   case object Z extends FlagSymbol("Z",6)
@@ -54,5 +62,9 @@ object Flag {
     (if(p) 1 << 2 else 0) |
     (if(n) 1 << 1 else 0) |
     (if(c) 1 << 0 else 0)
+  }
+
+  def setFlag(prevValue:Int,flagSymbol:FlagSymbol,flag:Boolean):Int={
+    Z80Utils.setOrResetBit(prevValue,flagSymbol.bit,flag)
   }
 }

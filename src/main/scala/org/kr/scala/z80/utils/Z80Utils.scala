@@ -21,7 +21,9 @@ object Z80Utils {
   def getBitFromString(stringAsBoolean:String, bit:Int):Boolean = stringAsBoolean.substring(7-bit,7-bit+1)=="1"
   def getBit(value:Int,bit:Int):Boolean=(value & (1 << bit))>0
   def getBitValue(value:Int,bit:Int):Int=if(getBit(value,bit)) 1 else 0
-  def getBitValueNeg(value:Int,bit:Int):Int=if(!getBit(value,bit)) 1 else 0
+  def setBit(value:Int,bit:Int):Int=value | (1 << bit)
+  def resetBit(value:Int,bit:Int):Int=value & (~(1 << bit))
+  def setOrResetBit(value:Int,bit:Int,bitVal:Boolean):Int=if(bitVal) setBit(value,bit) else resetBit(value,bit)
 
   def countBits(byte:Int,bitNum:Int=8):Int = List.range(0,bitNum).foldLeft(0)((bits,bit)=>bits + (if((byte & (1 << bit))>0) 1 else 0))
   def isEven(value:Int):Boolean=(value & 1)==0
