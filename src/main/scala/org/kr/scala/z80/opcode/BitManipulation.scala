@@ -10,6 +10,7 @@ object BitOpType {
 }
 
 object BitManipulation extends OperationSpec {
+  //Z80 manual p.55
 
   val locationListMap: Map[List[OpCode],LoadLocation] = Map(
     //register

@@ -13,15 +13,15 @@ object Load16Bit extends LoadSpec {
     List(OpCode(0xFD, 0xF9), OpCode(0xFD, 0x22), OpCode(0xFD, 0xE5)) -> LoadLocation.register("IY"),
     // indirect register
     List(OpCode(0xF1), OpCode(0xC1), OpCode(0xD1), OpCode(0xE1),
-      OpCode(0xDD, 0xE1), OpCode(0xFD, 0xE1)) -> LoadLocation.registerAddr("SP"),
+      OpCode(0xDD, 0xE1), OpCode(0xFD, 0xE1)) -> LoadLocation.registerAddr("SP",isWord = true),
     // immediate
     List(OpCode(0x01), OpCode(0x11), OpCode(0x21),
-      OpCode(0x31)) -> LoadLocation.registerAddrDirOffset("PC", 1),
-    List(OpCode(0xDD, 0x21), OpCode(0xFD, 0x21)) -> LoadLocation.registerAddrDirOffset("PC", 2),
+      OpCode(0x31)) -> LoadLocation.registerAddrDirOffset("PC", 1, isWord = true),
+    List(OpCode(0xDD, 0x21), OpCode(0xFD, 0x21)) -> LoadLocation.registerAddrDirOffset("PC", 2,isWord = true),
     // immediate address
-    List(OpCode(0x2A)) -> LoadLocation.indirAddress(1),
+    List(OpCode(0x2A)) -> LoadLocation.indirAddress(1,isWord = true),
     List(OpCode(0xED, 0x4B), OpCode(0xED, 0x5B), OpCode(0xED, 0x7B),
-      OpCode(0xDD, 0x2A), OpCode(0xFD, 0x2A)) -> LoadLocation.indirAddress(2)
+      OpCode(0xDD, 0x2A), OpCode(0xFD, 0x2A)) -> LoadLocation.indirAddress(2,isWord = true)
   )
 
   override val sourceLoc: OpCodeMap[LoadLocation] = new OpCodeMap(sourceLocListMap, LoadLocation.empty)
@@ -38,11 +38,11 @@ object Load16Bit extends LoadSpec {
     List(OpCode(0xFD, 0x21), OpCode(0xFD, 0x2A), OpCode(0xFD, 0xE1)) -> LoadLocation.register("IY"),
     // indirect register
     List(OpCode(0xF5), OpCode(0xC5), OpCode(0xD5), OpCode(0xE5),
-      OpCode(0xDD, 0xE5), OpCode(0xFD, 0xE5)) -> LoadLocation.registerAddrDirOffset("SP", -2),
+      OpCode(0xDD, 0xE5), OpCode(0xFD, 0xE5)) -> LoadLocation.registerAddrDirOffset("SP", -2, isWord = true),
     // immediate address
     List(OpCode(0xED, 0x43), OpCode(0xED, 0x53), OpCode(0xED, 0x73), OpCode(0xDD, 0x22),
-      OpCode(0xFD, 0x22)) -> LoadLocation.indirAddress(2),
-    List(OpCode(0x22)) -> LoadLocation.indirAddress(1)
+      OpCode(0xFD, 0x22)) -> LoadLocation.indirAddress(2,isWord = true),
+    List(OpCode(0x22)) -> LoadLocation.indirAddress(1,isWord = true)
   )
 
   override val destLoc: OpCodeMap[LoadLocation] = new OpCodeMap(destLocListMap, LoadLocation.empty)

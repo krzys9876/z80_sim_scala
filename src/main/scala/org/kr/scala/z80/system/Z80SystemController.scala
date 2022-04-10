@@ -12,8 +12,8 @@ object Z80SystemController {
   def apply(state: Z80System):Z80SystemController = new Z80SystemController(state)
   def blank:Z80SystemController = new Z80SystemController(Z80System.blank)
 
-  def run:(Int=>(Z80System=>Z80SystemController))=
-    (toGo=>(system=>Z80SystemController(steps(Z80SystemController(system),toGo).state)))
+  def run:Int=>Z80System=>Z80SystemController=
+    toGo=>system=>Z80SystemController(steps(Z80SystemController(system),toGo).state)
 
   @tailrec
   private def steps(start:Z80SystemController, toGo:Int):Z80SystemController={
@@ -50,17 +50,13 @@ object Z80SystemController {
   def change:SystemChangeBase => Z80System => Z80SystemController = change => system => {
     change match {
       case ch : RegisterChange =>
-        val newSystem=Z80SystemController(system) >>= Z80SystemController.changeRegister(ch.regSymbol,ch.value)
-        Z80SystemController(newSystem.get)
+        Z80SystemController(system) >>= Z80SystemController.changeRegister(ch.regSymbol,ch.value)
       case ch : RegisterChangeRelative =>
-        val newSystem=Z80SystemController(system) >>= Z80SystemController.changeRegisterRelative(ch.regSymbol,ch.value)
-        Z80SystemController(newSystem.get)
+        Z80SystemController(system) >>= Z80SystemController.changeRegisterRelative(ch.regSymbol,ch.value)
       case ch : MemoryChangeByte =>
-        val newSystem=Z80SystemController(system) >>= Z80SystemController.changeMemoryByte(ch.address,ch.value)
-        Z80SystemController(newSystem.get)
+        Z80SystemController(system) >>= Z80SystemController.changeMemoryByte(ch.address,ch.value)
       case ch : MemoryChangeWord =>
-        val newSystem=Z80SystemController(system) >>= Z80SystemController.changeMemoryWord(ch.address,ch.value)
-        Z80SystemController(newSystem.get)
+        Z80SystemController(system) >>= Z80SystemController.changeMemoryWord(ch.address,ch.value)
     }
   }
 

@@ -1,5 +1,6 @@
 package org.kr.scala.z80.system
 
+import org.kr.scala.z80.opcode.OpCode
 import org.kr.scala.z80.utils.Z80Utils
 
 class Register(val reg:Map[String,Int]) {
@@ -42,6 +43,7 @@ sealed abstract class FlagSymbol(val symbol:String, val bit:Int) {
 class Flag(val value:Int) {
   def apply(newValue:Int):Flag=new Flag(newValue)
   def apply():Int=value
+  def apply(symbol:FlagSymbol):Boolean=Z80Utils.getBit(value,symbol.bit)
   def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag))
   def set(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=true))
   def reset(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=false))
@@ -54,6 +56,7 @@ object Flag {
   case object P extends FlagSymbol("P",2)
   case object N extends FlagSymbol("N",1)
   case object C extends FlagSymbol("C",0)
+  case object None extends FlagSymbol("",OpCode.ANY)
 
   def set(s:Boolean,z:Boolean,h:Boolean,p:Boolean,n:Boolean,c:Boolean):Int={
     (if(s) 1 << 7 else 0) |
