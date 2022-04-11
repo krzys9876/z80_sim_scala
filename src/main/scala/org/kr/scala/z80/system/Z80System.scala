@@ -364,16 +364,21 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val prevFlags=getRegValue("F")
 
     val address=oper match {
-      case JumpType.JumpR => calcRelativeAddress(prevPC,getValueFromLocation(location))
+      case JumpType.JumpR | JumpType.DJumpR => calcRelativeAddress(prevPC,getValueFromLocation(location))
       case JumpType.Return => getValueFromLocation(location)
       case _ => getValueFromLocation(location)
     }
 
-    val (chgList,shouldJump)=oper match {
-      case JumpType.Jump | JumpType.JumpR | JumpType.Call | JumpType.Return =>
-        val (newPC,shouldJump)=handleJump(prevPC,address,prevFlags,condition)
+    val (chgList,shouldJump)=(oper,condition) match {
+      case (JumpType.Jump,_) | (JumpType.JumpR,_) | (JumpType.Call,_) | (JumpType.Return,_) =>
+        val (newPC,shouldJump)=handleJump(prevPC,address,prevFlags,condition,OpCode.ANY)
         val newPCToChange=newPC+(if(!shouldJump) instrSize else 0)
         (List(new RegisterChange("PC",newPCToChange)),shouldJump)
+      case (JumpType.DJumpR,c) if c.isRegister =>
+        val prevRegD=Z80Utils.add8bit(getRegValue(c.register),-1)
+        val (newPC,shouldJump)=handleJump(prevPC,address,prevFlags,condition,prevRegD)
+        val newPCToChange=newPC+(if(!shouldJump) instrSize else 0)
+        (List(new RegisterChange("PC",newPCToChange),new RegisterChange(c.register,prevRegD)),shouldJump)
     }
 
     val stackChange=(shouldJump,oper) match {
@@ -393,11 +398,13 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   // Jump relative - relative operand is 2's complement and must be incremented by 2
   private def calcRelativeAddress(pc:Int,relative:Int):Int=Z80Utils.word2ComplToRaw(pc+2+Z80Utils.rawByteTo2Compl(relative))
 
-  private def handleJump(prevPC:Int,address:Int, prevFlags:Int,condition:JumpCondition):(Int,Boolean)={
+  private def handleJump(prevPC:Int,address:Int, prevFlags:Int,condition:JumpCondition,regD:Int):(Int,Boolean)={
     condition match {
-      case JumpCondition(Flag.None,_) => (address,true)
-      case condition =>
-        if(new Flag(prevFlags)(condition.flag)==condition.value) (address,true) else (prevPC,false)
+      case c if c.isEmpty => (address,true)
+      case c if c.isFlag =>
+        if(new Flag(prevFlags)(c.flag)==c.flagValue) (address,true) else (prevPC,false)
+      case c if c.isRegister =>
+        if(regD!=c.value) (address,true) else (prevPC,false)
     }
   }
 }

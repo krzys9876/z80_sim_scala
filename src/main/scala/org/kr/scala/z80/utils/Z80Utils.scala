@@ -1,8 +1,8 @@
 package org.kr.scala.z80.utils
 
 object Z80Utils {
-  def add8bit(val1: Int, val2: Int): Int = (val1 + val2) % 0x100
-  def add16bit(val1: Int, val2: Int): Int = (val1 + val2) % 0x10000
+  def add8bit(val1: Int, val2: Int): Int = byteEnsureRange((val1 + val2) % 0x100)
+  def add16bit(val1: Int, val2: Int): Int = wordEnsureRange((val1 + val2) % 0x10000)
 
   def getH(word: Int): Int = (word >> 8) & 0xFF
 
@@ -11,6 +11,7 @@ object Z80Utils {
   def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
 
   private def wordEnsureRange(raw:Int):Int=if(raw<0) raw & 0xFFFF else raw
+  private def byteEnsureRange(raw:Int):Int=if(raw<0) raw & 0xFF else raw
 
   def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-((raw>>7)&1)*0x80
   def rawWordTo2Compl(raw:Int):Int= (raw & 0x7FFF)-((raw>>15)&1)*0x8000
