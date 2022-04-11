@@ -362,18 +362,25 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val condition = JumpCallReturn.condition.find(code)
     val instrSize = JumpCallReturn.instSize.find(code)
     val location=JumpCallReturn.location.find(code)
-    val address=getValueFromLocation(location)
     val prevPC=getRegValue("PC")
     val prevFlags=getRegValue("F")
 
+    val address=oper match {
+      case JumpType.JumpR => calcRelativeAddress(prevPC,getValueFromLocation(location))
+      case _ => getValueFromLocation(location)
+    }
+
     val chgList=oper match {
-      case JumpType.Jump =>
+      case JumpType.Jump | JumpType.JumpR =>
         val (newPC,shouldJump)=handleJump(prevPC,address,prevFlags,condition)
         val newPCToChange=newPC+(if(!shouldJump) instrSize else 0)
         List(new RegisterChange("PC",newPCToChange))
     }
     returnAfterChange(chgList)
   }
+
+  // Jump relative - relative operand is 2's complement and must be incremented by 2
+  private def calcRelativeAddress(pc:Int,relative:Int):Int=Z80Utils.word2ComplToRaw(pc+2+Z80Utils.rawByteTo2Compl(relative))
 
   private def handleJump(prevPC:Int,address:Int, prevFlags:Int,condition:JumpCondition):(Int,Boolean)={
     condition match {

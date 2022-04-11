@@ -33,4 +33,23 @@ class OpJumpCallReturnTest extends AnyFunSuite{
     TestUtils.testRegOrAddrWithFlags(List(("F",0x00),("IY",0x1234)),List((0x0000,0xFD),(0x0001,0xE9)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x1234)
     TestUtils.testRegOrAddrWithFlags(List(("F",0xFF),("IY",0x1234)),List((0x0000,0xFD),(0x0001,0xE9)),"", OpCode.ANY,OpCode.ANY,"11_1_111",0x1234)
   }
+
+  test("run JR f,e") {
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00)),List((0x0000,0x18),(0x0001,0x03)),"", OpCode.ANY,OpCode.ANY,"00_0_000",5)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0xFF)),List((0x0000,0x18),(0x0001,0x03)),"", OpCode.ANY,OpCode.ANY,"11_1_111",5)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00)),List((0x0000,0x38),(0x0001,0xFD)),"", OpCode.ANY,OpCode.ANY,"00_0_000",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00)),List((0x0000,0x30),(0x0001,0x80)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0xFF82)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00)),List((0x0000,0x30),(0x0001,0x7F)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x0081)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00)),List((0x0000,0x30),(0x0001,0xFD)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0xFFFF)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x01)),List((0x0000,0x38),(0x0001,0xFD)),"", OpCode.ANY,OpCode.ANY,"00_0_001",0xFFFF)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x01)),List((0x0000,0x30),(0x0001,0xFD)),"", OpCode.ANY,OpCode.ANY,"00_0_001",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00),("PC",0x1000)),List((0x1000,0x28),(0x1001,0xFD)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x1002)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00),("PC",0x1000)),List((0x1000,0x20),(0x1001,0xFD)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x0FFF)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00),("PC",0x1000)),List((0x1000,0x20),(0x1001,0x80)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x0F82)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00),("PC",0x1000)),List((0x1000,0x20),(0x1001,0x00)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x1002)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00),("PC",0x1000)),List((0x1000,0x20),(0x1001,0x01)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x1003)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x00),("PC",0x1000)),List((0x1000,0x20),(0x1001,0x7F)),"", OpCode.ANY,OpCode.ANY,"00_0_000",0x1081)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x40),("PC",0x1000)),List((0x1000,0x28),(0x1001,0xFD)),"", OpCode.ANY,OpCode.ANY,"01_0_000",0x0FFF)
+    TestUtils.testRegOrAddrWithFlags(List(("F",0x40),("PC",0x1000)),List((0x1000,0x20),(0x1001,0xFD)),"", OpCode.ANY,OpCode.ANY,"01_0_000",0x1002)
+  }
 }

@@ -8,6 +8,7 @@ sealed abstract class JumpOperation(val name:String)
 
 object JumpType {
   case object Jump extends JumpOperation("JUMP")
+  case object JumpR extends JumpOperation("JUMP_RELATIVE")
   case object Call extends JumpOperation("CALL")
   case object Return extends JumpOperation("RETURN")
   case object None extends JumpOperation("NONE")
@@ -28,14 +29,19 @@ object JumpCallReturn extends OperationSpec{
     List(OpCode(0xE9))->JumpCondition(Flag.None,value=false),
     List(OpCode(0xDD,0xE9))->JumpCondition(Flag.None,value=false),
     List(OpCode(0xFD,0xE9))->JumpCondition(Flag.None,value=false),
-
+    List(OpCode(0x18))->JumpCondition(Flag.None,value=false),
+    List(OpCode(0x38))->JumpCondition(Flag.C,value=true),
+    List(OpCode(0x30))->JumpCondition(Flag.C,value=false),
+    List(OpCode(0x28))->JumpCondition(Flag.Z,value=true),
+    List(OpCode(0x20))->JumpCondition(Flag.Z,value=false)
   )
 
   val condition: OpCodeMap[JumpCondition] = new OpCodeMap(conditionListMap, JumpCondition(Flag.None,value=false))
 
   val operationListMap: Map[List[OpCode],JumpOperation] = Map(
     List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2),OpCode(0xE9),OpCode(0xDD,0xE9),OpCode(0xFD,0xE9))->JumpType.Jump
+      OpCode(0xFA),OpCode(0xF2),OpCode(0xE9),OpCode(0xDD,0xE9),OpCode(0xFD,0xE9))->JumpType.Jump,
+    List(OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20))->JumpType.JumpR
   )
 
   val operation: OpCodeMap[JumpOperation] = new OpCodeMap(operationListMap, JumpType.None)
@@ -45,17 +51,17 @@ object JumpCallReturn extends OperationSpec{
       OpCode(0xFA),OpCode(0xF2))->LoadLocation.registerAddrDirOffset("PC",1,isWord = true),
     List(OpCode(0xE9))->LoadLocation.register("HL"),
     List(OpCode(0xDD,0xE9))->LoadLocation.register("IX"),
-    List(OpCode(0xFD,0xE9))->LoadLocation.register("IY")
+    List(OpCode(0xFD,0xE9))->LoadLocation.register("IY"),
+    List(OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20))->LoadLocation.registerAddrDirOffset("PC",1)
   )
 
   val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
-
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
       OpCode(0xFA),OpCode(0xF2))->3,
     List(OpCode(0xE9))->1,
-    List(OpCode(0xDD,0xE9),OpCode(0xFD,0xE9))->2
+    List(OpCode(0xDD,0xE9),OpCode(0xFD,0xE9),OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20))->2
   )
 
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)

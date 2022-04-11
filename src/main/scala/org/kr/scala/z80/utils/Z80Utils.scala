@@ -14,9 +14,11 @@ object Z80Utils {
 
   def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
 
-  def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-((raw>>7)&1)*0x80
+  private def wordEnsureRange(raw:Int):Int=if(raw<0) raw & 0xFFFF else raw
 
+  def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-((raw>>7)&1)*0x80
   def rawWordTo2Compl(raw:Int):Int= (raw & 0x7FFF)-((raw>>15)&1)*0x8000
+  def word2ComplToRaw(compl:Int):Int= wordEnsureRange(compl)
 
   def getBitFromString(stringAsBoolean:String, bit:Int):Boolean = stringAsBoolean.substring(7-bit,7-bit+1)=="1"
   def getBit(value:Int,bit:Int):Boolean=(value & (1 << bit))>0
