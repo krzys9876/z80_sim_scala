@@ -389,10 +389,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         if(new Flag(prevFlags)(condition.flag)==condition.value) (address,true) else (prevPC,false)
     }
   }
-
 }
 
 object Z80System {
   val blank:Z80System=new Z80System(MemoryController.blank(0x10000),RegisterController.blank)
-  def apply(source:Z80System):Z80System=new Z80System(source.memoryController,source.registerController)
 }
