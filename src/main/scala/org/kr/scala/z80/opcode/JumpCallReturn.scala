@@ -24,21 +24,28 @@ object JumpCallReturn extends OperationSpec{
     List(OpCode(0xEA))->JumpCondition(Flag.P,value=true),
     List(OpCode(0xE2))->JumpCondition(Flag.P,value=false),
     List(OpCode(0xFA))->JumpCondition(Flag.S,value=true),
-    List(OpCode(0xF2))->JumpCondition(Flag.S,value=false)
+    List(OpCode(0xF2))->JumpCondition(Flag.S,value=false),
+    List(OpCode(0xE9))->JumpCondition(Flag.None,value=false),
+    List(OpCode(0xDD,0xE9))->JumpCondition(Flag.None,value=false),
+    List(OpCode(0xFD,0xE9))->JumpCondition(Flag.None,value=false),
+
   )
 
   val condition: OpCodeMap[JumpCondition] = new OpCodeMap(conditionListMap, JumpCondition(Flag.None,value=false))
 
   val operationListMap: Map[List[OpCode],JumpOperation] = Map(
     List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2))->JumpType.Jump
+      OpCode(0xFA),OpCode(0xF2),OpCode(0xE9),OpCode(0xDD,0xE9),OpCode(0xFD,0xE9))->JumpType.Jump
   )
 
   val operation: OpCodeMap[JumpOperation] = new OpCodeMap(operationListMap, JumpType.None)
 
   val locationListMap: Map[List[OpCode],LoadLocation] = Map(
     List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2))->LoadLocation.registerAddrDirOffset("PC",1,isWord = true)
+      OpCode(0xFA),OpCode(0xF2))->LoadLocation.registerAddrDirOffset("PC",1,isWord = true),
+    List(OpCode(0xE9))->LoadLocation.register("HL"),
+    List(OpCode(0xDD,0xE9))->LoadLocation.register("IX"),
+    List(OpCode(0xFD,0xE9))->LoadLocation.register("IY")
   )
 
   val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
@@ -46,7 +53,9 @@ object JumpCallReturn extends OperationSpec{
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2))->3
+      OpCode(0xFA),OpCode(0xF2))->3,
+    List(OpCode(0xE9))->1,
+    List(OpCode(0xDD,0xE9),OpCode(0xFD,0xE9))->2
   )
 
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
