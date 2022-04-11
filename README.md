@@ -2,19 +2,19 @@
 
 You might be thinking why would anybody write such a useless project. The obvious answer is: **for fun**.
 
-But it fact it is a rehersal and a learning tool for **Scala**, **functional programming**, **immutability** and **refactoring**.
+Still it is a great learning tool for **Scala**, **functional programming**, **immutability** and **refactoring**.
 
 ## Background ##
 
-I love retro-computing, I know Z80 quite well, I build a ZX Spectrum-like homebrew computer. 
-It was a lot of fun and I used different tools and simulators to make all of this easier. 
-I learned Z80 assembler quite well and tweaked some publicly available ROMs to suit my needs.
+I love retro-computing. I know Z80 quite well, some time ago I built a ZX Spectrum-like homebrew computer. 
+. I learned Z80 assembler quite well and tweaked some publicly available ROMs to suit my needs.
 
-But one thing was always missing - a simulator that I could modify myself, with some kind of I/O.
+I used different tools and simulators to make it easier. 
+But one thing was always missing - a simulator that I could easily modify myself, with simple I/O.
 
 ### Why Scala ###
 
-I use Scala at work and I was just exploring usefull functional patterns. 
+I use Scala at work and I am still exploring usefull functional patterns. 
 I thought that it would be great to have simple side project to excercise handling application state in immutable fashion.  
 
 And here it is :slightly_smiling_face:
@@ -41,9 +41,12 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Bit%20manipulation-Done-green.svg"/></a>
 
-<img src="https://img.shields.io/badge/Jump%20call%20return-In%20progress-blue.svg"/></a>
+<img src="https://img.shields.io/badge/Jump%20call%20return-Done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/Input%20and%20output-Planned-white.svg"/></a>
+
+### Skipped instructions ###
+RETN
 
 ## Ultimate goal ##
 
