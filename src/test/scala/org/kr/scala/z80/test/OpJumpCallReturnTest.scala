@@ -136,6 +136,13 @@ class OpJumpCallReturnTest extends AnyFunSuite {
 
   }
 
+  test("run RETI") {
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("SP", 0x0100)), List((0x0000, 0xED),(0x0001, 0x4D), (0x0100, 0x20), (0x0101, 0x10)),
+      "SP", OpCode.ANY, 0x0102, "00_0_000", 0x1020)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0xFF), ("SP", 0x0100)), List((0x0000, 0xED),(0x0001, 0x4D), (0x0100, 0x20), (0x0101, 0x10)),
+      "SP", OpCode.ANY, 0x0102, "11_1_111", 0x1020)
+  }
+
   test("run RST") {
     TestUtils.testRegAndAddrWordWithFlags(List(("F", 0x00), ("SP", 0x1000), ("PC", 0x0102)), List((0x0102, 0xC7)),
       "SP", 0x0FFE, 0x0FFE, 0x0103, "00_0_000", 0x0000)
