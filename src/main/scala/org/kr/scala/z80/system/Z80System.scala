@@ -367,11 +367,12 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
     val address=oper match {
       case JumpType.JumpR => calcRelativeAddress(prevPC,getValueFromLocation(location))
+      case JumpType.Return => getValueFromLocation(location)
       case _ => getValueFromLocation(location)
     }
 
     val (chgList,shouldJump)=oper match {
-      case JumpType.Jump | JumpType.JumpR | JumpType.Call =>
+      case JumpType.Jump | JumpType.JumpR | JumpType.Call | JumpType.Return =>
         val (newPC,shouldJump)=handleJump(prevPC,address,prevFlags,condition)
         val newPCToChange=newPC+(if(!shouldJump) instrSize else 0)
         (List(new RegisterChange("PC",newPCToChange)),shouldJump)
@@ -381,6 +382,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case (true,JumpType.Call) => List(
         new MemoryChangeWord(getRegValue("SP")-2,getRegValue("PC")+instrSize),
         new RegisterChangeRelative("SP",-2)
+      )
+      case (true,JumpType.Return) => List(
+        new RegisterChangeRelative("SP",2)
       )
       case _ => List()
     }
