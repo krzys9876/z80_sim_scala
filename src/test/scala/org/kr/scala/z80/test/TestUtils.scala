@@ -46,4 +46,19 @@ object TestUtils {
     //println(sysTest.get.registerController.get.reg)
   }
 
+  def testRegAndAddrWordWithFlags(regList: List[(String, Int)], memList: List[(Int, Int)],
+                                  resultReg: String, resultValReg: Int, resultAddr: Int, resultValMem: Int,
+                                  flagsAsString: String, pcAfter: Int = 1): Unit = {
+    //given when
+    val sysTest = TestUtils.prepareTest(regList, memList)
+    //then
+    assert(sysTest.get.registerController.get("PC") == pcAfter)
+    assert(sysTest.get.registerController.get(resultReg) == resultValReg)
+    assert(sysTest.get.memoryController.get(resultAddr) == (resultValMem & 0x00FF))
+    assert(sysTest.get.memoryController.get(resultAddr+1) == ((resultValMem & 0xFF00) >> 8))
+    TestUtils.testFlags(sysTest.get.registerController.get, flagsAsString)
+    //println(sysTest.get.memoryController.get.mem.slice(0,300))
+    //println(sysTest.get.registerController.get.reg)
+  }
+
 }

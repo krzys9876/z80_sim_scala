@@ -370,13 +370,22 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case _ => getValueFromLocation(location)
     }
 
-    val chgList=oper match {
-      case JumpType.Jump | JumpType.JumpR =>
+    val (chgList,shouldJump)=oper match {
+      case JumpType.Jump | JumpType.JumpR | JumpType.Call =>
         val (newPC,shouldJump)=handleJump(prevPC,address,prevFlags,condition)
         val newPCToChange=newPC+(if(!shouldJump) instrSize else 0)
-        List(new RegisterChange("PC",newPCToChange))
+        (List(new RegisterChange("PC",newPCToChange)),shouldJump)
     }
-    returnAfterChange(chgList)
+
+    val stackChange=(shouldJump,oper) match {
+      case (true,JumpType.Call) => List(
+        new MemoryChangeWord(getRegValue("SP")-2,getRegValue("PC")+instrSize),
+        new RegisterChangeRelative("SP",-2)
+      )
+      case _ => List()
+    }
+
+    returnAfterChange(chgList++stackChange)
   }
 
   // Jump relative - relative operand is 2's complement and must be incremented by 2
