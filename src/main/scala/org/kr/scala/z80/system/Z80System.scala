@@ -72,17 +72,14 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val destLoc=Load16Bit.destLoc.find(opcode)
     val instrSize=Load16Bit.instSize.find(opcode)
     val stackChange=Load16Bit.stackChange.find(opcode)
-    handleLoad16Bit(destLoc,value,instrSize,stackChange)
-  }
 
-  private def handleLoad16Bit(dest:LoadLocation, value:Int, forwardPC:Int,stackChange:Int):Z80System= {
-    val chgList= List(putValueToLocation(dest,value,isWord = true))
-    val stackChgList=dest match {
+    val chgList= List(putValueToLocation(destLoc,value,isWord = true))
+    val stackChgList=destLoc match {
       case LoadLocation(r,_,rd,dirO,_,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
         List(new RegisterChangeRelative("SP",stackChange))
       case _ => List()
     }
-    returnAfterChange(chgList++stackChgList,forwardPC)
+    returnAfterChange(chgList++stackChgList,instrSize)
   }
 
   private def getValueFromLocation(loc:LoadLocation):Int =
