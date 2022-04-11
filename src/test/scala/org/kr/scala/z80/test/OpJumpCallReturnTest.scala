@@ -135,4 +135,11 @@ class OpJumpCallReturnTest extends AnyFunSuite {
       "SP", OpCode.ANY, 0x0100, "10_0_000")
 
   }
+
+  test("run RST") {
+    TestUtils.testRegAndAddrWordWithFlags(List(("F", 0x00), ("SP", 0x1000), ("PC", 0x0102)), List((0x0102, 0xC7)),
+      "SP", 0x0FFE, 0x0FFE, 0x0103, "00_0_000", 0x0000)
+    TestUtils.testRegAndAddrWordWithFlags(List(("F", 0xFF), ("SP", 0x1000), ("PC", 0x0102)), List((0x0102, 0xC7)),
+      "SP", 0x0FFE, 0x0FFE, 0x0103, "11_1_111", 0x0000)
+  }
 }
