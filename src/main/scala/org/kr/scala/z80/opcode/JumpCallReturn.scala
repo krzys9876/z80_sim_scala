@@ -43,6 +43,15 @@ object JumpCallReturn extends OperationSpec{
     List(OpCode(0xE4))->JumpCondition(Flag.P,value=false),
     List(OpCode(0xFC))->JumpCondition(Flag.S,value=true),
     List(OpCode(0xF4))->JumpCondition(Flag.S,value=false),
+    List(OpCode(0xC9))->JumpCondition(Flag.None,value=false),
+    List(OpCode(0xD8))->JumpCondition(Flag.C,value=true),
+    List(OpCode(0xD0))->JumpCondition(Flag.C,value=false),
+    List(OpCode(0xC8))->JumpCondition(Flag.Z,value=true),
+    List(OpCode(0xC0))->JumpCondition(Flag.Z,value=false),
+    List(OpCode(0xE8))->JumpCondition(Flag.P,value=true),
+    List(OpCode(0xE0))->JumpCondition(Flag.P,value=false),
+    List(OpCode(0xF8))->JumpCondition(Flag.S,value=true),
+    List(OpCode(0xF0))->JumpCondition(Flag.S,value=false)
   )
 
   val condition: OpCodeMap[JumpCondition] = new OpCodeMap(conditionListMap, JumpCondition(Flag.None,value=false))
@@ -52,7 +61,9 @@ object JumpCallReturn extends OperationSpec{
       OpCode(0xFA),OpCode(0xF2),OpCode(0xE9),OpCode(0xDD,0xE9),OpCode(0xFD,0xE9))->JumpType.Jump,
     List(OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20))->JumpType.JumpR,
     List(OpCode(0xCD),OpCode(0xDC),OpCode(0xD4),OpCode(0xCC),OpCode(0xC4),OpCode(0xEC),OpCode(0xE4),
-      OpCode(0xFC),OpCode(0xF4))->JumpType.Call
+      OpCode(0xFC),OpCode(0xF4))->JumpType.Call,
+    List(OpCode(0xC9),OpCode(0xD8),OpCode(0xD0),OpCode(0xC8),OpCode(0xC0),OpCode(0xE8),OpCode(0xE0),
+      OpCode(0xF8),OpCode(0xF0))->JumpType.Return
   )
 
   val operation: OpCodeMap[JumpOperation] = new OpCodeMap(operationListMap, JumpType.None)
@@ -65,7 +76,9 @@ object JumpCallReturn extends OperationSpec{
     List(OpCode(0xFD,0xE9))->LoadLocation.register("IY"),
     List(OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20))->LoadLocation.registerAddrDirOffset("PC",1),
     List(OpCode(0xCD),OpCode(0xDC),OpCode(0xD4),OpCode(0xCC),OpCode(0xC4),OpCode(0xEC),OpCode(0xE4),
-      OpCode(0xFC),OpCode(0xF4))->LoadLocation.registerAddrDirOffset("PC",1,isWord = true)
+      OpCode(0xFC),OpCode(0xF4))->LoadLocation.registerAddrDirOffset("PC",1,isWord = true),
+    List(OpCode(0xC9),OpCode(0xD8),OpCode(0xD0),OpCode(0xC8),OpCode(0xC0),OpCode(0xE8),OpCode(0xE0),
+      OpCode(0xF8),OpCode(0xF0))->LoadLocation.registerAddr("SP",isWord = true)
   )
 
   val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
@@ -75,7 +88,9 @@ object JumpCallReturn extends OperationSpec{
       OpCode(0xFA),OpCode(0xF2),
       OpCode(0xCD),OpCode(0xDC),OpCode(0xD4),OpCode(0xCC),OpCode(0xC4),OpCode(0xEC),OpCode(0xE4),
       OpCode(0xFC),OpCode(0xF4))->3,
-    List(OpCode(0xE9))->1,
+    List(OpCode(0xE9),
+      OpCode(0xC9),OpCode(0xD8),OpCode(0xD0),OpCode(0xC8),OpCode(0xC0),OpCode(0xE8),OpCode(0xE0),
+      OpCode(0xF8),OpCode(0xF0))->1,
     List(OpCode(0xDD,0xE9),OpCode(0xFD,0xE9),OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20))->2
   )
 
