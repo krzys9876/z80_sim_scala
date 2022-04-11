@@ -27,4 +27,6 @@ object Z80Utils {
   def countBits(byte:Int,bitNum:Int=8):Int = List.range(0,bitNum).foldLeft(0)((bits,bit)=>bits + (if((byte & (1 << bit))>0) 1 else 0))
   def isEven(value:Int):Boolean=(value & 1)==0
   def isEvenBits(byte:Int):Boolean=isEven(countBits(byte))
+
+  def isNegative(raw:Int):Boolean=Z80Utils.rawByteTo2Compl(raw)<0
 }

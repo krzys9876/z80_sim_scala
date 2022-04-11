@@ -1,6 +1,9 @@
 package org.kr.scala.z80.opcode
 
-object RotateShift extends OperationSpec {
+import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.utils.Z80Utils
+
+object RotateShift extends OperationSpec with OpCodeHandler {
   // Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))
   val operationListMap: Map[List[OpCode],ArithmeticOperation] = Map(
     List(OpCode(0xCB,0x07),OpCode(0xCB,0x00),OpCode(0xCB,0x01),OpCode(0xCB,0x02),OpCode(0xCB,0x03),
@@ -71,5 +74,53 @@ object RotateShift extends OperationSpec {
     OpCode.generateListByReg(OpCode(0xCB,0x38),2,0)->2
   )
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
+
+  override def handle(code: OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
+    val oper = operation.find(code)
+    val instrSize = instSize.find(code)
+    val loc=location.find(code)
+    val prevValue=system.getValueFromLocation(loc)
+    val prevFlags=system.getRegValue("F")
+
+    val (value, flags) = handleRotateShift(oper, prevValue, prevFlags)
+    val change=system.putValueToLocation(loc,value)
+
+    (List(change,new RegisterChange("F", flags)),instrSize)
+  }
+
+  private def handleRotateShift(operation:ArithmeticOperation,prevValueIn:Int,prevFlags:Int):(Int,Int)={
+    //http://www.z80.info/z80sflag.htm
+    val prevCarry=new Flag(prevFlags).flagValue(Flag.C)
+    val bit7=Z80Utils.getBit(prevValueIn,7)
+    val bit0=Z80Utils.getBit(prevValueIn,0)
+    val valueOut=operation match {
+      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca => ((prevValueIn << 1) & 0xFF) + (if(bit7) 1 else 0)
+      case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca => ((prevValueIn >> 1) & 0xFF) + (if(bit0) 0x80 else 0)
+      case ArithmeticOpType.Rl | ArithmeticOpType.Rla => ((prevValueIn << 1) & 0xFF) + prevCarry
+      case ArithmeticOpType.Rr | ArithmeticOpType.Rra => ((prevValueIn >> 1) & 0xFF) + (prevCarry << 7)
+      case ArithmeticOpType.Sla => (prevValueIn << 1) & 0xFF
+      case ArithmeticOpType.Sra => ((prevValueIn >> 1) & 0xFF) + (if(bit7) 0x80 else 0)
+    }
+
+    val newCarry=operation match {
+      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca | ArithmeticOpType.Sla => bit7
+      case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca | ArithmeticOpType.Sra => bit0
+      case ArithmeticOpType.Rl | ArithmeticOpType.Rla => bit7
+      case ArithmeticOpType.Rr | ArithmeticOpType.Rra => bit0
+    }
+    val valueSigned=Z80Utils.rawByteTo2Compl(valueOut)
+    val flagS=valueSigned<0
+    val flagZ=valueOut==0
+    val flagP=Z80Utils.isEvenBits(valueOut)
+
+    val newF=operation match {
+      case ArithmeticOpType.Rlca | ArithmeticOpType.Rrca | ArithmeticOpType.Rla |  ArithmeticOpType.Rra =>
+        new Flag(prevFlags).reset(Flag.H).reset(Flag.N).set(Flag.C,newCarry)()
+      case _ => Flag.set(flagS,flagZ,h = false,flagP,n = false,newCarry)
+    }
+
+    (valueOut,newF)
+  }
+
 }
 

@@ -44,6 +44,7 @@ class Flag(val value:Int) {
   def apply(newValue:Int):Flag=new Flag(newValue)
   def apply():Int=value
   def apply(symbol:FlagSymbol):Boolean=Z80Utils.getBit(value,symbol.bit)
+  def flagValue(symbol:FlagSymbol):Int=if(Z80Utils.getBit(value,symbol.bit)) 1 else 0
   def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag))
   def set(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=true))
   def reset(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=false))

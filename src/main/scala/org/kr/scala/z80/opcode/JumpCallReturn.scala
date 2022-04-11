@@ -1,6 +1,7 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.system.{Flag, FlagSymbol}
+import org.kr.scala.z80.system.{Flag, FlagSymbol, MemoryChangeWord, RegisterChange, RegisterChangeRelative, SystemChangeBase, Z80System}
+import org.kr.scala.z80.utils.Z80Utils
 
 case class JumpCondition(flag:FlagSymbol,register:String,value:Int) {
   lazy val flagValue:Boolean = value!=0
@@ -26,7 +27,7 @@ object JumpType {
   case object None extends JumpOperation("NONE")
 }
 
-object JumpCallReturn extends OperationSpec{
+object JumpCallReturn extends OperationSpec with OpCodeHandler {
   //Z80 manual p.59
   val conditionListMap: Map[List[OpCode],JumpCondition] = Map(
     List(OpCode(0xC3),OpCode(0xE9),OpCode(0xDD,0xE9),OpCode(0xFD,0xE9),OpCode(0x18),OpCode(0xCD),
@@ -102,4 +103,69 @@ object JumpCallReturn extends OperationSpec{
   )
 
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
+
+  override def handle(code:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int)={
+    val oper = operation.find(code)
+    val instrSize = instSize.find(code)
+
+    val (changePC,shouldJump)=
+      handleJump(
+        oper,
+        condition.find(code),
+        location.find(code),
+        instrSize)
+    val changeStack=handleStack(shouldJump,oper,instrSize)
+
+    (changePC++changeStack,0)
+  }
+
+  private def calcAddress(oper:JumpOperation,value:Int,prevPC:Int):Int=
+    oper match {
+      case JumpType.JumpR | JumpType.DJumpR => calcRelativeAddress(prevPC,value)
+      case _ => value
+    }
+
+  // Jump relative - relative operand is 2's complement and must be incremented by 2
+  private def calcRelativeAddress(pc:Int,relative:Int):Int=Z80Utils.word2ComplToRaw(pc+2+Z80Utils.rawByteTo2Compl(relative))
+
+  private def handleJump(oper:JumpOperation,cond:JumpCondition,location:LoadLocation,instrSize:Int)
+                        (implicit system:Z80System):(List[SystemChangeBase],Boolean)= {
+    val prevPC=system.getRegValue("PC")
+    val prevFlags=system.getRegValue("F")
+    val address=calcAddress(oper,system.getValueFromLocation(location),prevPC)
+
+    val conditionCheckValue=(oper,cond) match {
+      case (JumpType.DJumpR,c) if c.isRegister => Z80Utils.add8bit(system.getRegValue(c.register), -1)
+      case _ => OpCode.ANY
+    }
+    val (newPC, shouldJump) = doHandleJump(prevPC, address, prevFlags, cond, conditionCheckValue)
+    val changePC=List(new RegisterChange("PC", newPC + (if (!shouldJump) instrSize else 0)))
+    val changeReg=(oper,cond) match {
+      case (JumpType.DJumpR,c) if c.isRegister => List(new RegisterChange(c.register, conditionCheckValue))
+      case _ => List()
+    }
+    (changePC ++ changeReg,shouldJump)
+  }
+
+  private def doHandleJump(prevPC:Int,address:Int, prevFlags:Int,condition:JumpCondition,regD:Int):(Int,Boolean)={
+    condition match {
+      case c if c.isEmpty => (address,true)
+      case c if c.isFlag =>
+        if(new Flag(prevFlags)(c.flag)==c.flagValue) (address,true) else (prevPC,false)
+      case c if c.isRegister =>
+        if(regD!=c.value) (address,true) else (prevPC,false)
+    }
+  }
+
+  private def handleStack(shouldJump:Boolean,oper:JumpOperation,instrSize:Int)(implicit system:Z80System):List[SystemChangeBase]=
+    (shouldJump,oper) match {
+      case (true,JumpType.Call) => List(
+        new MemoryChangeWord(system.getRegValue("SP")-2,system.getRegValue("PC")+instrSize),
+        new RegisterChangeRelative("SP",-2)
+      )
+      case (true,JumpType.Return) => List(
+        new RegisterChangeRelative("SP",2)
+      )
+      case _ => List()
+    }
 }
