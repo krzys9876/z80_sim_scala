@@ -6,8 +6,8 @@ Still it is a great learning tool for **Scala**, **functional programming**, **i
 
 ## Background ##
 
-I love retro-computing. I know Z80 quite well, some time ago I built a ZX Spectrum-like homebrew computer. 
-. I learned Z80 assembler quite well and tweaked some publicly available ROMs to suit my needs.
+I love retro-computing. I know Z80 quite well, some time ago I built a ZX Spectrum-like homebrew computer.
+I learned Z80 assembler quite well and tweaked some publicly available ROMs to suit my needs.
 
 I used different tools and simulators to make it easier. 
 But one thing was always missing - a simulator that I could easily modify myself, with simple I/O.
