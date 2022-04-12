@@ -35,9 +35,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   def getFlagValue(flag:FlagSymbol):Int=if(getFlag(flag)) 1 else 0
   private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg("PC",offset)
   private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg("PC",offset)
-  private def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
+  def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
   private def getByteFromMemoryAtReg(symbol:String,offset:Int):Int = getByte(getAddressFromReg(symbol,offset))
-  private def getWordFromMemoryAtReg(symbol:String,offset:Int):Int =
+  def getWordFromMemoryAtReg(symbol:String,offset:Int):Int =
     Z80Utils.makeWord(getByte(getAddressFromReg(symbol,offset)+1),getByte(getAddressFromReg(symbol,offset)))
   private def getByte(address:Int):Int = memoryController.get(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memoryController.get(address+1),memoryController.get(address))
@@ -64,22 +64,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val destLoc=Load8Bit.destLoc.find(opcode)
     val instrSize=Load8Bit.instSize.find(opcode)
     returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
-  }
-
-  private def handleLoad16Bit(opcode:OpCode):Z80System = {
-    val sourceLoc=Load16Bit.sourceLoc.find(opcode)
-    val value=getValueFromLocation(sourceLoc)
-    val destLoc=Load16Bit.destLoc.find(opcode)
-    val instrSize=Load16Bit.instSize.find(opcode)
-    val stackChange=Load16Bit.stackChange.find(opcode)
-
-    val chgList= List(putValueToLocation(destLoc,value,isWord = true))
-    val stackChgList=destLoc match {
-      case LoadLocation(r,_,_,rd,dirO,_,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
-        List(new RegisterChangeRelative("SP",stackChange))
-      case _ => List()
-    }
-    returnAfterChange(chgList++stackChgList,instrSize)
   }
 
   def getValueFromLocation(loc:LoadLocation):Int =
@@ -113,21 +97,26 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         }
     }
 
-  private def handleExchange(opcode:OpCode):Z80System = {
-    val exchangeLocList=Exchange.exchangeLoc.find(opcode)
-    val instrSize=Exchange.instSize.find(opcode)
+  private def handleLoad16Bit(opcode:OpCode):Z80System = {
+    val sourceLoc=Load16Bit.sourceLoc.find(opcode)
+    val value=getValueFromLocation(sourceLoc)
+    val destLoc=Load16Bit.destLoc.find(opcode)
+    val instrSize=Load16Bit.instSize.find(opcode)
+    val stackChange=Load16Bit.stackChange.find(opcode)
 
-    val chgList=exchangeLocList.flatMap(entry=>{
-      entry match {
-        case loc : ExchangeLocation =>
-          List(new RegisterChange(loc.reg1,getRegValue(entry.reg2)),
-            new RegisterChange(loc.reg2,getRegValue(entry.reg1)))
-        case loc : ExchangeLocationIndirect =>
-          List(new MemoryChangeWord(getAddressFromReg(loc.reg1,0),getRegValue(loc.reg2)),
-            new RegisterChange(loc.reg2,getWordFromMemoryAtReg(loc.reg1,0)))
-      }
-    })
-    returnAfterChange(chgList,instrSize)
+    val chgList= List(putValueToLocation(destLoc,value,isWord = true))
+    val stackChgList=destLoc match {
+      case LoadLocation(r,_,_,rd,dirO,_,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
+        List(new RegisterChangeRelative("SP",stackChange))
+      case _ => List()
+    }
+    returnAfterChange(chgList++stackChgList,instrSize)
+  }
+
+  private def handleExchange(code:OpCode):Z80System = {
+    implicit val system:Z80System=this
+    val (change,forwardPC)=Exchange.handle(code)
+    returnAfterChange(change,forwardPC)
   }
 
   private def handleArithmetic8Bit(code: OpCode):Z80System = {

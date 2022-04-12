@@ -1,5 +1,7 @@
 package org.kr.scala.z80.opcode
 
+import org.kr.scala.z80.system.{MemoryChangeWord, RegisterChange, SystemChangeBase, Z80System}
+
 class ExchangeLocationBase (val reg1:String,val reg2: String)
 class ExchangeLocation(override val reg1:String,override val reg2: String) extends ExchangeLocationBase(reg1,reg2)
 class ExchangeLocationIndirect(override val reg1:String,override val reg2: String) extends ExchangeLocationBase(reg1,reg2)
@@ -8,7 +10,7 @@ object ExchangeLocationBase {
   val empty:ExchangeLocationBase=new ExchangeLocationBase("","")
 }
 
-object Exchange extends OperationSpec {
+object Exchange extends OperationSpec with OpCodeHandler {
   // Z80 manual page 47
   val exchangeListMap: Map[List[OpCode],List[ExchangeLocationBase]] = Map(
     //register pair
@@ -29,4 +31,22 @@ object Exchange extends OperationSpec {
     List(OpCode(0xDD, 0xE3),OpCode(0xFD, 0xE3)) -> 2
   )
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
+
+  override def handle(opcode:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
+    val exchangeLocList=Exchange.exchangeLoc.find(opcode)
+    val instrSize=Exchange.instSize.find(opcode)
+
+    val chgList=exchangeLocList.flatMap(entry=>{
+      entry match {
+        case loc : ExchangeLocation =>
+          List(new RegisterChange(loc.reg1,system.getRegValue(entry.reg2)),
+            new RegisterChange(loc.reg2,system.getRegValue(entry.reg1)))
+        case loc : ExchangeLocationIndirect =>
+          List(new MemoryChangeWord(system.getAddressFromReg(loc.reg1,0),system.getRegValue(loc.reg2)),
+            new RegisterChange(loc.reg2,system.getWordFromMemoryAtReg(loc.reg1,0)))
+      }
+    })
+    (chgList,instrSize)
+  }
+
 }
