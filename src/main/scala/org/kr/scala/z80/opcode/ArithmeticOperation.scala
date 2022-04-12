@@ -26,6 +26,8 @@ object ArithmeticOpType {
   case object Srl extends ArithmeticOperation("SRL")
   case object Rld extends ArithmeticOperation("RLD")
   case object Rrd extends ArithmeticOperation("RRD")
+  case object Cpl extends ArithmeticOperation("CPL")
+  case object Neg extends ArithmeticOperation("NEG")
   case object None extends ArithmeticOperation("NONE")
 }
 

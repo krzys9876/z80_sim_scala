@@ -212,4 +212,19 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     testArithRegAddr(List(("F", 0x00), ("IY", 0x0301)), List((0x0000, 0xFD),(0x0001, 0x35),(0x0002, 0xFF),(0x0300,0x80)),
       "",0x0300, 0x7F, "00_1_110",3)
   }
+
+  test("run CPL") {
+    testArithRegAddr(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xFE, "00_1_010")
+    testArithRegAddr(List(("F", 0xFF), ("A", 0x01)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xFE, "11_1_111")
+    testArithRegAddr(List(("F", 0x00), ("A", 0x55)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xAA, "00_1_010")
+  }
+
+  test("run NEG") {
+    testArithRegAddr(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0xFF, "10_1_011",2)
+    testArithRegAddr(List(("F", 0x00), ("A", 0x00)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x00, "01_0_010",2)
+    testArithRegAddr(List(("F", 0x00), ("A", 0xFF)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x01, "00_1_011",2)
+    testArithRegAddr(List(("F", 0x00), ("A", 0x7F)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x81, "10_1_011",2)
+    testArithRegAddr(List(("F", 0x00), ("A", 0x80)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x80, "10_0_111",2)
+    testArithRegAddr(List(("F", 0x00), ("A", 0x40)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0xC0, "10_0_011",2)
+  }
 }
