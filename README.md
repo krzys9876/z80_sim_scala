@@ -43,7 +43,7 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/Jump%20call%20return-Done-green.svg"/></a>
 
-<img src="https://img.shields.io/badge/Input%20and%20output-Planned-white.svg"/></a>
+<img src="https://img.shields.io/badge/Input%20and%20output-In%20progress-blue.svg"/></a>
 
 ### Skipped instructions ###
 RETN
