@@ -41,6 +41,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   def getValueFromLocation(loc:LoadLocation):Int =
     loc match {
+      case l if l==LoadLocation.empty => OpCode.ANY
       case LoadLocation(r,_,_,_,_,_,_) if r!="" => getRegValue(r)
       case LoadLocation(_,i,_,_,_,_,_) if i!=OpCode.ANY => i
       case LoadLocation(_,_,pco,_,_,_,isWord) if pco!=OpCode.ANY =>

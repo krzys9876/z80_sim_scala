@@ -166,65 +166,63 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     testArithAccum(List(("A", 0x70), ("B", 0xF0)), List((0x0000, 0xB8)), OpCode.ANY, "10_0_111")
   }
 
-  private def testArithRegAddr(regList: List[(String, Int)], memList: List[(Int, Int)], resultReg: String, resultAddr: Int,
-                           result: Int, flagsAsString: String, pcAfter: Int = 1): Unit = {
-    //given when
-    val sysTest = TestUtils.prepareTest(regList, memList)
-    //then
-    assert(sysTest.get.registerController.get("PC") == pcAfter)
-    val resultTest=
-      if(resultReg!="") sysTest.get.registerController.get(resultReg)
-      else sysTest.get.memoryController.get(resultAddr)
-    assert(resultTest == result)
-    TestUtils.testFlags(sysTest.get.registerController.get, flagsAsString)
-    //println(sysTest.get.memoryController.get.mem.slice(0,300))
-    //println(sysTest.get.registerController.get.reg)
-  }
-
   test("run INC r/(HL)/(IX+d)/(IY+d)") {
     // based on "real" Z80 emulator
-    testArithRegAddr(List(("F", 0x00), ("A", 0x00)), List((0x0000, 0x3C)), "A",0, 0x01, "00_0_000")
-    testArithRegAddr(List(("F", 0x00), ("B", 0x01)), List((0x0000, 0x04)), "B",0, 0x02, "00_0_000")
-    testArithRegAddr(List(("F", 0x00), ("C", 0x3F)), List((0x0000, 0x0C)), "C",0, 0x40, "00_1_000")
-    testArithRegAddr(List(("F", 0x00), ("D", 0xFE)), List((0x0000, 0x14)), "D",0, 0xFF, "10_0_000")
-    testArithRegAddr(List(("F", 0x01), ("E", 0xFE)), List((0x0000, 0x1C)), "E",0, 0xFF, "10_0_001")
-    testArithRegAddr(List(("F", 0x00), ("H", 0xFF)), List((0x0000, 0x24)), "H",0, 0x00, "01_1_000")
-    testArithRegAddr(List(("F", 0x00), ("L", 0x7F)), List((0x0000, 0x2C)), "L",0, 0x80, "10_1_100")
-    testArithRegAddr(List(("F", 0x00), ("HL", 0x0102)), List((0x0000, 0x34),(0x0102,0x7F)), "",0x0102, 0x80, "10_1_100")
-    testArithRegAddr(List(("F", 0x00), ("IX", 0x0201)), List((0x0000, 0xDD),(0x0001, 0x34),(0x0002, 0x02),(0x0203,0x7F)),
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x00)), List((0x0000, 0x3C)), "A",0, 0x01, "00_0_000")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("B", 0x01)), List((0x0000, 0x04)), "B",0, 0x02, "00_0_000")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("C", 0x3F)), List((0x0000, 0x0C)), "C",0, 0x40, "00_1_000")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("D", 0xFE)), List((0x0000, 0x14)), "D",0, 0xFF, "10_0_000")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x01), ("E", 0xFE)), List((0x0000, 0x1C)), "E",0, 0xFF, "10_0_001")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("H", 0xFF)), List((0x0000, 0x24)), "H",0, 0x00, "01_1_000")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("L", 0x7F)), List((0x0000, 0x2C)), "L",0, 0x80, "10_1_100")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("HL", 0x0102)), List((0x0000, 0x34),(0x0102,0x7F)), "",0x0102, 0x80, "10_1_100")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("IX", 0x0201)), List((0x0000, 0xDD),(0x0001, 0x34),(0x0002, 0x02),(0x0203,0x7F)),
       "",0x0203, 0x80, "10_1_100",3)
-    testArithRegAddr(List(("F", 0x00), ("IY", 0x0301)), List((0x0000, 0xFD),(0x0001, 0x34),(0x0002, 0xFF),(0x0300,0x7F)),
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("IY", 0x0301)), List((0x0000, 0xFD),(0x0001, 0x34),(0x0002, 0xFF),(0x0300,0x7F)),
       "",0x0300, 0x80, "10_1_100",3)
   }
 
   test("run DEC r/(HL)/(IX+d)/(IY+d)") {
     // based on "real" Z80 emulator
-    testArithRegAddr(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0x3D)), "A",0, 0x00, "01_0_010")
-    testArithRegAddr(List(("F", 0x00), ("B", 0x02)), List((0x0000, 0x05)), "B",0, 0x01, "00_0_010")
-    testArithRegAddr(List(("F", 0x00), ("C", 0x40)), List((0x0000, 0x0D)), "C",0, 0x3F, "00_1_010")
-    testArithRegAddr(List(("F", 0x00), ("D", 0xFF)), List((0x0000, 0x15)), "D",0, 0xFE, "10_0_010")
-    testArithRegAddr(List(("F", 0x01), ("E", 0xFF)), List((0x0000, 0x1D)), "E",0, 0xFE, "10_0_011")
-    testArithRegAddr(List(("F", 0x00), ("H", 0x00)), List((0x0000, 0x25)), "H",0, 0xFF, "10_1_010")
-    testArithRegAddr(List(("F", 0x00), ("L", 0x80)), List((0x0000, 0x2D)), "L",0, 0x7F, "00_1_110")
-    testArithRegAddr(List(("F", 0x00), ("HL", 0x0102)), List((0x0000, 0x35),(0x0102,0x80)), "",0x0102, 0x7F, "00_1_110")
-    testArithRegAddr(List(("F", 0x00), ("IX", 0x0201)), List((0x0000, 0xDD),(0x0001, 0x35),(0x0002, 0x02),(0x0203,0x80)),
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0x3D)), "A",0, 0x00, "01_0_010")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("B", 0x02)), List((0x0000, 0x05)), "B",0, 0x01, "00_0_010")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("C", 0x40)), List((0x0000, 0x0D)), "C",0, 0x3F, "00_1_010")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("D", 0xFF)), List((0x0000, 0x15)), "D",0, 0xFE, "10_0_010")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x01), ("E", 0xFF)), List((0x0000, 0x1D)), "E",0, 0xFE, "10_0_011")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("H", 0x00)), List((0x0000, 0x25)), "H",0, 0xFF, "10_1_010")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("L", 0x80)), List((0x0000, 0x2D)), "L",0, 0x7F, "00_1_110")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("HL", 0x0102)), List((0x0000, 0x35),(0x0102,0x80)), "",0x0102, 0x7F, "00_1_110")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("IX", 0x0201)), List((0x0000, 0xDD),(0x0001, 0x35),(0x0002, 0x02),(0x0203,0x80)),
       "",0x0203, 0x7F, "00_1_110",3)
-    testArithRegAddr(List(("F", 0x00), ("IY", 0x0301)), List((0x0000, 0xFD),(0x0001, 0x35),(0x0002, 0xFF),(0x0300,0x80)),
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("IY", 0x0301)), List((0x0000, 0xFD),(0x0001, 0x35),(0x0002, 0xFF),(0x0300,0x80)),
       "",0x0300, 0x7F, "00_1_110",3)
   }
 
   test("run CPL") {
-    testArithRegAddr(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xFE, "00_1_010")
-    testArithRegAddr(List(("F", 0xFF), ("A", 0x01)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xFE, "11_1_111")
-    testArithRegAddr(List(("F", 0x00), ("A", 0x55)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xAA, "00_1_010")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xFE, "00_1_010")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0xFF), ("A", 0x01)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xFE, "11_1_111")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x55)), List((0x0000, 0x2F)), "A",OpCode.ANY, 0xAA, "00_1_010")
   }
 
   test("run NEG") {
-    testArithRegAddr(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0xFF, "10_1_011",2)
-    testArithRegAddr(List(("F", 0x00), ("A", 0x00)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x00, "01_0_010",2)
-    testArithRegAddr(List(("F", 0x00), ("A", 0xFF)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x01, "00_1_011",2)
-    testArithRegAddr(List(("F", 0x00), ("A", 0x7F)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x81, "10_1_011",2)
-    testArithRegAddr(List(("F", 0x00), ("A", 0x80)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x80, "10_0_111",2)
-    testArithRegAddr(List(("F", 0x00), ("A", 0x40)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0xC0, "10_0_011",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0xFF, "10_1_011",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x00)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x00, "01_0_010",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0xFF)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x01, "00_1_011",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x7F)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x81, "10_1_011",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x80)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0x80, "10_0_111",2)
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x40)), List((0x0000, 0xED),(0x0001, 0x44)), "A",OpCode.ANY, 0xC0, "10_0_011",2)
   }
+
+  test("run CCF") {
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x00)), List((0x0000, 0x3F)), "",OpCode.ANY, OpCode.ANY, "00_0_001")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x01), ("A", 0x00)), List((0x0000, 0x3F)), "",OpCode.ANY, OpCode.ANY, "00_1_000")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0xFF), ("A", 0x00)), List((0x0000, 0x3F)), "",OpCode.ANY, OpCode.ANY, "11_1_100")
+  }
+
+  test("run SCF") {
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x00)), List((0x0000, 0x37)), "",OpCode.ANY, OpCode.ANY, "00_0_001")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0x01), ("A", 0x00)), List((0x0000, 0x37)), "",OpCode.ANY, OpCode.ANY, "00_0_001")
+    TestUtils.testRegOrAddrWithFlags(List(("F", 0xFF), ("A", 0x00)), List((0x0000, 0x37)), "",OpCode.ANY, OpCode.ANY, "11_0_101")
+  }
+
 }

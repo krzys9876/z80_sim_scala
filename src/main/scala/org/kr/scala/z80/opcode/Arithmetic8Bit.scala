@@ -27,7 +27,9 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     List(OpCode(0x3D),OpCode(0x05),OpCode(0x0D),OpCode(0x15),OpCode(0x1D),OpCode(0x25),OpCode(0x2D),
       OpCode(0x35),OpCode(0xDD, 0x35),OpCode(0xFD, 0x35)) -> new ArithmeticOpVariableLocation(ArithmeticOpType.Dec),
     List(OpCode(0x2F)) -> new ArithmeticOpLocationAccum(ArithmeticOpType.Cpl),
-    List(OpCode(0xED,0x44)) -> new ArithmeticOpLocationAccum(ArithmeticOpType.Neg)
+    List(OpCode(0xED,0x44)) -> new ArithmeticOpLocationAccum(ArithmeticOpType.Neg),
+    List(OpCode(0x3F)) -> new ArithmeticOpLocationFlags(ArithmeticOpType.Ccf),
+    List(OpCode(0x37)) -> new ArithmeticOpLocationFlags(ArithmeticOpType.Scf)
   )
 
   val operation: OpCodeMap[AritheticOpLocationBase] = new OpCodeMap(operationListMap, AritheticOpLocationBase.empty)
@@ -52,7 +54,8 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     // immediate
     List(OpCode(0xC6), OpCode(0xCE), OpCode(0xD6), OpCode(0xDE),
       OpCode(0xE6), OpCode(0xEE), OpCode(0xF6),
-      OpCode(0xFE)) -> LoadLocation.registerAddrDirOffset("PC", 1)
+      OpCode(0xFE)) -> LoadLocation.registerAddrDirOffset("PC", 1),
+    List(OpCode(0x3F),OpCode(0x37)) -> LoadLocation.empty
   )++
     //register
     OpCode.generateMapByReg(OpCode(0x80),1,0)++
@@ -71,7 +74,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0x86),OpCode(0x8E),OpCode(0x96),OpCode(0x9E),OpCode(0xA6),OpCode(0xAE),OpCode(0xB6),OpCode(0xBE),
       OpCode(0x34),OpCode(0x35),
-      OpCode(0x2F)) -> 1,
+      OpCode(0x2F),OpCode(0x3F),OpCode(0x37)) -> 1,
     List(OpCode(0xC6),OpCode(0xCE),OpCode(0xD6),OpCode(0xDE),OpCode(0xE6),OpCode(0xEE),OpCode(0xF6),OpCode(0xFE),
       OpCode(0xCE),OpCode(0xDE),OpCode(0xE6),OpCode(0xEE),OpCode(0xF6),OpCode(0xFE),
       OpCode(0xED,0x44)) -> 2,
@@ -147,6 +150,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       case ArithmeticOpType.Xor => (value ^ operand,value ^ operand)
       case ArithmeticOpType.Or => (value | operand,value | operand)
       case ArithmeticOpType.Cpl => (~value,~value)
+      case ArithmeticOpType.Ccf | ArithmeticOpType.Scf => (OpCode.ANY,OpCode.ANY)
     }
     val valueHalf=oper match {
       case ArithmeticOpType.Add | ArithmeticOpType.Inc => (value & 0x0F)+(operand & 0x0F)
@@ -162,11 +166,11 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 
   private def calcFlags(oper:ArithmeticOperation,valueUnsigned:Int,valueSigned:Int,valueHalf:Int,valueOut:Int,prevFlags:Flag,changeCarry:Boolean):Int={
     val flagS=oper match {
-      case ArithmeticOpType.Cpl => prevFlags(Flag.S)
+      case ArithmeticOpType.Cpl | ArithmeticOpType.Ccf | ArithmeticOpType.Scf => prevFlags(Flag.S)
       case _ => Z80Utils.isNegativeByte(valueUnsigned)
     }
     val flagZ=oper match {
-      case ArithmeticOpType.Cpl => prevFlags(Flag.Z)
+      case ArithmeticOpType.Cpl | ArithmeticOpType.Ccf | ArithmeticOpType.Scf => prevFlags(Flag.Z)
       case _ => valueOut==0
     }
     val flagH=oper match {
@@ -174,10 +178,11 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       case ArithmeticOpType.Sub | ArithmeticOpType.SubC | ArithmeticOpType.Comp | ArithmeticOpType.Dec |
            ArithmeticOpType.Neg => valueHalf<0x00
       case ArithmeticOpType.And | ArithmeticOpType.Cpl => true
-      case ArithmeticOpType.Xor | ArithmeticOpType.Or => false
+      case ArithmeticOpType.Xor | ArithmeticOpType.Or | ArithmeticOpType.Scf => false
+      case ArithmeticOpType.Ccf => prevFlags(Flag.C)
     }
     val flagP=oper match {
-      case ArithmeticOpType.Cpl => prevFlags(Flag.P)
+      case ArithmeticOpType.Cpl | ArithmeticOpType.Ccf | ArithmeticOpType.Scf => prevFlags(Flag.P)
       //parity
       case ArithmeticOpType.And | ArithmeticOpType.Xor | ArithmeticOpType.Or => Z80Utils.isEvenBits(valueUnsigned)
       // overflow
@@ -191,6 +196,8 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     val flagC=
       (changeCarry,oper) match {
         case (false,_) | (_,ArithmeticOpType.Cpl) => prevFlags(Flag.C)
+        case (_,ArithmeticOpType.Ccf) => !prevFlags(Flag.C)
+        case (_,ArithmeticOpType.Scf) => true
         case (_,ArithmeticOpType.Add) | (_,ArithmeticOpType.AddC) | (_,ArithmeticOpType.Inc) => valueUnsigned>valueOut
         case (_,ArithmeticOpType.Sub) | (_,ArithmeticOpType.SubC) | (_,ArithmeticOpType.Comp) |
              (_,ArithmeticOpType.Dec) | (_,ArithmeticOpType.Neg) => valueUnsigned<valueOut
