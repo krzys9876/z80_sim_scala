@@ -3,7 +3,8 @@ package org.kr.scala.z80.system
 import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.utils.Z80Utils
 
-class Z80System(val memoryController: MemoryController, val registerController: RegisterController) {
+class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
+                val outputController: OutputController) {
   def step:Z80System= {
     val PC = registerController.get("PC")
     handle(
@@ -73,5 +74,5 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 }
 
 object Z80System {
-  val blank:Z80System=new Z80System(MemoryController.blank(0x10000),RegisterController.blank)
+  val blank:Z80System=new Z80System(MemoryController.blank(0x10000),RegisterController.blank,OutputController.blank)
 }

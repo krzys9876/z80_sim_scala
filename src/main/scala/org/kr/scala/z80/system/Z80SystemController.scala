@@ -28,23 +28,23 @@ object Z80SystemController {
 
   def changeRegister:(String,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.set(regSymbol,value)
-    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get)))
+    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),system.outputController))
     }
 
   def changeRegisterRelative:(String,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.setRelative(regSymbol,value)
-    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get)))
+    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),system.outputController))
   }
 
   def changeMemoryByte:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
     val newMem=system.memoryController >>= MemoryController.poke(address,value)
-    Z80SystemController(new Z80System(newMem,system.registerController))
+    Z80SystemController(new Z80System(newMem,system.registerController,system.outputController))
   }
 
   def changeMemoryWord:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
     val newMem=system.memoryController >>= MemoryController.poke(address,Z80Utils.getL(value)) >>=
        MemoryController.poke(address+1,Z80Utils.getH(value))
-    Z80SystemController(new Z80System(newMem,system.registerController))
+    Z80SystemController(new Z80System(newMem,system.registerController,system.outputController))
   }
 
   def change:SystemChangeBase => Z80System => Z80SystemController = change => system => {
