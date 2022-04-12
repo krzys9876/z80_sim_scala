@@ -26,29 +26,26 @@ object RotateDigit extends OperationSpec with OpCodeHandler {
   override def handle(code: OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
     //http://www.z80.info/z80sflag.htm
     val loc=location.find(code)
+    val oper=operation.find(code)
 
-    val (valueOutR, valueOutA)=handleRotate(
-      operation.find(code),
+    val (valueOutR, valueOutA)=doRotate(
+      oper,
       system.getValueFromLocation(loc),
       system.getRegValue("A"))
-
-    val newF=
-      new Flag(system.getRegValue("F"))
-      .set(Flag.S,Z80Utils.isNegative(valueOutA))
-      .set(Flag.Z,valueOutA==0)
-      .reset(Flag.H)
-      .set(Flag.P,Z80Utils.isEvenBits(valueOutA))
-      .reset(Flag.N)
+    val newF=calcFlags(
+      oper,
+      valueOutA,
+      system.getRegValue("F"))
 
     val change=List(
       system.putValueToLocation(loc,valueOutR),
-      new RegisterChange("A",valueOutA),
-      new RegisterChange("F", newF()))
+      new RegisterChange("A", valueOutA),
+      new RegisterChange("F", newF))
 
     (change,instSize.find(code))
   }
 
-  private def handleRotate(oper:ArithmeticOperation,valueR:Int,valueA:Int):(Int,Int)={
+  private def doRotate(oper:ArithmeticOperation,valueR:Int,valueA:Int):(Int,Int)={
     val unchangedDigit1A = valueA & 0xF0
     val digit2A = valueA & 0x0F
     val digit1R = (valueR & 0xF0) >> 4
@@ -58,4 +55,12 @@ object RotateDigit extends OperationSpec with OpCodeHandler {
       case ArithmeticOpType.Rrd => ((digit2A << 4) + digit1R,unchangedDigit1A + digit2R)
     }
   }
+
+  private def calcFlags(oper:ArithmeticOperation,value:Int,prevF:Int):Int=
+    new Flag(prevF)
+        .set(Flag.S,Z80Utils.isNegative(value))
+        .set(Flag.Z,value==0)
+        .reset(Flag.H)
+        .set(Flag.P,Z80Utils.isEvenBits(value))
+        .reset(Flag.N)()
 }

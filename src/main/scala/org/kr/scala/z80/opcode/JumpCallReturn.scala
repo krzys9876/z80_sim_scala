@@ -159,9 +159,8 @@ object JumpCallReturn extends OperationSpec with OpCodeHandler {
     changePC ++ changeReg
   }
 
-  private def chooseAddress(prevPC:Int,address:Int,checker:JumpConditionChecker):Int={
+  private def chooseAddress(prevPC:Int,address:Int,checker:JumpConditionChecker):Int=
     if(checker.isMet) address else prevPC
-  }
 
   private def handleStack(shouldJump:Boolean,oper:JumpOperation,instrSize:Int)(implicit system:Z80System):List[SystemChangeBase]=
     (shouldJump,oper) match {

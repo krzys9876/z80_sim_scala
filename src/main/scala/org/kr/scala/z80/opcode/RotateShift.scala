@@ -83,43 +83,56 @@ object RotateShift extends OperationSpec with OpCodeHandler {
     val prevFlags=system.getRegValue("F")
 
     val (value, flags) = handleRotateShift(oper, prevValue, prevFlags)
-    val change=system.putValueToLocation(loc,value)
 
-    (List(change,new RegisterChange("F", flags)),instrSize)
+    (List(
+      system.putValueToLocation(loc,value),
+      new RegisterChange("F", flags)
+    ),
+      instrSize)
   }
 
   private def handleRotateShift(operation:ArithmeticOperation,prevValueIn:Int,prevFlags:Int):(Int,Int)={
-    //http://www.z80.info/z80sflag.htm
-    val prevCarry=new Flag(prevFlags).flagValue(Flag.C)
-    val bit7=Z80Utils.getBit(prevValueIn,7)
-    val bit0=Z80Utils.getBit(prevValueIn,0)
-    val valueOut=operation match {
-      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca => ((prevValueIn << 1) & 0xFF) + (if(bit7) 1 else 0)
-      case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca => ((prevValueIn >> 1) & 0xFF) + (if(bit0) 0x80 else 0)
-      case ArithmeticOpType.Rl | ArithmeticOpType.Rla => ((prevValueIn << 1) & 0xFF) + prevCarry
-      case ArithmeticOpType.Rr | ArithmeticOpType.Rra => ((prevValueIn >> 1) & 0xFF) + (prevCarry << 7)
-      case ArithmeticOpType.Sla => (prevValueIn << 1) & 0xFF
-      case ArithmeticOpType.Sra => ((prevValueIn >> 1) & 0xFF) + (if(bit7) 0x80 else 0)
-    }
-
-    val newCarry=operation match {
-      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca | ArithmeticOpType.Sla => bit7
-      case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca | ArithmeticOpType.Sra => bit0
-      case ArithmeticOpType.Rl | ArithmeticOpType.Rla => bit7
-      case ArithmeticOpType.Rr | ArithmeticOpType.Rra => bit0
-    }
-    val valueSigned=Z80Utils.rawByteTo2Compl(valueOut)
-    val flagS=valueSigned<0
-    val flagZ=valueOut==0
-    val flagP=Z80Utils.isEvenBits(valueOut)
-
-    val newF=operation match {
-      case ArithmeticOpType.Rlca | ArithmeticOpType.Rrca | ArithmeticOpType.Rla |  ArithmeticOpType.Rra =>
-        new Flag(prevFlags).reset(Flag.H).reset(Flag.N).set(Flag.C,newCarry)()
-      case _ => Flag.set(flagS,flagZ,h = false,flagP,n = false,newCarry)
-    }
+    val (valueOut,newCarry)=
+      doRotateValue(operation,prevValueIn,new Flag(prevFlags).flagValue(Flag.C))
+    val newF=calcFlags(operation,valueOut,prevFlags,newCarry)
 
     (valueOut,newF)
+  }
+
+  private def calcFlags(oper:ArithmeticOperation, value:Int, prevF: Int, carry: Boolean)= {
+    //http://www.z80.info/z80sflag.htm
+    oper match {
+      case ArithmeticOpType.Rlca | ArithmeticOpType.Rrca | ArithmeticOpType.Rla |  ArithmeticOpType.Rra =>
+        new Flag(prevF).reset(Flag.H).reset(Flag.N).set(Flag.C,carry)()
+      case _ => Flag.set(
+        Z80Utils.isNegative(value),
+        value==0,
+        h = false,
+        Z80Utils.isEvenBits(value),
+        n = false,
+        carry)
+    }
+  }
+
+  private def doRotateValue(oper:ArithmeticOperation, value:Int, carry:Int):(Int,Boolean)= {
+    val bit7=Z80Utils.getBit(value,7)
+    val bit0=Z80Utils.getBit(value,0)
+
+    val newValue=oper match {
+      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca => ((value << 1) & 0xFF) + (if(bit7) 1 else 0)
+      case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca => ((value >> 1) & 0xFF) + (if(bit0) 0x80 else 0)
+      case ArithmeticOpType.Rl | ArithmeticOpType.Rla => ((value << 1) & 0xFF) + carry
+      case ArithmeticOpType.Rr | ArithmeticOpType.Rra => ((value >> 1) & 0xFF) + (carry << 7)
+      case ArithmeticOpType.Sla => (value << 1) & 0xFF
+      case ArithmeticOpType.Sra => ((value >> 1) & 0xFF) + (if(bit7) 0x80 else 0)
+    }
+    val newCarry=oper match {
+      case ArithmeticOpType.Rlc | ArithmeticOpType.Rlca | ArithmeticOpType.Sla |
+           ArithmeticOpType.Rl | ArithmeticOpType.Rla=> bit7
+      case ArithmeticOpType.Rrc | ArithmeticOpType.Rrca | ArithmeticOpType.Sra |
+           ArithmeticOpType.Rr | ArithmeticOpType.Rra=> bit0
+    }
+    (newValue,newCarry)
   }
 
 }

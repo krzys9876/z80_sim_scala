@@ -183,5 +183,4 @@ object BitManipulation extends OperationSpec with OpCodeHandler {
       case BitOpType.Set => (Z80Utils.setBit(prevValue,bit),prevFlags)
     }
   }
-
 }
