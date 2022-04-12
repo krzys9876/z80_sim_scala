@@ -14,7 +14,7 @@ object TestUtils {
     assert(reg(Flag.C) == Z80Utils.getBitFromString(flagsAsString, Flag.C.bit))
   }
 
-  def prepareTest(regList: List[(String, Int)], memList: List[(Int, Int)]): Z80SystemController = {
+  def prepareTest(regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int=1): Z80SystemController = {
     //given
     val sysBlank = Z80SystemController.blank
     val reg = regList.foldLeft(sysBlank.get.registerController)(
@@ -26,7 +26,7 @@ object TestUtils {
     )
     //when
     val sysInit = Z80SystemController(new Z80System(mem, reg,OutputController.blank))
-    val sysTest = sysInit >>= Z80SystemController.run(1)
+    val sysTest = sysInit >>= Z80SystemController.run(steps)
     Z80SystemController(sysTest.get)
   }
 
