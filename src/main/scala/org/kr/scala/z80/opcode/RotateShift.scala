@@ -105,7 +105,7 @@ object RotateShift extends OperationSpec with OpCodeHandler {
       case ArithmeticOpType.Rlca | ArithmeticOpType.Rrca | ArithmeticOpType.Rla |  ArithmeticOpType.Rra =>
         new Flag(prevF).reset(Flag.H).reset(Flag.N).set(Flag.C,carry)()
       case _ => Flag.set(
-        Z80Utils.isNegative(value),
+        Z80Utils.isNegativeByte(value),
         value==0,
         h = false,
         Z80Utils.isEvenBits(value),

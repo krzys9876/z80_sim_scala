@@ -194,56 +194,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handleArithmetic16Bit(code: OpCode):Z80System = {
-    val oper = Arithmetic16Bit.operation.find(code)
-    val instrSize = Arithmetic16Bit.instSize.find(code)
-    val sourceLoc=Arithmetic16Bit.source.find(code)
-    val destLoc=Arithmetic16Bit.destination.find(code)
-    val operand=getValueFromLocation(sourceLoc)
-    val prevValue=getValueFromLocation(destLoc)
-    val prevFlags=getRegValue("F")
-
-    val chgList=oper match {
-      case o : ArithmeticOpVariableLocation =>
-        val (value, flags) = handleArithmetic16Bit(o.operation, prevValue, prevFlags, operand)
-        List(putValueToLocation(destLoc,value), new RegisterChange("F", flags))
-    }
-    returnAfterChange(chgList, instrSize)
-  }
-
-  private def handleArithmetic16Bit(operation:ArithmeticOperation,prevValueIn:Int,prevFlags:Int,operandIn:Int):(Int,Int)={
-    //http://www.z80.info/z80sflag.htm
-    val (prevValue,operand)=operation match {
-      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => (operandIn,1)
-      case _ => (prevValueIn,operandIn)
-    }
-    val carry=getFlagValue(Flag.C)
-    val (valueUnsigned,valueSigned)=operation match {
-      case ArithmeticOpType.Add | ArithmeticOpType.Inc => (prevValue+operand,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand))
-      case ArithmeticOpType.Dec => (prevValue-operand,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand))
-      case ArithmeticOpType.AddC => (prevValue+operand+carry,Z80Utils.rawWordTo2Compl(prevValue)+Z80Utils.rawWordTo2Compl(operand)+carry)
-      case ArithmeticOpType.SubC => (prevValue-operand-carry,Z80Utils.rawWordTo2Compl(prevValue)-Z80Utils.rawWordTo2Compl(operand)-carry)
-    }
-    val valueOut=valueUnsigned & 0xFFFF
-
-    val newF=operation match {
-      case ArithmeticOpType.Add =>
-        new Flag(prevFlags)
-          .set(Flag.H,(prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF)
-          .reset(Flag.N)
-          .set(Flag.C,valueUnsigned>valueOut)()
-      case ArithmeticOpType.AddC => Flag.set(
-        Z80Utils.rawWordTo2Compl(valueOut)<0, valueOut==0,
-        (prevValue & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF,
-        (valueSigned > 0x7FFF) || (valueSigned < -0x8000),n=false,valueUnsigned>valueOut
-      )
-      case ArithmeticOpType.SubC => Flag.set(
-        Z80Utils.rawWordTo2Compl(valueOut)<0,valueOut==0,
-        (prevValue & 0x0FFF) - (operand & 0x0FFF) < 0x0000,
-        (valueSigned > 0x7FFF) || (valueSigned < -0x8000), n=true,valueUnsigned<valueOut
-      )
-      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => prevFlags
-    }
-    (valueOut,newF)
+    implicit val system:Z80System=this
+    val (change,forwardPC)=Arithmetic16Bit.handle(code)
+    returnAfterChange(change,forwardPC)
   }
 
   private def handleRotateShift(code: OpCode):Z80System = {

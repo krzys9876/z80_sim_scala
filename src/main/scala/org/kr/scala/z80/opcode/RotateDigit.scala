@@ -58,7 +58,7 @@ object RotateDigit extends OperationSpec with OpCodeHandler {
 
   private def calcFlags(oper:ArithmeticOperation,value:Int,prevF:Int):Int=
     new Flag(prevF)
-        .set(Flag.S,Z80Utils.isNegative(value))
+        .set(Flag.S,Z80Utils.isNegativeByte(value))
         .set(Flag.Z,value==0)
         .reset(Flag.H)
         .set(Flag.P,Z80Utils.isEvenBits(value))

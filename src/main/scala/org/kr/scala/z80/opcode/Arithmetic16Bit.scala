@@ -1,6 +1,9 @@
 package org.kr.scala.z80.opcode
 
-object Arithmetic16Bit extends OperationSpec {
+import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.utils.Z80Utils
+
+object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 52
   val operationListMap: Map[List[OpCode],AritheticOpLocationBase] = Map(
     List(OpCode(0x09),OpCode(0x19),OpCode(0x29),OpCode(0x39),
@@ -54,4 +57,76 @@ object Arithmetic16Bit extends OperationSpec {
   )
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
 
+  override def handle(code: OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
+    val oper = Arithmetic16Bit.operation.find(code)
+    val instrSize = Arithmetic16Bit.instSize.find(code)
+    val sourceLoc=Arithmetic16Bit.source.find(code)
+    val destLoc=Arithmetic16Bit.destination.find(code)
+    val operand=system.getValueFromLocation(sourceLoc)
+    val prevValue=system.getValueFromLocation(destLoc)
+    val prevFlags=system.getRegValue("F")
+
+    val chgList=oper match {
+      case o : ArithmeticOpVariableLocation =>
+        val (value, flags) = handleArithmetic16Bit(o.operation, prevValue, prevFlags, operand)
+        List(system.putValueToLocation(destLoc,value), new RegisterChange("F", flags))
+    }
+    (chgList, instrSize)
+  }
+
+  private def handleArithmetic16Bit(oper:ArithmeticOperation, prevValueIn:Int, prevFlags:Int, operandIn:Int):(Int,Int)={
+    //http://www.z80.info/z80sflag.htm
+    val (prevValue,operand)=oper match {
+      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => (operandIn,1)
+      case _ => (prevValueIn,operandIn)
+    }
+
+    val (valueUnsigned,valueSigned,valueHalf,valueOut)=doCalculate(oper,prevValue,operand,new Flag(prevFlags).flagValue(Flag.C))
+    val newF=calcFlags(oper,prevFlags,valueUnsigned,valueSigned,valueHalf,valueOut)
+
+    (valueOut,newF)
+  }
+
+  private def doCalculate(oper:ArithmeticOperation,value:Int,operand:Int,carry:Int):(Int,Int,Int,Int)= {
+    val (valueUnsigned, valueSigned) = oper match {
+      case ArithmeticOpType.Add | ArithmeticOpType.Inc => (value + operand, Z80Utils.rawWordTo2Compl(value) + Z80Utils.rawWordTo2Compl(operand))
+      case ArithmeticOpType.Dec => (value - operand, Z80Utils.rawWordTo2Compl(value) - Z80Utils.rawWordTo2Compl(operand))
+      case ArithmeticOpType.AddC => (value + operand + carry, Z80Utils.rawWordTo2Compl(value) + Z80Utils.rawWordTo2Compl(operand) + carry)
+      case ArithmeticOpType.SubC => (value - operand - carry, Z80Utils.rawWordTo2Compl(value) - Z80Utils.rawWordTo2Compl(operand) - carry)
+    }
+    val valueHalf = oper match {
+      case ArithmeticOpType.Add | ArithmeticOpType.AddC => (value & 0x0FFF) + (operand & 0x0FFF)
+      case ArithmeticOpType.SubC => (value & 0x0FFF) - (operand & 0x0FFF)
+      case _ => OpCode.ANY
+    }
+    val valueOut = valueUnsigned & 0xFFFF
+    (valueUnsigned, valueSigned, valueHalf, valueOut)
+  }
+
+  private def calcFlags(oper:ArithmeticOperation,prevFlags:Int,
+                        valueUnsigned:Int,valueSigned:Int,valueHalf:Int,valueOut:Int):Int=
+    oper match {
+      case ArithmeticOpType.Add =>
+        new Flag(prevFlags)
+          .set(Flag.H,valueHalf > 0x0FFF)
+          .reset(Flag.N)
+          .set(Flag.C,valueUnsigned>valueOut)()
+      case ArithmeticOpType.AddC => Flag.set(
+        Z80Utils.isNegativeWord(valueUnsigned),
+        valueOut==0,
+        valueHalf > 0x0FFF,
+        (valueSigned > 0x7FFF) || (valueSigned < -0x8000),
+        n=false,
+        valueUnsigned>valueOut
+      )
+      case ArithmeticOpType.SubC => Flag.set(
+        Z80Utils.isNegativeWord(valueUnsigned),
+        valueOut==0,
+        valueHalf < 0,
+        (valueSigned > 0x7FFF) || (valueSigned < -0x8000),
+        n=true,
+        valueUnsigned<valueOut
+      )
+      case ArithmeticOpType.Inc | ArithmeticOpType.Dec => prevFlags
+  }
 }
