@@ -58,10 +58,10 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
 
   override def handle(code: OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
-    val oper = Arithmetic16Bit.operation.find(code)
-    val instrSize = Arithmetic16Bit.instSize.find(code)
-    val sourceLoc=Arithmetic16Bit.source.find(code)
-    val destLoc=Arithmetic16Bit.destination.find(code)
+    val oper = operation.find(code)
+    val instrSize = instSize.find(code)
+    val sourceLoc=source.find(code)
+    val destLoc=destination.find(code)
     val operand=system.getValueFromLocation(sourceLoc)
     val prevValue=system.getValueFromLocation(destLoc)
     val prevFlags=system.getRegValue("F")
@@ -95,8 +95,9 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
       case ArithmeticOpType.SubC => (value - operand - carry, Z80Utils.rawWordTo2Compl(value) - Z80Utils.rawWordTo2Compl(operand) - carry)
     }
     val valueHalf = oper match {
-      case ArithmeticOpType.Add | ArithmeticOpType.AddC => (value & 0x0FFF) + (operand & 0x0FFF)
-      case ArithmeticOpType.SubC => (value & 0x0FFF) - (operand & 0x0FFF)
+      case ArithmeticOpType.Add => (value & 0x0FFF) + (operand & 0x0FFF)
+      case ArithmeticOpType.AddC =>  (value & 0x0FFF) + (operand & 0x0FFF) + carry
+      case ArithmeticOpType.SubC => (value & 0x0FFF) - (operand & 0x0FFF) - carry
       case _ => OpCode.ANY
     }
     val valueOut = valueUnsigned & 0xFFFF

@@ -14,6 +14,7 @@ object Z80Utils {
   private def byteEnsureRange(raw:Int):Int=if(raw<0) raw & 0xFF else raw
 
   def isOutOfRangeWord(value:Int):Boolean=(value > 0x7FFF) || (value < -0x8000)
+  def isOutOfRangeByte(value:Int):Boolean=(value > 0x7F) || (value < -0x80)
 
   def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-((raw>>7)&1)*0x80
   def rawWordTo2Compl(raw:Int):Int= (raw & 0x7FFF)-((raw>>15)&1)*0x8000
