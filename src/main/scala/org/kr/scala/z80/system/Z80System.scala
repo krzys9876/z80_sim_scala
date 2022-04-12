@@ -6,38 +6,30 @@ import org.kr.scala.z80.utils.Z80Utils
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController) {
   def step:Z80System= {
     val PC = registerController.get("PC")
-    val opcode = OpCode(
-      memoryController.get(PC),
-      memoryController.get(PC,1),
-      memoryController.get(PC,3))
-
-    val opTypeSpec=specsHandlerMap.keys.find(_.isOper(opcode)).getOrElse(Unknown)
-    val opCodeHandler=specsHandlerMap.getOrElse(opTypeSpec, handleUnknown(_))
-    opCodeHandler(opcode)
+    handle(
+      OpCode(
+        memoryController.get(PC),
+        memoryController.get(PC,1),
+        memoryController.get(PC,3)))
   }
 
-  private val specsHandlerMap:Map[OperationSpec,OpCode=>Z80System]=Map(
-    Load8Bit->handleLoad8Bit,
-    Load16Bit->handleLoad16Bit,
-    Exchange->handleExchange,
-    Arithmetic8Bit->handleArithmetic8Bit,
-    Arithmetic16Bit->handleArithmetic16Bit,
-    RotateShift->handleRotateShift,
-    RotateDigit->handleRotateDigit,
-    BitManipulation->handleBitManipulation,
-    JumpCallReturn->handleJumpCallReturn,
-    Nop->handleNop,
-    Unknown->handleUnknown
-  )
+  private def handle(opcode:OpCode):Z80System={
+    val handler=opcodeHandlers.find(_.isOper(opcode)).getOrElse(Unknown)
+    implicit val system:Z80System=this
+    val (change,forwardPC)=handler.handle(opcode)
+    returnAfterChange(change,forwardPC)
+  }
+
+  private val opcodeHandlers:List[OperationSpec with OpCodeHandler]=
+    List(Load8Bit,Load16Bit,Exchange,Arithmetic8Bit,Arithmetic16Bit,
+      RotateShift,RotateShift,RotateDigit,BitManipulation,JumpCallReturn,Nop,Unknown)
 
   def getRegValue(symbol:String):Int=registerController.get(symbol)
-  def getFlag(flag:FlagSymbol):Boolean=registerController.get(flag)
-  def getFlagValue(flag:FlagSymbol):Int=if(getFlag(flag)) 1 else 0
   private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg("PC",offset)
   private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg("PC",offset)
-  def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
+  private def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
   private def getByteFromMemoryAtReg(symbol:String,offset:Int):Int = getByte(getAddressFromReg(symbol,offset))
-  def getWordFromMemoryAtReg(symbol:String,offset:Int):Int =
+  private def getWordFromMemoryAtReg(symbol:String,offset:Int):Int =
     Z80Utils.makeWord(getByte(getAddressFromReg(symbol,offset)+1),getByte(getAddressFromReg(symbol,offset)))
   private def getByte(address:Int):Int = memoryController.get(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memoryController.get(address+1),memoryController.get(address))
@@ -45,18 +37,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def returnAfterChange(chgList:List[SystemChangeBase],forwardPC:Int=0):Z80System = {
     val chgListAfterPC=chgList ++ (if(forwardPC!=0) List(new RegisterChangeRelative("PC",forwardPC)) else List())
     (Z80SystemController(this) >>= Z80SystemController.changeList(chgListAfterPC)).get
-  }
-
-  private def returnAfterOneChange(chg:SystemChangeBase,forwardPC:Int):Z80System = returnAfterChange(List(chg),forwardPC)
-
-  private def handleUnknown(code: OpCode):Z80System = {
-    throw new UnknownOperationException(f"Unknown operation $code at ${getRegValue("PC")}")
-    this
-  }
-
-  private def handleNop(code:OpCode):Z80System = {
-    val instrSize=Nop.instSize.find(code)
-    returnAfterChange(List[SystemChangeBase](),instrSize)
   }
 
   def getValueFromLocation(loc:LoadLocation):Int =
@@ -89,60 +69,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
             putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl))),value,isWord)
         }
     }
-
-  private def handleLoad8Bit(code:OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=Load8Bit.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleLoad16Bit(code:OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=Load16Bit.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleExchange(code:OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=Exchange.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleArithmetic8Bit(code: OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=Arithmetic8Bit.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleArithmetic16Bit(code: OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=Arithmetic16Bit.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleRotateShift(code: OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=RotateShift.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleRotateDigit(code: OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=RotateDigit.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleBitManipulation(code: OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=BitManipulation.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
-
-  private def handleJumpCallReturn(code: OpCode):Z80System = {
-    implicit val system:Z80System=this
-    val (change,forwardPC)=JumpCallReturn.handle(code)
-    returnAfterChange(change,forwardPC)
-  }
 }
 
 object Z80System {

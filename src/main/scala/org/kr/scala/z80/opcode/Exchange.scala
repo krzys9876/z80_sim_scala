@@ -42,8 +42,10 @@ object Exchange extends OperationSpec with OpCodeHandler {
           List(new RegisterChange(loc.reg1,system.getRegValue(entry.reg2)),
             new RegisterChange(loc.reg2,system.getRegValue(entry.reg1)))
         case loc : ExchangeLocationIndirect =>
-          List(new MemoryChangeWord(system.getAddressFromReg(loc.reg1,0),system.getRegValue(loc.reg2)),
-            new RegisterChange(loc.reg2,system.getWordFromMemoryAtReg(loc.reg1,0)))
+          val addressLoc1=system.getRegValue(loc.reg1)
+          val memLoc1=system.getValueFromLocation(LoadLocation.registerAddr(loc.reg1,isWord=true))
+          List(new MemoryChangeWord(addressLoc1,system.getRegValue(loc.reg2)),
+            new RegisterChange(loc.reg2,memLoc1))
       }
     })
     (chgList,instrSize)

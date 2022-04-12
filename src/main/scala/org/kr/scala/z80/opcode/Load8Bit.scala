@@ -108,7 +108,7 @@ object Load8Bit extends LoadSpec with OpCodeHandler {
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
-    val value=system.getValueFromLocation(Load8Bit.sourceLoc.find(code))
+    val value=system.getValueFromLocation(sourceLoc.find(code))
     (List(system.putValueToLocation(destLoc.find(code),value)),instSize.find(code))
   }
 }
