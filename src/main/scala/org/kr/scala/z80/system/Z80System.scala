@@ -23,7 +23,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private val opcodeHandlers:List[OperationSpec with OpCodeHandler]=
     List(Load8Bit,Load16Bit,Exchange,Arithmetic8Bit,Arithmetic16Bit,
-      RotateShift,RotateShift,RotateDigit,BitManipulation,JumpCallReturn,Nop,Unknown)
+      RotateShift,RotateShift,RotateDigit,BitManipulation,JumpCallReturn,
+      InputOutput,Nop,Unknown)
 
   def getRegValue(symbol:String):Int=registerController.get(symbol)
   private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg("PC",offset)

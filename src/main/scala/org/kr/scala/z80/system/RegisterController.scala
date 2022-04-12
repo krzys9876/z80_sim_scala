@@ -9,7 +9,7 @@ object RegisterController {
   def blank:RegisterController = new RegisterController(Register.blank)
 
   val set: (String, Int) => Register => RegisterController = (regSymbol, value) => register =>
-    RegisterController(Register(register.set(regSymbol, value)))
+    RegisterController(register.set(regSymbol, value))
   val setRelative: (String, Int) => Register => RegisterController = (regSymbol, value) => register =>
-    RegisterController(Register(register.setRelative(regSymbol, value)))
+    RegisterController(register.setRelative(regSymbol, value))
 }

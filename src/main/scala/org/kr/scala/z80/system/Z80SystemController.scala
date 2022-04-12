@@ -47,6 +47,11 @@ object Z80SystemController {
     Z80SystemController(new Z80System(newMem,system.registerController,system.outputController))
   }
 
+  def outputByte:(Int,Int) => Z80System => Z80SystemController = (port, value) => system => {
+    val newOut=system.outputController >>= OutputController.out(port,value)
+    Z80SystemController(new Z80System(system.memoryController,system.registerController,newOut))
+  }
+
   def change:SystemChangeBase => Z80System => Z80SystemController = change => system => {
     change match {
       case ch : RegisterChange =>
@@ -57,6 +62,8 @@ object Z80SystemController {
         Z80SystemController(system) >>= Z80SystemController.changeMemoryByte(ch.address,ch.value)
       case ch : MemoryChangeWord =>
         Z80SystemController(system) >>= Z80SystemController.changeMemoryWord(ch.address,ch.value)
+      case ch : OutputChange =>
+        Z80SystemController(system) >>= Z80SystemController.outputByte(ch.port,ch.value)
     }
   }
 
@@ -72,4 +79,4 @@ class RegisterChange(val regSymbol: String, override val value: Int) extends Sys
 class RegisterChangeRelative(val regSymbol: String, override val value: Int) extends SystemChangeBase(value)
 class MemoryChangeByte(val address: Int, override val value: Int) extends SystemChangeBase(value)
 class MemoryChangeWord(val address: Int, override val value: Int) extends SystemChangeBase(value)
-
+class OutputChange(val port: Int, override val value: Int) extends SystemChangeBase(value)

@@ -7,4 +7,8 @@ class OutputController(override val state:OutputFile) extends BaseStateMonad[Out
 object OutputController {
   def apply(state: OutputFile):OutputController = new OutputController(state)
   def blank:OutputController = new OutputController(OutputFile.blank)
+
+  val out: (Int, Int) => OutputFile => OutputController = (port, value) => outputFile =>
+    OutputController(outputFile.put(port,value))
+
 }

@@ -12,6 +12,7 @@ case class LoadLocation(reg:String, immediate:Int, offsetPC:Int, addressReg:Stri
           case (o,OpCode.ANY) => f"($r+0x$o%02X)$isWordString"
           case (OpCode.ANY,o) => f"($r+(PC+0x$o%02X))$isWordString"
         }
+      case _ => "empty"
     }
   private val isWordString=if(isWord) "w" else "b"
 }
