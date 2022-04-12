@@ -1,6 +1,8 @@
 package org.kr.scala.z80.opcode
 
-object Load8Bit extends LoadSpec {
+import org.kr.scala.z80.system.{SystemChangeBase, Z80System}
+
+object Load8Bit extends LoadSpec with OpCodeHandler {
   // Z80 manual page 42
   val sourceLocListMap: Map[List[OpCode], LoadLocation] = Map(
     // registers
@@ -104,4 +106,9 @@ object Load8Bit extends LoadSpec {
   )
 
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
+
+  override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
+    val value=system.getValueFromLocation(Load8Bit.sourceLoc.find(code))
+    (List(system.putValueToLocation(destLoc.find(code),value)),instSize.find(code))
+  }
 }

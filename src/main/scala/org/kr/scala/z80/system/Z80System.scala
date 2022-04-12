@@ -90,11 +90,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         }
     }
 
-  private def handleLoad8Bit(opcode:OpCode):Z80System = {
-    val value=getValueFromLocation(Load8Bit.sourceLoc.find(opcode))
-    val destLoc=Load8Bit.destLoc.find(opcode)
-    val instrSize=Load8Bit.instSize.find(opcode)
-    returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
+  private def handleLoad8Bit(code:OpCode):Z80System = {
+    implicit val system:Z80System=this
+    val (change,forwardPC)=Load8Bit.handle(code)
+    returnAfterChange(change,forwardPC)
   }
 
   private def handleLoad16Bit(code:OpCode):Z80System = {
