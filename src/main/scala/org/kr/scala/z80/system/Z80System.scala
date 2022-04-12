@@ -59,13 +59,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     returnAfterChange(List[SystemChangeBase](),instrSize)
   }
 
-  private def handleLoad8Bit(opcode:OpCode):Z80System = {
-    val value=getValueFromLocation(Load8Bit.sourceLoc.find(opcode))
-    val destLoc=Load8Bit.destLoc.find(opcode)
-    val instrSize=Load8Bit.instSize.find(opcode)
-    returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
-  }
-
   def getValueFromLocation(loc:LoadLocation):Int =
     loc match {
       case LoadLocation(r,_,_,_,_,_,_) if r!="" => getRegValue(r)
@@ -97,20 +90,17 @@ class Z80System(val memoryController: MemoryController, val registerController: 
         }
     }
 
-  private def handleLoad16Bit(opcode:OpCode):Z80System = {
-    val sourceLoc=Load16Bit.sourceLoc.find(opcode)
-    val value=getValueFromLocation(sourceLoc)
-    val destLoc=Load16Bit.destLoc.find(opcode)
-    val instrSize=Load16Bit.instSize.find(opcode)
-    val stackChange=Load16Bit.stackChange.find(opcode)
+  private def handleLoad8Bit(opcode:OpCode):Z80System = {
+    val value=getValueFromLocation(Load8Bit.sourceLoc.find(opcode))
+    val destLoc=Load8Bit.destLoc.find(opcode)
+    val instrSize=Load8Bit.instSize.find(opcode)
+    returnAfterOneChange(putValueToLocation(destLoc,value),instrSize)
+  }
 
-    val chgList= List(putValueToLocation(destLoc,value,isWord = true))
-    val stackChgList=destLoc match {
-      case LoadLocation(r,_,_,rd,dirO,_,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
-        List(new RegisterChangeRelative("SP",stackChange))
-      case _ => List()
-    }
-    returnAfterChange(chgList++stackChgList,instrSize)
+  private def handleLoad16Bit(code:OpCode):Z80System = {
+    implicit val system:Z80System=this
+    val (change,forwardPC)=Load16Bit.handle(code)
+    returnAfterChange(change,forwardPC)
   }
 
   private def handleExchange(code:OpCode):Z80System = {

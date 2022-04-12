@@ -1,6 +1,8 @@
 package org.kr.scala.z80.opcode
 
-object Load16Bit extends LoadSpec {
+import org.kr.scala.z80.system.{RegisterChangeRelative, SystemChangeBase, Z80System}
+
+object Load16Bit extends LoadSpec with OpCodeHandler {
   // Z80 manual page 45 (NOTE: PUSH qq are X5, not X6!)
   val sourceLocListMap: Map[List[OpCode], LoadLocation] = Map(
     //registers
@@ -73,4 +75,21 @@ object Load16Bit extends LoadSpec {
   )
 
   val stackChange: OpCodeMap[Int] = new OpCodeMap(stackChangeListMap, 0)
+
+  override def handle(code:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
+    val sourceLoc=Load16Bit.sourceLoc.find(code)
+    val value=system.getValueFromLocation(sourceLoc)
+    val destLoc=Load16Bit.destLoc.find(code)
+    val instrSize=Load16Bit.instSize.find(code)
+    val stackChange=Load16Bit.stackChange.find(code)
+
+    val chgList= List(system.putValueToLocation(destLoc,value,isWord = true))
+    val stackChgList=destLoc match {
+      case LoadLocation(r,_,_,rd,dirO,_,_) if r!="" || (rd!="" && dirO!=OpCode.ANY) =>
+        List(new RegisterChangeRelative("SP",stackChange))
+      case _ => List()
+    }
+    (chgList++stackChgList,instrSize)
+  }
+
 }
