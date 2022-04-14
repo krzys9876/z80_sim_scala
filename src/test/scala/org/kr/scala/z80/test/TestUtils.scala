@@ -1,7 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{Flag, MemoryController, OutputController, Register, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{Flag, InputController, MemoryController, OutputController, Register, RegisterController, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
 
 object TestUtils {
@@ -15,8 +15,11 @@ object TestUtils {
   }
 
   def prepareTest(regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int=1): Z80SystemController = {
+    prepareTestWith(Z80SystemController.blank,regList,memList,steps)
+  }
+
+  def prepareTestWith(sysBlank:Z80SystemController, regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int): Z80SystemController = {
     //given
-    val sysBlank = Z80SystemController.blank
     val reg = regList.foldLeft(sysBlank.get.registerController)(
       (regC, entry) => regC >>= RegisterController.set(entry._1, entry._2)
     )
@@ -25,7 +28,7 @@ object TestUtils {
       (memC, entry) => memC >>= MemoryController.poke(entry._1, entry._2)
     )
     //when
-    val sysInit = Z80SystemController(new Z80System(mem, reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController))
     val sysTest = sysInit >>= Z80SystemController.run(steps)
     Z80SystemController(sysTest.get)
   }

@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{MemoryController, OutputController, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{InputController, MemoryController, OutputController, RegisterController, Z80System, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpLoad8BitTypeTest extends AnyFunSuite {
@@ -8,13 +8,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
 
   test("run LD B,0xFE") {
     //given
-    val sysBlank=Z80SystemController.blank
-    val mem=sysBlank.get.memoryController >>=
-      MemoryController.poke(10,0x06) >>= //LD H,0xFE
-      MemoryController.poke(11,0xFE)
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,sysBlank.get.registerController,OutputController.blank))
-    val sysTest=sysInit >>= Z80SystemController.run(11)
+    val sysTest=TestUtils.prepareTest(List(),List((10,0x06),(11,0xFE)),11) //LD H,0xFE
     //then
     assert(sysTest.get.registerController.get("PC")==12)
     assert(sysTest.get.registerController.get("B")==0xFE)
@@ -22,14 +17,10 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
 
   test("run LD H,0xFF | LD A,H") {
     //given
-    val sysBlank=Z80SystemController.blank
-    val mem=sysBlank.get.memoryController >>=
-      MemoryController.poke(0,0x26) >>= //LD H,0xFF
-      MemoryController.poke(1,0xFF) >>=
-      MemoryController.poke(2,0x7C) // LD A, H
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,sysBlank.get.registerController,OutputController.blank))
-    val sysTest=sysInit >>= Z80SystemController.run(2)
+    val sysTest=TestUtils.prepareTest(List(),
+      List((0,0x26),(1,0xFF), //LD H,0xFE
+        (2,0x7C)),2) // LD A, H
     //then
     assert(sysTest.get.registerController.get("PC")==3)
     assert(sysTest.get.registerController.get("A")==0xFF)
@@ -40,16 +31,10 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
 
   test("run LD C,(HL)") {
     //given
-    val sysBlank=Z80SystemController.blank
-    val reg=sysBlank.get.registerController >>=
-      RegisterController.set("H",0x01) >>=
-      RegisterController.set("L",0x02)
-    val mem=sysBlank.get.memoryController >>=
-      MemoryController.poke(0,0x4E) >>= //LD C,(HL)
-      MemoryController.poke(0x0102,0xFE) //(HL)
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank))
-    val sysTest=sysInit >>= Z80SystemController.run(1)
+    val sysTest=TestUtils.prepareTest(List(("H",0x01),("L",0x02)),
+      List((0,0x4E), //LD C,(HL)
+        (0x0102,0xFE)))
     //then
     assert(sysTest.get.registerController.get("PC")==1)
     assert(sysTest.get.registerController.get("C")==0xFE)
@@ -59,16 +44,10 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
 
   test("run LD (HL),E") {
     //given
-    val sysBlank=Z80SystemController.blank
-    val reg=sysBlank.get.registerController >>=
-      RegisterController.set("H",0x01) >>=
-      RegisterController.set("L",0x02) >>=
-      RegisterController.set("E",0xFF)
-    val mem=sysBlank.get.memoryController >>=
-      MemoryController.poke(0,0x73) //LD (HL),E
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank))
-    val sysTest=sysInit >>= Z80SystemController.run(1)
+    val sysTest=TestUtils.prepareTest(List(("H",0x01),("L",0x02),("E",0xFF)),
+      List((0,0x73) //LD (HL),E
+        ))
     //then
     assert(sysTest.get.registerController.get("PC")==1)
     assert(sysTest.get.memoryController.get(0x0102)==0xFF)
@@ -88,7 +67,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       MemoryController.poke(0x0106,0xFF) >>=
       MemoryController.poke(0x0107,0xFE)
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest=sysInit >>= Z80SystemController.run(2)
     //then
     assert(sysTest.get.registerController.get("PC")==6)
@@ -112,7 +91,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       MemoryController.poke(0x0103,0x01) >>=
       MemoryController.poke(0x0105,0x02)
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest=sysInit >>= Z80SystemController.run(2)
     //then
     assert(sysTest.get.registerController.get("PC")==6)
@@ -132,7 +111,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       MemoryController.poke(0,0x36) >>= //LD (HL),0xFF
       MemoryController.poke(1,0xFF)
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest=sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC")==2)
@@ -153,7 +132,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       MemoryController.pokeMulti(0,Vector(0xDD,0x36,0xFE,0xFF)) >>= //LD (IX-2),0xFF
       MemoryController.pokeMulti(4,Vector(0xFD,0x36,0x03,0xFE)) //LD (IY+3),0xFE
     //when
-    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit=Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest=sysInit >>= Z80SystemController.run(2)
     //then
     assert(sysTest.get.registerController.get("PC")==8)
@@ -173,7 +152,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       MemoryController.poke(0, 0x0A) >>= //LD A,(BC)
       MemoryController.poke(0x0102,0xFE)
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -192,7 +171,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       MemoryController.poke(0, 0x1A) >>= //LD A,(DE)
       MemoryController.poke(0x0103,0xFD)
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -211,7 +190,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.poke(0, 0x02) //LD (BC),A
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -230,7 +209,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.poke(0, 0x12) //LD (DE),A
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 1)
@@ -246,7 +225,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       MemoryController.pokeMulti(0, Vector(0x3A,0x02,0x01)) >>= //LD A,(nn)
       MemoryController.poke(0x0102, 0xFE)
     //when
-    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), sysBlank.get.registerController,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(MemoryController(mem.get), sysBlank.get.registerController,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 3)
@@ -263,7 +242,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.pokeMulti(0, Vector(0x32,0x02,0x01)) //LD (nn),A
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 3)
@@ -280,7 +259,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.pokeMulti(0, Vector(0xED,0x57)) //LD A,I
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 2)
@@ -297,7 +276,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.pokeMulti(0, Vector(0xED,0x5F)) //LD A,R
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 2)
@@ -314,7 +293,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.pokeMulti(0, Vector(0xED,0x47)) //LD I,A
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 2)
@@ -331,7 +310,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     val mem = sysBlank.get.memoryController >>=
       MemoryController.pokeMulti(0, Vector(0xED,0x4F)) //LD R,A
     //when
-    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank))
+    val sysInit = Z80SystemController(new Z80System(mem,reg,OutputController.blank, InputController.blank))
     val sysTest = sysInit >>= Z80SystemController.run(1)
     //then
     assert(sysTest.get.registerController.get("PC") == 2)

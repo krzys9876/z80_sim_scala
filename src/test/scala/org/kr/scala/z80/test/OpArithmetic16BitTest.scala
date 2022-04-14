@@ -61,7 +61,7 @@ class OpArithmetic16BitTest extends AnyFunSuite{
   }
 
   test("run DEC qq") {
-    testArithReg(List(("F", 0x00), ("BC", 0x0001)), List((0x0000, 0xDB)), "BC",0x0000, "00_0_000")
+    testArithReg(List(("F", 0x00), ("BC", 0x0001)), List((0x0000, 0x0B)), "BC",0x0000, "00_0_000")
     testArithReg(List(("F", 0xFF), ("DE", 0x0000)), List((0x0000, 0x1B)), "DE",0xFFFF, "11_1_111")
     testArithReg(List(("F", 0xFF), ("HL", 0x8000)), List((0x0000, 0x2B)), "HL",0x7FFF, "11_1_111")
     testArithReg(List(("F", 0x00), ("SP", 0x8000)), List((0x0000, 0x3B)), "SP",0x7FFF, "00_0_000")

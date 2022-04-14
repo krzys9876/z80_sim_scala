@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{MemoryController, OutputController, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{InputFile, InputPort, InputPortConstant, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
@@ -67,6 +67,24 @@ class OpInOutTest extends AnyFunSuite {
     assert(systemC.get.outputController.get(0x80,5)==0x46)
 
     //systemC.get.outputController.get.print(0xFF)
+  }
+
+  def prepareTestWithInput(regList: List[(String, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,
+                           steps:Int=1): Z80SystemController = {
+    val blank=Z80SystemController.blank >>= Z80SystemController.attachPort(port,inputPort)
+    TestUtils.prepareTestWith(blank,regList,memList,steps)
+  }
+
+  test("run IN A,(n)") {
+    //given
+    //when
+    val systemC=prepareTestWithInput(List(),
+      List(
+        (0x0000,0xDB),(0x0001,0x40), // IN A,(0x40)
+      ), 0x40,new InputPortConstant(0xAB))
+    //then
+    assert(systemC.get.registerController.get("PC")==2)
+    assert(systemC.get.registerController.get("A")==0xAB)
   }
 
 }

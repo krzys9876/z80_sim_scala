@@ -28,30 +28,45 @@ object Z80SystemController {
 
   def changeRegister:(String,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.set(regSymbol,value)
-    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),system.outputController))
+    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),
+      system.outputController,system.inputController))
     }
 
   def changeRegisterRelative:(String,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.setRelative(regSymbol,value)
-    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),system.outputController))
+    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),
+      system.outputController,system.inputController))
   }
 
   def changeMemoryByte:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
     val newMem=system.memoryController >>= MemoryController.poke(address,value)
-    Z80SystemController(new Z80System(newMem,system.registerController,system.outputController))
+    Z80SystemController(new Z80System(newMem,system.registerController,
+      system.outputController,system.inputController))
   }
 
   def changeMemoryWord:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
     val newMem=system.memoryController >>= MemoryController.poke(address,Z80Utils.getL(value)) >>=
        MemoryController.poke(address+1,Z80Utils.getH(value))
-    Z80SystemController(new Z80System(newMem,system.registerController,system.outputController))
+    Z80SystemController(new Z80System(newMem,system.registerController,
+      system.outputController,system.inputController))
   }
 
   def outputByte:(Int,Int) => Z80System => Z80SystemController = (port, value) => system => {
     val newOut=system.outputController >>= OutputController.out(port,value)
-    Z80SystemController(new Z80System(system.memoryController,system.registerController,newOut))
+    Z80SystemController(new Z80System(system.memoryController,system.registerController,newOut,
+      system.inputController))
   }
 
+  def attachPort:(Int,InputPort) => Z80System => Z80SystemController = (port,inPort) => system => {
+    val newIn=system.inputController >>= InputController.attachPort(port,inPort)
+    Z80SystemController(new Z80System(system.memoryController,system.registerController,
+      system.outputController,newIn))
+  }
+
+/*  def addInput:(Int,InputFile) => Z80System => Z80SystemController = (port,inFile) => system => {
+    val newIn=system.inputC
+  }
+  */
   def change:SystemChangeBase => Z80System => Z80SystemController = change => system => {
     change match {
       case ch : RegisterChange =>

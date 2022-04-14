@@ -4,7 +4,8 @@ import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.utils.Z80Utils
 
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
-                val outputController: OutputController) {
+                val outputController: OutputController,
+                val inputController: InputController) {
   def step:Z80System= {
     val PC = registerController.get("PC")
     handle(
@@ -27,6 +28,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       InputOutput,Nop,Unknown)
 
   def getRegValue(symbol:String):Int=registerController.get(symbol)
+
   private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg("PC",offset)
   private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg("PC",offset)
   private def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
@@ -40,6 +42,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val chgListAfterPC=chgList ++ (if(forwardPC!=0) List(new RegisterChangeRelative("PC",forwardPC)) else List())
     (Z80SystemController(this) >>= Z80SystemController.changeList(chgListAfterPC)).get
   }
+
+  def readPort(port:Int):Int=inputController.read(port)
 
   def getValueFromLocation(loc:LoadLocation):Int =
     loc match {
@@ -75,5 +79,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 }
 
 object Z80System {
-  val blank:Z80System=new Z80System(MemoryController.blank(0x10000),RegisterController.blank,OutputController.blank)
+  val blank:Z80System=new Z80System(MemoryController.blank(0x10000),RegisterController.blank,
+    OutputController.blank, InputController.blank)
 }
