@@ -80,7 +80,7 @@ object RotateShift extends OperationSpec with OpCodeHandler {
     val instrSize = instSize.find(code)
     val loc=location.find(code)
     val prevValue=system.getValueFromLocation(loc)
-    val prevFlags=system.getRegValue("F")
+    val prevFlags=system.getFlags()
 
     val (value, flags) = handleRotateShift(oper, prevValue, prevFlags)
 

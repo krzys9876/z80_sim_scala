@@ -26,7 +26,7 @@ class JumpConditionChecker(val condition: JumpCondition)(implicit system: Z80Sys
   lazy val isMet: Boolean =
     condition match {
       case c if c.isEmpty => true
-      case c if c.isFlag => new Flag(system.getRegValue("F")).flagValue(condition.flag) == condition.value
+      case c if c.isFlag => system.getFlags.flagValue(condition.flag) == condition.value
       case c if c.isRegister => decRegValue != c.value
     }
 }

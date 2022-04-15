@@ -101,7 +101,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     val instrSize = Arithmetic8Bit.instSize.find(code)
     val operandLoc=Arithmetic8Bit.operand.find(code)
     val operand=system.getValueFromLocation(operandLoc)
-    val prevFlags=new Flag(system.getRegValue("F"))
+    val prevFlags=system.getFlags
 
     val (value,destLocation,flags) = oper match {
       case o: ArithmeticOpLocationAccum =>
