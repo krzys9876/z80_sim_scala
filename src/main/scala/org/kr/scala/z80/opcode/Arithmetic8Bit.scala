@@ -207,3 +207,5 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)
   }
 }
+
+// TODO: refactor to extract calculation logics from match clauses to separate classes
