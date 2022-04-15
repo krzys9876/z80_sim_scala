@@ -1,6 +1,20 @@
 package org.kr.scala.z80.opcode
 
-sealed abstract class ArithmeticOperation(val name:String)
+import org.kr.scala.z80.system.Flag
+
+abstract class ArithmeticOperation(val name:String)
+
+case class ArithmeticOpInput(value:Int, operand:Int, flags:Flag)
+
+class ArithmeticOpResult(val valueUnsigned:Int, val valueSigned:Int, val valueHalf:Int, val isWord:Boolean=false) {
+  lazy val valueOut:Int=valueUnsigned & (if(isWord) 0xFFFF else 0xFF)
+}
+
+class ArithmeticOpResultByte(override val valueUnsigned:Int, override val valueSigned:Int, override val valueHalf:Int)
+  extends ArithmeticOpResult(valueUnsigned,valueSigned,valueHalf,false)
+
+class ArithmeticOpResultWord(override val valueUnsigned:Int, override val valueSigned:Int, override val valueHalf:Int)
+  extends ArithmeticOpResult(valueUnsigned,valueSigned,valueHalf,true)
 
 object ArithmeticOpType {
   case object Add extends ArithmeticOperation("ADD")

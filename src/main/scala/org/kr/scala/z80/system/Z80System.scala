@@ -28,6 +28,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       InputOutput,Nop,Unknown)
 
   def getRegValue(symbol:String):Int=registerController.get(symbol)
+  def getFlags:Flag=new Flag(registerController.get("F"))
 
   private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg("PC",offset)
   private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg("PC",offset)
