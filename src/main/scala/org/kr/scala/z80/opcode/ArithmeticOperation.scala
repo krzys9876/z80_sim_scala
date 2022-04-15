@@ -2,6 +2,16 @@ package org.kr.scala.z80.opcode
 
 import org.kr.scala.z80.system.Flag
 
+abstract class ArithmeticOperationCalc(override val name:String) extends ArithmeticOperation(name) {
+  def calcAll(input:ArithmeticOpInput):(Int,Flag)={
+    val calcResult=calc(input)
+    val calcFlags=flags(calcResult,input.flags)
+    (calcResult.valueOut,calcFlags)
+  }
+  def calc(input:ArithmeticOpInput):ArithmeticOpResult
+  def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag=prevFlags
+}
+
 abstract class ArithmeticOperation(val name:String)
 
 case class ArithmeticOpInput(value:Int, operand:Int, flags:Flag)

@@ -212,7 +212,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 
 // TODO: refactor to extract calculation logics from match clauses to separate classes
 
-object Add8b extends ArithmeticOperation16b("ADD_8B") {
+object Add8b extends ArithmeticOperationCalc("ADD_8B") {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value + input.operand,
@@ -232,7 +232,7 @@ object Add8b extends ArithmeticOperation16b("ADD_8B") {
   }
 }
 
-object AddC8b extends ArithmeticOperation16b("ADD_8B_CARRY") {
+object AddC8b extends ArithmeticOperationCalc("ADD_8B_CARRY") {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value + input.operand + input.flags.flagValue(Flag.C),
@@ -252,7 +252,7 @@ object AddC8b extends ArithmeticOperation16b("ADD_8B_CARRY") {
   }
 }
 
-object Sub8b extends ArithmeticOperation16b("ADD_8B") {
+object Sub8b extends ArithmeticOperationCalc("ADD_8B") {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value - input.operand,
@@ -272,7 +272,7 @@ object Sub8b extends ArithmeticOperation16b("ADD_8B") {
   }
 }
 
-object SubC8b extends ArithmeticOperation16b("ADD_8B") {
+object SubC8b extends ArithmeticOperationCalc("ADD_8B") {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value - input.operand - input.flags.flagValue(Flag.C),
