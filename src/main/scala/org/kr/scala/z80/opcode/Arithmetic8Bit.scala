@@ -9,11 +9,11 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     List(OpCode(0x87),OpCode(0x80),OpCode(0x81),OpCode(0x82),OpCode(0x83),OpCode(0x84),OpCode(0x85),
       OpCode(0x86),OpCode(0xDD, 0x86),OpCode(0xFD, 0x86),OpCode(0xC6)) -> new ArithmeticOpLocationAccum(Add8b),
     List(OpCode(0x8F),OpCode(0x88),OpCode(0x89),OpCode(0x8A),OpCode(0x8B),OpCode(0x8C),OpCode(0x8D),
-      OpCode(0x8E),OpCode(0xDD, 0x8E),OpCode(0xFD, 0x8E),OpCode(0xCE)) -> new ArithmeticOpLocationAccum(ArithmeticOpType.AddC),
+      OpCode(0x8E),OpCode(0xDD, 0x8E),OpCode(0xFD, 0x8E),OpCode(0xCE)) -> new ArithmeticOpLocationAccum(AddC8b),
     List(OpCode(0x97),OpCode(0x90),OpCode(0x91),OpCode(0x92),OpCode(0x93),OpCode(0x94),OpCode(0x95),
-      OpCode(0x96),OpCode(0xDD, 0x96),OpCode(0xFD, 0x96),OpCode(0xD6)) -> new ArithmeticOpLocationAccum(ArithmeticOpType.Sub),
+      OpCode(0x96),OpCode(0xDD, 0x96),OpCode(0xFD, 0x96),OpCode(0xD6)) -> new ArithmeticOpLocationAccum(Sub8b),
     List(OpCode(0x9F),OpCode(0x98),OpCode(0x99),OpCode(0x9A),OpCode(0x9B),OpCode(0x9C),OpCode(0x9D),
-      OpCode(0x9E),OpCode(0xDD, 0x9E),OpCode(0xFD, 0x9E),OpCode(0xDE)) -> new ArithmeticOpLocationAccum(ArithmeticOpType.SubC),
+      OpCode(0x9E),OpCode(0xDD, 0x9E),OpCode(0xFD, 0x9E),OpCode(0xDE)) -> new ArithmeticOpLocationAccum(SubC8b),
     List(OpCode(0xA7),OpCode(0xA0),OpCode(0xA1),OpCode(0xA2),OpCode(0xA3),OpCode(0xA4),OpCode(0xA5),
       OpCode(0xA6),OpCode(0xDD, 0xA6),OpCode(0xFD, 0xA6),OpCode(0xE6)) -> new ArithmeticOpLocationAccum(ArithmeticOpType.And),
     List(OpCode(0xAF),OpCode(0xA8),OpCode(0xA9),OpCode(0xAA),OpCode(0xAB),OpCode(0xAC),OpCode(0xAD),
@@ -134,6 +134,9 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 
     val (valueOut,flags)=oper match {
       case Add8b => Add8b.calcAll(ArithmeticOpInput(prevValue,operand,prevFlags))
+      case AddC8b => AddC8b.calcAll(ArithmeticOpInput(prevValue,operand,prevFlags))
+      case Sub8b => Sub8b.calcAll(ArithmeticOpInput(prevValue,operand,prevFlags))
+      case SubC8b => SubC8b.calcAll(ArithmeticOpInput(prevValue,operand,prevFlags))
       case _ =>
         val (valueUnsigned,valueSigned,valueHalf,valueOut)=doCalculate(oper,prevValue,operand,prevCarry)
         val newF=calcFlags(oper,valueUnsigned,valueSigned,valueHalf,valueOut,prevFlags)
@@ -144,16 +147,10 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 
   private def doCalculate(oper:ArithmeticOperation,value:Int,operand:Int,carry:Int):(Int,Int,Int,Int)= {
     val (valueUnsigned,valueSigned)=oper match {
-      case Add8b  =>
-        (value+operand,Z80Utils.rawByteTo2Compl(value)+Z80Utils.rawByteTo2Compl(operand))
       case ArithmeticOpType.Inc =>
         (value+operand,Z80Utils.rawByteTo2Compl(value)+Z80Utils.rawByteTo2Compl(operand))
-      case ArithmeticOpType.AddC =>
-        (value+operand+carry,Z80Utils.rawByteTo2Compl(value)+Z80Utils.rawByteTo2Compl(operand)+carry)
-      case ArithmeticOpType.Sub | ArithmeticOpType.Comp | ArithmeticOpType.Dec | ArithmeticOpType.Neg =>
+      case ArithmeticOpType.Comp | ArithmeticOpType.Dec | ArithmeticOpType.Neg =>
         (value-operand,Z80Utils.rawByteTo2Compl(value)-Z80Utils.rawByteTo2Compl(operand))
-      case ArithmeticOpType.SubC =>
-        (value-operand-carry,Z80Utils.rawByteTo2Compl(value)-Z80Utils.rawByteTo2Compl(operand)-carry)
       case ArithmeticOpType.And => (value & operand,value & operand)
       case ArithmeticOpType.Xor => (value ^ operand,value ^ operand)
       case ArithmeticOpType.Or => (value | operand,value | operand)
@@ -161,12 +158,9 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       case ArithmeticOpType.Ccf | ArithmeticOpType.Scf => (OpCode.ANY,OpCode.ANY)
     }
     val valueHalf=oper match {
-      case Add8b  => (value & 0x0F)+(operand & 0x0F)
       case ArithmeticOpType.Inc => (value & 0x0F)+(operand & 0x0F)
-      case ArithmeticOpType.AddC => (value & 0x0F)+(operand & 0x0F)+carry
-      case ArithmeticOpType.Sub | ArithmeticOpType.Comp | ArithmeticOpType.Dec | ArithmeticOpType.Neg  =>
+      case ArithmeticOpType.Comp | ArithmeticOpType.Dec | ArithmeticOpType.Neg  =>
         (value & 0x0F)-(operand & 0x0F)
-      case ArithmeticOpType.SubC => (value & 0x0F)-(operand & 0x0F)-carry
       case _ => OpCode.ANY
     }
     val valueOut=valueUnsigned & 0xFF
@@ -183,8 +177,8 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       case _ => valueOut==0
     }
     val flagH=oper match {
-      case Add8b | ArithmeticOpType.AddC | ArithmeticOpType.Inc => valueHalf>0x0F
-      case ArithmeticOpType.Sub | ArithmeticOpType.SubC | ArithmeticOpType.Comp | ArithmeticOpType.Dec |
+      case ArithmeticOpType.Inc => valueHalf>0x0F
+      case ArithmeticOpType.Comp | ArithmeticOpType.Dec |
            ArithmeticOpType.Neg => valueHalf<0x00
       case ArithmeticOpType.And | ArithmeticOpType.Cpl => true
       case ArithmeticOpType.Xor | ArithmeticOpType.Or | ArithmeticOpType.Scf => false
@@ -198,8 +192,8 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       case _ => (valueSigned > 0x7F) || (valueSigned < -0x80)
     }
     val flagN=oper match {
-      case ArithmeticOpType.Sub | ArithmeticOpType.Comp | ArithmeticOpType.Dec |
-           ArithmeticOpType.SubC | ArithmeticOpType.Cpl | ArithmeticOpType.Neg => true
+      case ArithmeticOpType.Comp | ArithmeticOpType.Dec |
+           ArithmeticOpType.Cpl | ArithmeticOpType.Neg => true
       case _ => false
     }
     val flagC=
@@ -207,8 +201,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
         case ArithmeticOpType.Cpl | ArithmeticOpType.Inc | ArithmeticOpType.Dec => prevFlags(Flag.C)
         case ArithmeticOpType.Ccf => !prevFlags(Flag.C)
         case ArithmeticOpType.Scf => true
-        case Add8b | ArithmeticOpType.AddC => valueUnsigned>valueOut
-        case ArithmeticOpType.Sub | ArithmeticOpType.SubC | ArithmeticOpType.Comp |
+        case ArithmeticOpType.Comp |
              ArithmeticOpType.Neg => valueUnsigned<valueOut
         case ArithmeticOpType.And | ArithmeticOpType.Or | ArithmeticOpType.Xor => false
       }
@@ -220,7 +213,6 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 // TODO: refactor to extract calculation logics from match clauses to separate classes
 
 object Add8b extends ArithmeticOperation16b("ADD_8B") {
-
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value + input.operand,
@@ -237,5 +229,65 @@ object Add8b extends ArithmeticOperation16b("ADD_8B") {
       Z80Utils.isOutOfRangeByte(res.valueSigned),
       n = false,
       res.valueUnsigned > res.valueOut))
+  }
+}
+
+object AddC8b extends ArithmeticOperation16b("ADD_8B_CARRY") {
+  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
+    new ArithmeticOpResultByte(
+      input.value + input.operand + input.flags.flagValue(Flag.C),
+      Z80Utils.rawByteTo2Compl(input.value) + Z80Utils.rawByteTo2Compl(input.operand) + input.flags.flagValue(Flag.C),
+      (input.value & 0x0F)+(input.operand & 0x0F)+input.flags.flagValue(Flag.C)
+    )
+  }
+
+  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
+    new Flag(Flag.set(
+      Z80Utils.isNegativeByte(res.valueUnsigned),
+      res.valueOut==0,
+      res.valueHalf>0x0F,
+      Z80Utils.isOutOfRangeByte(res.valueSigned),
+      n = false,
+      res.valueUnsigned > res.valueOut))
+  }
+}
+
+object Sub8b extends ArithmeticOperation16b("ADD_8B") {
+  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
+    new ArithmeticOpResultByte(
+      input.value - input.operand,
+      Z80Utils.rawByteTo2Compl(input.value) - Z80Utils.rawByteTo2Compl(input.operand),
+      (input.value & 0x0F)-(input.operand & 0x0F)
+    )
+  }
+
+  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
+    new Flag(Flag.set(
+      Z80Utils.isNegativeByte(res.valueUnsigned),
+      res.valueOut==0,
+      res.valueHalf<0x00,
+      Z80Utils.isOutOfRangeByte(res.valueSigned),
+      n = true,
+      res.valueUnsigned<res.valueOut))
+  }
+}
+
+object SubC8b extends ArithmeticOperation16b("ADD_8B") {
+  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
+    new ArithmeticOpResultByte(
+      input.value - input.operand - input.flags.flagValue(Flag.C),
+      Z80Utils.rawByteTo2Compl(input.value) - Z80Utils.rawByteTo2Compl(input.operand) - input.flags.flagValue(Flag.C),
+      (input.value & 0x0F) - (input.operand & 0x0F) - input.flags.flagValue(Flag.C)
+    )
+  }
+
+  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
+    new Flag(Flag.set(
+      Z80Utils.isNegativeByte(res.valueUnsigned),
+      res.valueOut==0,
+      res.valueHalf<0x00,
+      Z80Utils.isOutOfRangeByte(res.valueSigned),
+      n = true,
+      res.valueUnsigned<res.valueOut))
   }
 }
