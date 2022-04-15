@@ -167,7 +167,7 @@ object BitManipulation extends OperationSpec with OpCodeHandler {
         operation.find(code),
         bit.find(code),
         system.getValueFromLocation(loc),
-        system.getRegValue("F"))
+        system.getFlags())
     val change=List(system.putValueToLocation(loc,value),new RegisterChange("F", flags))
 
     (change,instSize.find(code))

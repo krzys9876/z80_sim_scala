@@ -35,7 +35,7 @@ object RotateDigit extends OperationSpec with OpCodeHandler {
     val newF=calcFlags(
       oper,
       valueOutA,
-      system.getRegValue("F"))
+      system.getFlags())
 
     val change=List(
       system.putValueToLocation(loc,valueOutR),
