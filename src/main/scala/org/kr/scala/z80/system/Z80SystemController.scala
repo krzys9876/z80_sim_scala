@@ -63,35 +63,11 @@ object Z80SystemController {
       system.outputController,newIn))
   }
 
-/*  def addInput:(Int,InputFile) => Z80System => Z80SystemController = (port,inFile) => system => {
-    val newIn=system.inputC
-  }
-  */
-  def change:SystemChangeBase => Z80System => Z80SystemController = change => system => {
-    change match {
-      case ch : RegisterChange =>
-        Z80SystemController(system) >>= Z80SystemController.changeRegister(ch.regSymbol,ch.value)
-      case ch : RegisterChangeRelative =>
-        Z80SystemController(system) >>= Z80SystemController.changeRegisterRelative(ch.regSymbol,ch.value)
-      case ch : MemoryChangeByte =>
-        Z80SystemController(system) >>= Z80SystemController.changeMemoryByte(ch.address,ch.value)
-      case ch : MemoryChangeWord =>
-        Z80SystemController(system) >>= Z80SystemController.changeMemoryWord(ch.address,ch.value)
-      case ch : OutputChange =>
-        Z80SystemController(system) >>= Z80SystemController.outputByte(ch.port,ch.value)
-    }
-  }
+  def change:SystemChangeBase => Z80System => Z80SystemController = change => system =>
+    change.handle(Z80SystemController(system))
 
   def changeList:List[SystemChangeBase] => Z80System => Z80SystemController = list => initSystem => {
-    val newSystem=list.foldLeft(initSystem)((system,oneChange)=>
-      (Z80SystemController(system) >>= Z80SystemController.change(oneChange)).get)
-    Z80SystemController(newSystem)
+    list.foldLeft(Z80SystemController(initSystem))((systemC,oneChange)=>
+      systemC >>= Z80SystemController.change(oneChange))
   }
 }
-
-abstract class SystemChangeBase(val value: Int)
-class RegisterChange(val regSymbol: String, override val value: Int) extends SystemChangeBase(value)
-class RegisterChangeRelative(val regSymbol: String, override val value: Int) extends SystemChangeBase(value)
-class MemoryChangeByte(val address: Int, override val value: Int) extends SystemChangeBase(value)
-class MemoryChangeWord(val address: Int, override val value: Int) extends SystemChangeBase(value)
-class OutputChange(val port: Int, override val value: Int) extends SystemChangeBase(value)

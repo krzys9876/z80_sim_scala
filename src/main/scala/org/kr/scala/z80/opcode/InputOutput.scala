@@ -1,14 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.system.{OutputChange, RegisterChange, SystemChangeBase, Z80System}
-
-sealed abstract class InOutOperation(val name:String)
-
-object InOutOpType {
-  case object In extends InOutOperation("IN")
-  case object Out extends InOutOperation("OUT")
-  case object None extends InOutOperation("NONE")
-}
+import org.kr.scala.z80.system.{DummyChange, OutputChange, RegisterChange, SystemChangeBase, Z80System}
 
 object InputOutput extends OperationSpec with OpCodeHandler {
 
@@ -43,13 +35,26 @@ object InputOutput extends OperationSpec with OpCodeHandler {
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val port=system.getValueFromLocation(portLocation.find(code))
-    val location=valueLocation.find(code)
-    val oper=operation.find(code)
-
-    val chgList=oper match {
-      case InOutOpType.Out=>new OutputChange(port,system.getValueFromLocation(location))
-      case InOutOpType.In=>system.putValueToLocation(location,system.readPort(port))
-    }
+    val chgList=operation.find(code).handle(system,port,valueLocation.find(code))
     (List(chgList),instSize.find(code))
+  }
+}
+
+sealed abstract class InOutOperation(val name:String) {
+  def handle(system:Z80System,port:Int,location:LoadLocation):SystemChangeBase
+}
+
+object InOutOpType {
+  case object In extends InOutOperation("IN") {
+    override def handle(system:Z80System,port:Int,location:LoadLocation):SystemChangeBase=
+      system.putValueToLocation(location,system.readPort(port))
+  }
+  case object Out extends InOutOperation("OUT") {
+    override def handle(system:Z80System,port:Int,location:LoadLocation):SystemChangeBase=
+      new OutputChange(port,system.getValueFromLocation(location))
+  }
+  case object None extends InOutOperation("NONE") {
+    override def handle(system:Z80System,port:Int,location:LoadLocation):SystemChangeBase=
+      new DummyChange()
   }
 }
