@@ -111,7 +111,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
         val (value, flags) = handleArithmetic8Bit(o.operation, system.getRegValue("A"),operand,prevFlags)
         (value,LoadLocation.empty,flags)
       case o: ArithmeticOpVariableLocation =>
-        val (value, flags) = handleArithmetic8Bit(o.operation, 0, operand, prevFlags, changeCarry = false)
+        val (value, flags) = handleArithmetic8Bit(o.operation, 0, operand, prevFlags)
         (value,operandLoc,flags)
     }
     val chgList=destLocation match {
@@ -121,7 +121,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     (chgList++List(new RegisterChange("F", flags)), instrSize)
   }
 
-  private def handleArithmetic8Bit(oper:ArithmeticOperation,prevValueIn:Int,operandIn:Int,prevFlags:Flag,changeCarry:Boolean=true):(Int,Int)={
+  private def handleArithmetic8Bit(oper:ArithmeticOperation,prevValueIn:Int,operandIn:Int,prevFlags:Flag):(Int,Int)={
     //http://www.z80.info/z80sflag.htm
     val prevCarry=prevFlags.flagValue(Flag.C)
 
@@ -132,7 +132,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       case _ => (prevValueIn,operandIn)
     }
     val (valueUnsigned,valueSigned,valueHalf,valueOut)=doCalculate(oper,prevValue,operand,prevCarry)
-    val newF=calcFlags(oper,valueUnsigned,valueSigned,valueHalf,valueOut,prevFlags,changeCarry)
+    val newF=calcFlags(oper,valueUnsigned,valueSigned,valueHalf,valueOut,prevFlags)
     (valueOut,newF)
   }
 
@@ -164,7 +164,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     (valueUnsigned,valueSigned,valueHalf,valueOut)
   }
 
-  private def calcFlags(oper:ArithmeticOperation,valueUnsigned:Int,valueSigned:Int,valueHalf:Int,valueOut:Int,prevFlags:Flag,changeCarry:Boolean):Int={
+  private def calcFlags(oper:ArithmeticOperation,valueUnsigned:Int,valueSigned:Int,valueHalf:Int,valueOut:Int,prevFlags:Flag):Int={
     val flagS=oper match {
       case ArithmeticOpType.Cpl | ArithmeticOpType.Ccf | ArithmeticOpType.Scf => prevFlags(Flag.S)
       case _ => Z80Utils.isNegativeByte(valueUnsigned)
@@ -194,14 +194,14 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       case _ => false
     }
     val flagC=
-      (changeCarry,oper) match {
-        case (false,_) | (_,ArithmeticOpType.Cpl) => prevFlags(Flag.C)
-        case (_,ArithmeticOpType.Ccf) => !prevFlags(Flag.C)
-        case (_,ArithmeticOpType.Scf) => true
-        case (_,ArithmeticOpType.Add) | (_,ArithmeticOpType.AddC) | (_,ArithmeticOpType.Inc) => valueUnsigned>valueOut
-        case (_,ArithmeticOpType.Sub) | (_,ArithmeticOpType.SubC) | (_,ArithmeticOpType.Comp) |
-             (_,ArithmeticOpType.Dec) | (_,ArithmeticOpType.Neg) => valueUnsigned<valueOut
-        case _ => false
+      oper match {
+        case ArithmeticOpType.Cpl | ArithmeticOpType.Inc | ArithmeticOpType.Dec => prevFlags(Flag.C)
+        case ArithmeticOpType.Ccf => !prevFlags(Flag.C)
+        case ArithmeticOpType.Scf => true
+        case ArithmeticOpType.Add | ArithmeticOpType.AddC => valueUnsigned>valueOut
+        case ArithmeticOpType.Sub | ArithmeticOpType.SubC | ArithmeticOpType.Comp |
+             ArithmeticOpType.Neg => valueUnsigned<valueOut
+        case ArithmeticOpType.And | ArithmeticOpType.Or | ArithmeticOpType.Xor => false
       }
 
     Flag.set(flagS,flagZ,flagH,flagP,flagN,flagC)
