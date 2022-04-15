@@ -86,5 +86,4 @@ class OpInOutTest extends AnyFunSuite {
     assert(systemC.get.registerController.get("PC")==2)
     assert(systemC.get.registerController.get("A")==0xAB)
   }
-
 }
