@@ -114,7 +114,7 @@ object AddC16b extends ArithmeticOperation16b("ADD_CARRY_16B") {
     Z80Utils.isNegativeWord(res.valueUnsigned),
     res.valueOut==0,
     res.valueHalf > 0x0FFF,
-    (res.valueSigned > 0x7FFF) || (res.valueSigned < -0x8000),
+    Z80Utils.isOutOfRangeWord(res.valueSigned),
     n=false,
     res.valueUnsigned>res.valueOut))
 }
@@ -132,7 +132,7 @@ object SubC16b extends ArithmeticOperation16b("SUB_CARRY_16B") {
       Z80Utils.isNegativeWord(res.valueUnsigned),
       res.valueOut==0,
       res.valueHalf < 0,
-      (res.valueSigned > 0x7FFF) || (res.valueSigned < -0x8000),
+      Z80Utils.isOutOfRangeWord(res.valueSigned),
       n=true,
       res.valueUnsigned<res.valueOut))
 }
