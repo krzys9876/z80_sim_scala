@@ -211,6 +211,9 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 }
 
 // TODO: refactor to extract calculation logics from match clauses to separate classes
+// TODO: add separate "mini" base classes to calculate typical values fo flags - arithmetic op. classes will extend them
+// TODO: tbc convert object into classes and calculate all temp and final values as lazy vals.
+
 
 object Add8b extends ArithmeticOperationCalc("ADD_8B") {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
