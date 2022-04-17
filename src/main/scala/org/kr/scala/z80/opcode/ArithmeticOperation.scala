@@ -26,6 +26,24 @@ class ArithmeticOpResultByte(override val valueUnsigned:Int, override val valueS
 class ArithmeticOpResultWord(override val valueUnsigned:Int, override val valueSigned:Int, override val valueHalf:Int)
   extends ArithmeticOpResult(valueUnsigned,valueSigned,valueHalf,true)
 
+trait ArithmeticCalculatorBase {
+  def calcUnsigned(input:ArithmeticOpInput):Int=OpCode.ANY
+  def calcSigned(input:ArithmeticOpInput):Int=OpCode.ANY
+  def calcHalf(input:ArithmeticOpInput):Int=OpCode.ANY
+
+  def calc(input:ArithmeticOpInput):ArithmeticOpResult
+}
+
+trait ArithmeticCalculatorByte extends ArithmeticCalculatorBase {
+  override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
+    new ArithmeticOpResultByte(calcUnsigned(input),calcSigned(input),calcHalf(input))
+}
+
+trait ArithmeticCalculatorWord extends ArithmeticCalculatorBase {
+  override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
+    new ArithmeticOpResultWord(calcUnsigned(input),calcSigned(input),calcHalf(input))
+}
+
 object ArithmeticOpType {
   case object Rlc extends ArithmeticOperation("RLC")
   case object Rrc extends ArithmeticOperation("RRC")
@@ -121,20 +139,3 @@ trait FlagCInvert extends FlagCalculatorBase {
   override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean= !prevFlags(Flag.C)
 }
 
-trait ArithmeticCalculatorBase {
-  def calcUnsigned(input:ArithmeticOpInput):Int=OpCode.ANY
-  def calcSigned(input:ArithmeticOpInput):Int=OpCode.ANY
-  def calcHalf(input:ArithmeticOpInput):Int=OpCode.ANY
-
-  def calc(input:ArithmeticOpInput):ArithmeticOpResult
-}
-
-trait ArithmeticCalculatorByte extends ArithmeticCalculatorBase {
-  override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultByte(calcUnsigned(input),calcSigned(input),calcHalf(input))
-}
-
-trait ArithmeticCalculatorWord extends ArithmeticCalculatorBase {
-  override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultWord(calcUnsigned(input),calcSigned(input),calcHalf(input))
-}
