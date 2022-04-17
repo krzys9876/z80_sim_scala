@@ -58,9 +58,9 @@ object ArithmeticOpType {
 }
 
 class AritheticOpLocationBase(val operation:ArithmeticOperation)
-class ArithmeticOpLocationAccum(override val operation:ArithmeticOperation) extends AritheticOpLocationBase(operation)
-class ArithmeticOpLocationFlags(override val operation:ArithmeticOperation) extends AritheticOpLocationBase(operation)
-class ArithmeticOpVariableLocation(override val operation:ArithmeticOperation) extends AritheticOpLocationBase(operation)
+class ArithmeticOpLocationAccum(override val operation:ArithmeticOperationCalc) extends AritheticOpLocationBase(operation)
+class ArithmeticOpLocationFlags(override val operation:ArithmeticOperationCalc) extends AritheticOpLocationBase(operation)
+class ArithmeticOpVariableLocation(override val operation:ArithmeticOperationCalc) extends AritheticOpLocationBase(operation)
 
 object AritheticOpLocationBase {
   val empty:AritheticOpLocationBase=new AritheticOpLocationBase(ArithmeticOpType.None)
@@ -109,6 +109,9 @@ trait FlagHSet extends FlagCalculatorBase {
 trait FlagHReset extends FlagCalculatorBase {
   override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=false
 }
+trait FlagHCopyC extends FlagCalculatorBase {
+  override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=prevFlags(Flag.C)
+}
 trait FlagPOverflowByte extends FlagCalculatorBase {
   override def calcP(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isOutOfRangeByte(res.valueSigned)
 }
@@ -132,6 +135,12 @@ trait FlagCBorrow extends FlagCalculatorBase {
 }
 trait FlagCReset extends FlagCalculatorBase {
   override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=false
+}
+trait FlagCSet extends FlagCalculatorBase {
+  override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=true
+}
+trait FlagCInvert extends FlagCalculatorBase {
+  override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean= !prevFlags(Flag.C)
 }
 
 trait ArithmeticCalculatorBase {
