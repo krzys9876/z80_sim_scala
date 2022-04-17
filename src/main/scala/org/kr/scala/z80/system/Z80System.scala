@@ -76,6 +76,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
           case (OpCode.ANY,indirOff2Compl) =>
             putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl))),value,isWord)
         }
+      case l if l==LoadLocation.empty => new DummyChange
     }
 }
 
