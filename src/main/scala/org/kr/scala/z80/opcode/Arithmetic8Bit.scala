@@ -211,11 +211,11 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 }
 
 // TODO: refactor to extract calculation logics from match clauses to separate classes
-// TODO: add separate "mini" base classes to calculate typical values fo flags - arithmetic op. classes will extend them
-// TODO: tbc convert object into classes and calculate all temp and final values as lazy vals.
 
+object Add8b extends ArithmeticOperationCalc("ADD_8B")
+  with FlagSSignByte with FlagZZero with FlagHCarryByte
+  with FlagPOverflowByte with FlagNReset with FlagCCarry {
 
-object Add8b extends ArithmeticOperationCalc("ADD_8B") {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value + input.operand,
@@ -223,19 +223,12 @@ object Add8b extends ArithmeticOperationCalc("ADD_8B") {
       (input.value & 0x0F)+(input.operand & 0x0F)
     )
   }
-
-  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
-    new Flag(Flag.set(
-      Z80Utils.isNegativeByte(res.valueUnsigned),
-      res.valueOut==0,
-      res.valueHalf>0x0F,
-      Z80Utils.isOutOfRangeByte(res.valueSigned),
-      n = false,
-      res.valueUnsigned > res.valueOut))
-  }
 }
 
-object AddC8b extends ArithmeticOperationCalc("ADD_8B_CARRY") {
+object AddC8b extends ArithmeticOperationCalc("ADD_8B_CARRY")
+  with FlagSSignByte with FlagZZero with FlagHCarryByte
+  with FlagPOverflowByte with FlagNReset with FlagCCarry {
+
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value + input.operand + input.flags.flagValue(Flag.C),
@@ -243,19 +236,12 @@ object AddC8b extends ArithmeticOperationCalc("ADD_8B_CARRY") {
       (input.value & 0x0F)+(input.operand & 0x0F)+input.flags.flagValue(Flag.C)
     )
   }
-
-  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
-    new Flag(Flag.set(
-      Z80Utils.isNegativeByte(res.valueUnsigned),
-      res.valueOut==0,
-      res.valueHalf>0x0F,
-      Z80Utils.isOutOfRangeByte(res.valueSigned),
-      n = false,
-      res.valueUnsigned > res.valueOut))
-  }
 }
 
-object Sub8b extends ArithmeticOperationCalc("ADD_8B") {
+object Sub8b extends ArithmeticOperationCalc("SUB_8B")
+  with FlagSSignByte with FlagZZero with FlagHBorrow
+  with FlagPOverflowByte with FlagNSet with FlagCBorrow {
+
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value - input.operand,
@@ -263,34 +249,17 @@ object Sub8b extends ArithmeticOperationCalc("ADD_8B") {
       (input.value & 0x0F)-(input.operand & 0x0F)
     )
   }
-
-  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
-    new Flag(Flag.set(
-      Z80Utils.isNegativeByte(res.valueUnsigned),
-      res.valueOut==0,
-      res.valueHalf<0x00,
-      Z80Utils.isOutOfRangeByte(res.valueSigned),
-      n = true,
-      res.valueUnsigned<res.valueOut))
-  }
 }
 
-object SubC8b extends ArithmeticOperationCalc("ADD_8B") {
+object SubC8b extends ArithmeticOperationCalc("SUB_8B_CARRY")
+  with FlagSSignByte with FlagZZero with FlagHBorrow
+  with FlagPOverflowByte with FlagNSet with FlagCBorrow {
+
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultByte(
       input.value - input.operand - input.flags.flagValue(Flag.C),
       Z80Utils.rawByteTo2Compl(input.value) - Z80Utils.rawByteTo2Compl(input.operand) - input.flags.flagValue(Flag.C),
       (input.value & 0x0F) - (input.operand & 0x0F) - input.flags.flagValue(Flag.C)
     )
-  }
-
-  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
-    new Flag(Flag.set(
-      Z80Utils.isNegativeByte(res.valueUnsigned),
-      res.valueOut==0,
-      res.valueHalf<0x00,
-      Z80Utils.isOutOfRangeByte(res.valueSigned),
-      n = true,
-      res.valueUnsigned<res.valueOut))
   }
 }

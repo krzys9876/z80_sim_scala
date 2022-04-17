@@ -8,17 +8,17 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   val operationListMap: Map[List[OpCode],ArithmeticOperationCalc] = Map(
     List(OpCode(0x09),OpCode(0x19),OpCode(0x29),OpCode(0x39),
       OpCode(0xDD,0x09),OpCode(0xFD,0x09),OpCode(0xDD,0x19),OpCode(0xFD,0x19),OpCode(0xDD,0x39),OpCode(0xFD,0x39),
-      OpCode(0xDD,0x29),OpCode(0xFD,0x29)) -> AddCalc$,
+      OpCode(0xDD,0x29),OpCode(0xFD,0x29)) -> AddCalc,
     List(OpCode(0xED,0x4A),OpCode(0xED,0x5A),OpCode(0xED,0x6A),OpCode(0xED,0x7A))
-      -> AddCCalc$,
+      -> AddCCalc,
     List(OpCode(0xED,0x42),OpCode(0xED,0x52),OpCode(0xED,0x62),OpCode(0xED,0x72))
-      -> SubCCalc$,
+      -> SubCCalc,
     List(OpCode(0x03),OpCode(0x13),OpCode(0x23),OpCode(0x33),OpCode(0xDD,0x23),OpCode(0xFD,0x23))
-      -> IncCalc$,
+      -> IncCalc,
     List(OpCode(0x0B),OpCode(0x1B),OpCode(0x2B),OpCode(0x3B),OpCode(0xDD,0x2B),OpCode(0xFD,0x2B))
-      -> DecCalc$
+      -> DecCalc
   )
-  val operation: OpCodeMap[ArithmeticOperationCalc] = new OpCodeMap(operationListMap, NoneCalc$)
+  val operation: OpCodeMap[ArithmeticOperationCalc] = new OpCodeMap(operationListMap, NoneCalc)
 
   val sourceListMap: Map[List[OpCode],LoadLocation] = Map(
     List(OpCode(0x09),OpCode(0xDD,0x09),OpCode(0xFD,0x09),OpCode(0xED,0x4A),OpCode(0xED,0x42),
@@ -74,7 +74,10 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   }
 }
 
-object AddCalc$ extends ArithmeticOperationCalc("ADD_16B") {
+object AddCalc extends ArithmeticOperationCalc("ADD_16B")
+  with FlagCalculatorBase
+  with FlagHCarryWord with FlagNReset with FlagCCarry
+{
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
     new ArithmeticOpResultWord(
       input.value + input.operand,
@@ -82,52 +85,34 @@ object AddCalc$ extends ArithmeticOperationCalc("ADD_16B") {
       (input.value & 0x0FFF) + (input.operand & 0x0FFF)
     )
   }
-
-  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
-    prevFlags
-      .set(Flag.H,res.valueHalf > 0x0FFF)
-      .reset(Flag.N)
-      .set(Flag.C,res.valueUnsigned>res.valueOut)
-  }
 }
 
-object AddCCalc$ extends ArithmeticOperationCalc("ADD_CARRY_16B") {
+object AddCCalc extends ArithmeticOperationCalc("ADD_CARRY_16B")
+  with FlagSSignWord with FlagZZero with FlagHCarryWord
+  with FlagPOverflowWord with FlagNReset with FlagCCarry {
+
   def calc(input:ArithmeticOpInput):ArithmeticOpResult=
     new ArithmeticOpResultWord(
       input.value + input.operand + input.flags.flagValue(Flag.C),
       Z80Utils.rawWordTo2Compl(input.value) + Z80Utils.rawWordTo2Compl(input.operand) + input.flags.flagValue(Flag.C),
       (input.value & 0x0FFF) + (input.operand & 0x0FFF) + input.flags.flagValue(Flag.C)
     )
-
-  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag=
-    new Flag(Flag.set(
-    Z80Utils.isNegativeWord(res.valueUnsigned),
-    res.valueOut==0,
-    res.valueHalf > 0x0FFF,
-    Z80Utils.isOutOfRangeWord(res.valueSigned),
-    n=false,
-    res.valueUnsigned>res.valueOut))
 }
 
-object SubCCalc$ extends ArithmeticOperationCalc("SUB_CARRY_16B") {
+object SubCCalc extends ArithmeticOperationCalc("SUB_CARRY_16B")
+  with FlagSSignWord with FlagZZero with FlagHBorrow
+  with FlagPOverflowWord with FlagNSet with FlagCBorrow {
+
   def calc(input:ArithmeticOpInput):ArithmeticOpResult=
     new ArithmeticOpResultWord(
       input.value - input.operand - input.flags.flagValue(Flag.C),
       Z80Utils.rawWordTo2Compl(input.value) - Z80Utils.rawWordTo2Compl(input.operand) - input.flags.flagValue(Flag.C),
       (input.value & 0x0FFF) - (input.operand & 0x0FFF) - input.flags.flagValue(Flag.C)
     )
-
-  override def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag=
-    new Flag(Flag.set(
-      Z80Utils.isNegativeWord(res.valueUnsigned),
-      res.valueOut==0,
-      res.valueHalf < 0,
-      Z80Utils.isOutOfRangeWord(res.valueSigned),
-      n=true,
-      res.valueUnsigned<res.valueOut))
 }
 
-object IncCalc$ extends ArithmeticOperationCalc("SUB_CARRY_16B") {
+object IncCalc extends ArithmeticOperationCalc("INC_16B") {
+
   def calc(input:ArithmeticOpInput):ArithmeticOpResult=
     new ArithmeticOpResultWord(
       input.value + 1,
@@ -136,7 +121,7 @@ object IncCalc$ extends ArithmeticOperationCalc("SUB_CARRY_16B") {
     )
 }
 
-object DecCalc$ extends ArithmeticOperationCalc("SUB_CARRY_16B") {
+object DecCalc extends ArithmeticOperationCalc("DEC_16B") {
   def calc(input:ArithmeticOpInput):ArithmeticOpResult=
     new ArithmeticOpResultWord(
       input.value - 1,
@@ -145,7 +130,7 @@ object DecCalc$ extends ArithmeticOperationCalc("SUB_CARRY_16B") {
     )
 }
 
-object NoneCalc$ extends ArithmeticOperationCalc("SUB_CARRY_16B") {
+object NoneCalc extends ArithmeticOperationCalc("NONE_16B") {
   def calc(input:ArithmeticOpInput):ArithmeticOpResult=
     new ArithmeticOpResultWord(OpCode.ANY,OpCode.ANY,OpCode.ANY)
 }

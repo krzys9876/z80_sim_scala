@@ -1,15 +1,16 @@
 package org.kr.scala.z80.opcode
 
 import org.kr.scala.z80.system.Flag
+import org.kr.scala.z80.utils.Z80Utils
 
-abstract class ArithmeticOperationCalc(override val name:String) extends ArithmeticOperation(name) {
+abstract class ArithmeticOperationCalc(override val name:String) extends ArithmeticOperation(name) with FlagCalculatorBase {
   def calcAll(input:ArithmeticOpInput):(Int,Flag)={
     val calcResult=calc(input)
     val calcFlags=flags(calcResult,input.flags)
     (calcResult.valueOut,calcFlags)
   }
+
   def calc(input:ArithmeticOpInput):ArithmeticOpResult
-  def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag=prevFlags
 }
 
 abstract class ArithmeticOperation(val name:String)
@@ -65,3 +66,60 @@ class ArithmeticOpVariableLocation(override val operation:ArithmeticOperation) e
 object AritheticOpLocationBase {
   val empty:AritheticOpLocationBase=new AritheticOpLocationBase(ArithmeticOpType.None)
 }
+
+trait FlagCalculatorBase {
+  def calcS(res:ArithmeticOpResult,prevFlags:Flag):Boolean=prevFlags(Flag.S)
+  def calcZ(res:ArithmeticOpResult,prevFlags:Flag):Boolean=prevFlags(Flag.Z)
+  def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=prevFlags(Flag.H)
+  def calcP(res:ArithmeticOpResult,prevFlags:Flag):Boolean=prevFlags(Flag.P)
+  def calcN(res:ArithmeticOpResult,prevFlags:Flag):Boolean=prevFlags(Flag.N)
+  def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=prevFlags(Flag.C)
+
+  def flags(res:ArithmeticOpResult,prevFlags:Flag):Flag={
+    new Flag(Flag.set(
+      calcS(res,prevFlags),
+      calcZ(res,prevFlags),
+      calcH(res,prevFlags),
+      calcP(res,prevFlags),
+      calcN(res,prevFlags),
+      calcC(res,prevFlags)))
+  }
+}
+
+trait FlagSSignByte extends FlagCalculatorBase {
+  override def calcS(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isNegativeByte(res.valueUnsigned)
+}
+trait FlagSSignWord extends FlagCalculatorBase {
+  override def calcS(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isNegativeWord(res.valueUnsigned)
+}
+trait FlagZZero extends FlagCalculatorBase {
+  override def calcZ(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueOut==0
+}
+trait FlagHCarryByte extends FlagCalculatorBase {
+  override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueHalf>0x0F
+}
+trait FlagHCarryWord extends FlagCalculatorBase {
+  override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueHalf > 0x0FFF
+}
+trait FlagHBorrow extends FlagCalculatorBase {
+  override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueHalf<0
+}
+trait FlagPOverflowByte extends FlagCalculatorBase {
+  override def calcP(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isOutOfRangeByte(res.valueSigned)
+}
+trait FlagPOverflowWord extends FlagCalculatorBase {
+  override def calcP(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isOutOfRangeWord(res.valueSigned)
+}
+trait FlagNSet extends FlagCalculatorBase {
+  override def calcN(res:ArithmeticOpResult,prevFlags:Flag):Boolean=true
+}
+trait FlagNReset extends FlagCalculatorBase {
+  override def calcN(res:ArithmeticOpResult,prevFlags:Flag):Boolean=false
+}
+trait FlagCCarry extends FlagCalculatorBase {
+  override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueUnsigned > res.valueOut
+}
+trait FlagCBorrow extends FlagCalculatorBase {
+  override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueUnsigned < res.valueOut
+}
+
