@@ -103,11 +103,20 @@ trait FlagHCarryWord extends FlagCalculatorBase {
 trait FlagHBorrow extends FlagCalculatorBase {
   override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueHalf<0
 }
+trait FlagHSet extends FlagCalculatorBase {
+  override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=true
+}
+trait FlagHReset extends FlagCalculatorBase {
+  override def calcH(res:ArithmeticOpResult,prevFlags:Flag):Boolean=false
+}
 trait FlagPOverflowByte extends FlagCalculatorBase {
   override def calcP(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isOutOfRangeByte(res.valueSigned)
 }
 trait FlagPOverflowWord extends FlagCalculatorBase {
   override def calcP(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isOutOfRangeWord(res.valueSigned)
+}
+trait FlagPParity extends FlagCalculatorBase {
+  override def calcP(res:ArithmeticOpResult,prevFlags:Flag):Boolean=Z80Utils.isEvenBits(res.valueUnsigned)
 }
 trait FlagNSet extends FlagCalculatorBase {
   override def calcN(res:ArithmeticOpResult,prevFlags:Flag):Boolean=true
@@ -120,6 +129,9 @@ trait FlagCCarry extends FlagCalculatorBase {
 }
 trait FlagCBorrow extends FlagCalculatorBase {
   override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueUnsigned < res.valueOut
+}
+trait FlagCReset extends FlagCalculatorBase {
+  override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=false
 }
 
 trait ArithmeticCalculatorBase {
