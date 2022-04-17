@@ -212,54 +212,45 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
 
 // TODO: refactor to extract calculation logics from match clauses to separate classes
 
-object Add8b extends ArithmeticOperationCalc("ADD_8B")
+object Add8b extends ArithmeticOperationCalc("ADD_8B") with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHCarryByte
   with FlagPOverflowByte with FlagNReset with FlagCCarry {
 
-  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
-    new ArithmeticOpResultByte(
-      input.value + input.operand,
-      Z80Utils.rawByteTo2Compl(input.value) + Z80Utils.rawByteTo2Compl(input.operand),
-      (input.value & 0x0F)+(input.operand & 0x0F)
-    )
-  }
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value + input.operand
+  override def calcSigned(input: ArithmeticOpInput): Int =
+    Z80Utils.rawByteTo2Compl(input.value) + Z80Utils.rawByteTo2Compl(input.operand)
+  override def calcHalf(input: ArithmeticOpInput): Int = (input.value & 0x0F)+(input.operand & 0x0F)
 }
 
-object AddC8b extends ArithmeticOperationCalc("ADD_8B_CARRY")
+object AddC8b extends ArithmeticOperationCalc("ADD_8B_CARRY") with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHCarryByte
   with FlagPOverflowByte with FlagNReset with FlagCCarry {
 
-  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
-    new ArithmeticOpResultByte(
-      input.value + input.operand + input.flags.flagValue(Flag.C),
-      Z80Utils.rawByteTo2Compl(input.value) + Z80Utils.rawByteTo2Compl(input.operand) + input.flags.flagValue(Flag.C),
-      (input.value & 0x0F)+(input.operand & 0x0F)+input.flags.flagValue(Flag.C)
-    )
-  }
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value + input.operand + input.flags.flagValue(Flag.C)
+  override def calcSigned(input: ArithmeticOpInput): Int =
+    Z80Utils.rawByteTo2Compl(input.value) + Z80Utils.rawByteTo2Compl(input.operand) + input.flags.flagValue(Flag.C)
+  override def calcHalf(input: ArithmeticOpInput): Int =
+    (input.value & 0x0F)+(input.operand & 0x0F)+input.flags.flagValue(Flag.C)
 }
 
-object Sub8b extends ArithmeticOperationCalc("SUB_8B")
+object Sub8b extends ArithmeticOperationCalc("SUB_8B") with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHBorrow
   with FlagPOverflowByte with FlagNSet with FlagCBorrow {
 
-  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
-    new ArithmeticOpResultByte(
-      input.value - input.operand,
-      Z80Utils.rawByteTo2Compl(input.value) - Z80Utils.rawByteTo2Compl(input.operand),
-      (input.value & 0x0F)-(input.operand & 0x0F)
-    )
-  }
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value - input.operand
+  override def calcSigned(input: ArithmeticOpInput): Int =
+    Z80Utils.rawByteTo2Compl(input.value) - Z80Utils.rawByteTo2Compl(input.operand)
+  override def calcHalf(input: ArithmeticOpInput): Int =
+    (input.value & 0x0F)-(input.operand & 0x0F)
 }
 
-object SubC8b extends ArithmeticOperationCalc("SUB_8B_CARRY")
+object SubC8b extends ArithmeticOperationCalc("SUB_8B_CARRY") with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHBorrow
   with FlagPOverflowByte with FlagNSet with FlagCBorrow {
 
-  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
-    new ArithmeticOpResultByte(
-      input.value - input.operand - input.flags.flagValue(Flag.C),
-      Z80Utils.rawByteTo2Compl(input.value) - Z80Utils.rawByteTo2Compl(input.operand) - input.flags.flagValue(Flag.C),
-      (input.value & 0x0F) - (input.operand & 0x0F) - input.flags.flagValue(Flag.C)
-    )
-  }
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value - input.operand - input.flags.flagValue(Flag.C)
+  override def calcSigned(input: ArithmeticOpInput): Int =
+    Z80Utils.rawByteTo2Compl(input.value) - Z80Utils.rawByteTo2Compl(input.operand) - input.flags.flagValue(Flag.C)
+  override def calcHalf(input: ArithmeticOpInput): Int =
+    (input.value & 0x0F) - (input.operand & 0x0F) - input.flags.flagValue(Flag.C)
 }

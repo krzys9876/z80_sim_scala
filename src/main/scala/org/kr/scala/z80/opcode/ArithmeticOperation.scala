@@ -3,14 +3,13 @@ package org.kr.scala.z80.opcode
 import org.kr.scala.z80.system.Flag
 import org.kr.scala.z80.utils.Z80Utils
 
-abstract class ArithmeticOperationCalc(override val name:String) extends ArithmeticOperation(name) with FlagCalculatorBase {
+abstract class ArithmeticOperationCalc(override val name:String) extends ArithmeticOperation(name)
+  with ArithmeticCalculatorBase with FlagCalculatorBase {
   def calcAll(input:ArithmeticOpInput):(Int,Flag)={
     val calcResult=calc(input)
     val calcFlags=flags(calcResult,input.flags)
     (calcResult.valueOut,calcFlags)
   }
-
-  def calc(input:ArithmeticOpInput):ArithmeticOpResult
 }
 
 abstract class ArithmeticOperation(val name:String)
@@ -123,3 +122,20 @@ trait FlagCBorrow extends FlagCalculatorBase {
   override def calcC(res:ArithmeticOpResult,prevFlags:Flag):Boolean=res.valueUnsigned < res.valueOut
 }
 
+trait ArithmeticCalculatorBase {
+  def calcUnsigned(input:ArithmeticOpInput):Int=OpCode.ANY
+  def calcSigned(input:ArithmeticOpInput):Int=OpCode.ANY
+  def calcHalf(input:ArithmeticOpInput):Int=OpCode.ANY
+
+  def calc(input:ArithmeticOpInput):ArithmeticOpResult
+}
+
+trait ArithmeticCalculatorByte extends ArithmeticCalculatorBase {
+  override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
+    new ArithmeticOpResultByte(calcUnsigned(input),calcSigned(input),calcHalf(input))
+}
+
+trait ArithmeticCalculatorWord extends ArithmeticCalculatorBase {
+  override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
+    new ArithmeticOpResultWord(calcUnsigned(input),calcSigned(input),calcHalf(input))
+}

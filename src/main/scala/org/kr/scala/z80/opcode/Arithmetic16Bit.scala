@@ -74,63 +74,46 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   }
 }
 
-object AddCalc extends ArithmeticOperationCalc("ADD_16B")
+object AddCalc extends ArithmeticOperationCalc("ADD_16B") with ArithmeticCalculatorWord
   with FlagCalculatorBase
-  with FlagHCarryWord with FlagNReset with FlagCCarry
-{
-  override def calc(input:ArithmeticOpInput):ArithmeticOpResult= {
-    new ArithmeticOpResultWord(
-      input.value + input.operand,
-      Z80Utils.rawWordTo2Compl(input.value) + Z80Utils.rawWordTo2Compl(input.operand),
-      (input.value & 0x0FFF) + (input.operand & 0x0FFF)
-    )
-  }
+  with FlagHCarryWord with FlagNReset with FlagCCarry {
+
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value + input.operand
+  override def calcSigned(input: ArithmeticOpInput): Int =
+    Z80Utils.rawWordTo2Compl(input.value) + Z80Utils.rawWordTo2Compl(input.operand)
+  override def calcHalf(input: ArithmeticOpInput): Int = (input.value & 0x0FFF) + (input.operand & 0x0FFF)
 }
 
-object AddCCalc extends ArithmeticOperationCalc("ADD_CARRY_16B")
+object AddCCalc extends ArithmeticOperationCalc("ADD_CARRY_16B") with ArithmeticCalculatorWord
   with FlagSSignWord with FlagZZero with FlagHCarryWord
   with FlagPOverflowWord with FlagNReset with FlagCCarry {
 
-  def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultWord(
-      input.value + input.operand + input.flags.flagValue(Flag.C),
-      Z80Utils.rawWordTo2Compl(input.value) + Z80Utils.rawWordTo2Compl(input.operand) + input.flags.flagValue(Flag.C),
-      (input.value & 0x0FFF) + (input.operand & 0x0FFF) + input.flags.flagValue(Flag.C)
-    )
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value + input.operand + input.flags.flagValue(Flag.C)
+  override def calcSigned(input: ArithmeticOpInput): Int =
+    Z80Utils.rawWordTo2Compl(input.value) + Z80Utils.rawWordTo2Compl(input.operand) + input.flags.flagValue(Flag.C)
+  override def calcHalf(input: ArithmeticOpInput): Int =
+    (input.value & 0x0FFF) + (input.operand & 0x0FFF) + input.flags.flagValue(Flag.C)
 }
 
-object SubCCalc extends ArithmeticOperationCalc("SUB_CARRY_16B")
+object SubCCalc extends ArithmeticOperationCalc("SUB_CARRY_16B") with ArithmeticCalculatorWord
   with FlagSSignWord with FlagZZero with FlagHBorrow
   with FlagPOverflowWord with FlagNSet with FlagCBorrow {
 
-  def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultWord(
-      input.value - input.operand - input.flags.flagValue(Flag.C),
-      Z80Utils.rawWordTo2Compl(input.value) - Z80Utils.rawWordTo2Compl(input.operand) - input.flags.flagValue(Flag.C),
-      (input.value & 0x0FFF) - (input.operand & 0x0FFF) - input.flags.flagValue(Flag.C)
-    )
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value - input.operand - input.flags.flagValue(Flag.C)
+  override def calcSigned(input: ArithmeticOpInput): Int =
+    Z80Utils.rawWordTo2Compl(input.value) - Z80Utils.rawWordTo2Compl(input.operand) - input.flags.flagValue(Flag.C)
+  override def calcHalf(input: ArithmeticOpInput): Int =
+    (input.value & 0x0FFF) - (input.operand & 0x0FFF) - input.flags.flagValue(Flag.C)
 }
 
-object IncCalc extends ArithmeticOperationCalc("INC_16B") {
-
-  def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultWord(
-      input.value + 1,
-      Z80Utils.rawWordTo2Compl(input.value) + 1,
-      OpCode.ANY
-    )
+object IncCalc extends ArithmeticOperationCalc("INC_16B") with ArithmeticCalculatorWord {
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value + 1
+  override def calcSigned(input: ArithmeticOpInput): Int = Z80Utils.rawWordTo2Compl(input.value) + 1
 }
 
-object DecCalc extends ArithmeticOperationCalc("DEC_16B") {
-  def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultWord(
-      input.value - 1,
-      Z80Utils.rawWordTo2Compl(input.value) - 1,
-      OpCode.ANY
-    )
+object DecCalc extends ArithmeticOperationCalc("DEC_16B") with ArithmeticCalculatorWord {
+  override def calcUnsigned(input: ArithmeticOpInput): Int = input.value - 1
+  override def calcSigned(input: ArithmeticOpInput): Int = Z80Utils.rawWordTo2Compl(input.value) - 1
 }
 
-object NoneCalc extends ArithmeticOperationCalc("NONE_16B") {
-  def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultWord(OpCode.ANY,OpCode.ANY,OpCode.ANY)
-}
+object NoneCalc extends ArithmeticOperationCalc("NONE_16B") with ArithmeticCalculatorWord
