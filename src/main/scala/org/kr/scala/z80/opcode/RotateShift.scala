@@ -6,10 +6,6 @@ import org.kr.scala.z80.utils.Z80Utils
 abstract class ArithmeticOperation(val name:String)
 
 object ArithmeticOpType {
-  case object Rl extends ArithmeticOperation("RL")
-  case object Rr extends ArithmeticOperation("RR")
-  case object Rla extends ArithmeticOperation("RLA")
-  case object Rra extends ArithmeticOperation("RRA")
   case object Sla extends ArithmeticOperation("SLA")
   case object Sra extends ArithmeticOperation("SRA")
   case object Srl extends ArithmeticOperation("SRL")
@@ -31,12 +27,12 @@ object RotateShift extends OperationSpec with OpCodeHandler {
     List(OpCode(0x0F)) -> Rrca,
     List(OpCode(0xCB,0x17),OpCode(0xCB,0x10),OpCode(0xCB,0x11),OpCode(0xCB,0x12),OpCode(0xCB,0x13),
       OpCode(0xCB,0x14),OpCode(0xCB,0x15),OpCode(0xCB,0x16),OpCode(0xDD,0xCB,0x16),
-      OpCode(0xFD,0xCB,0x16)) -> ArithmeticOpType.Rl,
-    List(OpCode(0x17)) -> ArithmeticOpType.Rla,
+      OpCode(0xFD,0xCB,0x16)) -> Rl,
+    List(OpCode(0x17)) -> Rla,
     List(OpCode(0xCB,0x1F),OpCode(0xCB,0x18),OpCode(0xCB,0x19),OpCode(0xCB,0x1A),OpCode(0xCB,0x1B),
       OpCode(0xCB,0x1C),OpCode(0xCB,0x1D),OpCode(0xCB,0x1E),OpCode(0xDD,0xCB,0x1E),
-      OpCode(0xFD,0xCB,0x1E)) -> ArithmeticOpType.Rr,
-    List(OpCode(0x1F)) -> ArithmeticOpType.Rra,
+      OpCode(0xFD,0xCB,0x1E)) -> Rr,
+    List(OpCode(0x1F)) -> Rra,
     List(OpCode(0xCB,0x27),OpCode(0xCB,0x20),OpCode(0xCB,0x21),OpCode(0xCB,0x22),OpCode(0xCB,0x23),
       OpCode(0xCB,0x24),OpCode(0xCB,0x25),OpCode(0xCB,0x26),OpCode(0xDD,0xCB,0x26),
       OpCode(0xFD,0xCB,0x26)) -> ArithmeticOpType.Sla,
@@ -115,6 +111,10 @@ object RotateShift extends OperationSpec with OpCodeHandler {
       case Rlca => Rlca.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
       case Rrc => Rrc.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
       case Rrca => Rrca.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
+      case Rl => Rl.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
+      case Rla => Rla.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
+      case Rr => Rr.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
+      case Rra => Rra.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
       case _ => val (valueOut,newCarry)=doRotateValue(operation,prevValueIn,prevFlags.flagValue(Flag.C))
         (valueOut,new Flag(calcFlags(operation,valueOut,prevFlags.value,newCarry)))
     }
@@ -126,7 +126,7 @@ object RotateShift extends OperationSpec with OpCodeHandler {
   private def calcFlags(oper:ArithmeticOperation, value:Int, prevF: Int, carry: Boolean):Int= {
     //http://www.z80.info/z80sflag.htm
     oper match {
-      case Rlc | Rlca | Rrca | ArithmeticOpType.Rla |  ArithmeticOpType.Rra =>
+      case Rlc | Rlca | Rrca | Rla |  Rra =>
         new Flag(prevF).reset(Flag.H).reset(Flag.N).set(Flag.C,carry)()
       case _ => Flag.set(
         Z80Utils.isNegativeByte(value),
@@ -144,43 +144,67 @@ object RotateShift extends OperationSpec with OpCodeHandler {
 
     val newValue=oper match {
       //case Rlc | Rlca => ((value << 1) & 0xFF) + (if(bit7) 1 else 0)
-      case Rrc | Rrca => ((value >> 1) & 0xFF) + (if(bit0) 0x80 else 0)
-      case ArithmeticOpType.Rl | ArithmeticOpType.Rla => ((value << 1) & 0xFF) + carry
-      case ArithmeticOpType.Rr | ArithmeticOpType.Rra => ((value >> 1) & 0xFF) + (carry << 7)
+      //case Rrc | Rrca => ((value >> 1) & 0xFF) + (if(bit0) 0x80 else 0)
+      //case Rl | Rla => ((value << 1) & 0xFF) + carry
+      //case Rr | Rra => ((value >> 1) & 0xFF) + (carry << 7)
       case ArithmeticOpType.Sla => (value << 1) & 0xFF
       case ArithmeticOpType.Sra => ((value >> 1) & 0xFF) + (if(bit7) 0x80 else 0)
     }
     val newCarry=oper match {
       case Rlc | Rlca | ArithmeticOpType.Sla |
-           ArithmeticOpType.Rl | ArithmeticOpType.Rla=> bit7
+           Rl | Rla=> bit7
       case Rrc | Rrca | ArithmeticOpType.Sra |
-           ArithmeticOpType.Rr | ArithmeticOpType.Rra=> bit0
+           Rr | Rra=> bit0
     }
     (newValue,newCarry)
   }
 
 }
 
-object Rlc extends ArithmeticOperationCalc("RLC") with ArithmeticCalculatorByte
-  with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit7 {
+class RotateLeftBase(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+  with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit7
 
-  override def calcUnsigned(input: ArithmeticOpInput): Int = ((input.value << 1) & 0xFF) + (if(Z80Utils.getBit(input.value,7)) 1 else 0)
+class RotateLeftBaseAccum(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+  with FlagHReset with FlagNReset with FlagCBit7
+
+class RotateRightBase(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+  with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit0
+
+class RotateRightBaseAccum(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+  with FlagHReset with FlagNReset with FlagCBit0
+
+object Rlc extends RotateLeftBase("RLC") {
+  override def calcUnsigned(input: ArithmeticOpInput): Int =
+    ((input.value << 1) & 0xFF) + (if(Z80Utils.getBit(input.value,7)) 1 else 0)
 }
 
-object Rlca extends ArithmeticOperationCalc("RLCA") with ArithmeticCalculatorByte
-  with FlagHReset with FlagNReset with FlagCBit7 {
-
+object Rlca extends RotateLeftBaseAccum("RLCA") {
   override def calcUnsigned(input: ArithmeticOpInput): Int = Rlc.calcUnsigned(input)
 }
 
-object Rrc extends ArithmeticOperationCalc("RRC") with ArithmeticCalculatorByte
-  with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit0 {
-
-  override def calcUnsigned(input: ArithmeticOpInput): Int = ((input.value >> 1) & 0xFF) + (if(Z80Utils.getBit(input.value,0)) 0x80 else 0)
+object Rrc extends RotateRightBase("RRC") {
+  override def calcUnsigned(input: ArithmeticOpInput): Int =
+    ((input.value >> 1) & 0xFF) + (if(Z80Utils.getBit(input.value,0)) 0x80 else 0)
 }
 
-object Rrca extends ArithmeticOperationCalc("RRCA") with ArithmeticCalculatorByte
-  with FlagHReset with FlagNReset with FlagCBit0 {
-
+object Rrca extends RotateRightBaseAccum("RRCA") {
   override def calcUnsigned(input: ArithmeticOpInput): Int = Rrc.calcUnsigned(input)
+}
+
+object Rl extends RotateLeftBase("RL") {
+  override def calcUnsigned(input: ArithmeticOpInput): Int =
+    ((input.value << 1) & 0xFF) + input.flags.flagValue(Flag.C)
+}
+
+object Rla extends RotateLeftBaseAccum("RL") {
+  override def calcUnsigned(input: ArithmeticOpInput): Int = Rl.calcUnsigned(input)
+}
+
+object Rr extends RotateRightBase("RR") {
+  override def calcUnsigned(input: ArithmeticOpInput): Int =
+    ((input.value >> 1) & 0xFF) + (input.flags.flagValue(Flag.C) << 7)
+}
+
+object Rra extends RotateRightBaseAccum("RRA") {
+  override def calcUnsigned(input: ArithmeticOpInput): Int = Rr.calcUnsigned(input)
 }
