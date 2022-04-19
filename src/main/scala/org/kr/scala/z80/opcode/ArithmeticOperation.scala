@@ -3,42 +3,45 @@ package org.kr.scala.z80.opcode
 import org.kr.scala.z80.system.Flag
 import org.kr.scala.z80.utils.Z80Utils
 
-abstract class ArithmeticOperationCalc(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorBase with FlagCalculatorBase {
-  def calcAll(input:ArithmeticOpInput):(Int,Flag)={
+abstract class ArithmeticOperation(val name:String) extends ArithmeticCalculatorBase with FlagCalculatorBase {
+  def calcAll(input:ArithmeticOpInput):(ArithmeticOpResult,Flag)={
     val calcResult=calc(input)
     val calcFlags=flags(calcResult,input)
-    (calcResult.valueOut,calcFlags)
+    (calcResult,calcFlags)
   }
 }
 
+object None8b extends ArithmeticOperation("NONE_8B") with ArithmeticCalculatorByte
+object None16b extends ArithmeticOperation("NONE_16B") with ArithmeticCalculatorWord
+
 case class ArithmeticOpInput(value:Int, operand:Int, flags:Flag)
 
-class ArithmeticOpResult(val valueUnsigned:Int, val valueSigned:Int, val valueHalf:Int, val isWord:Boolean=false) {
+class ArithmeticOpResult(val valueUnsigned:Int, val valueSigned:Int, val valueAux:Int, val isWord:Boolean=false) {
   lazy val valueOut:Int=valueUnsigned & (if(isWord) 0xFFFF else 0xFF)
 }
 
-class ArithmeticOpResultByte(override val valueUnsigned:Int, override val valueSigned:Int, override val valueHalf:Int)
-  extends ArithmeticOpResult(valueUnsigned,valueSigned,valueHalf,false)
+class ArithmeticOpResultByte(override val valueUnsigned:Int, override val valueSigned:Int, override val valueAux:Int)
+  extends ArithmeticOpResult(valueUnsigned,valueSigned,valueAux,false)
 
-class ArithmeticOpResultWord(override val valueUnsigned:Int, override val valueSigned:Int, override val valueHalf:Int)
-  extends ArithmeticOpResult(valueUnsigned,valueSigned,valueHalf,true)
+class ArithmeticOpResultWord(override val valueUnsigned:Int, override val valueSigned:Int, override val valueAux:Int)
+  extends ArithmeticOpResult(valueUnsigned,valueSigned,valueAux,true)
 
 trait ArithmeticCalculatorBase {
   def calcUnsigned(input:ArithmeticOpInput):Int=OpCode.ANY
   def calcSigned(input:ArithmeticOpInput):Int=OpCode.ANY
-  def calcHalf(input:ArithmeticOpInput):Int=OpCode.ANY
+  def calcAux(input:ArithmeticOpInput):Int=OpCode.ANY
 
   def calc(input:ArithmeticOpInput):ArithmeticOpResult
 }
 
 trait ArithmeticCalculatorByte extends ArithmeticCalculatorBase {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultByte(calcUnsigned(input),calcSigned(input),calcHalf(input))
+    new ArithmeticOpResultByte(calcUnsigned(input),calcSigned(input),calcAux(input))
 }
 
 trait ArithmeticCalculatorWord extends ArithmeticCalculatorBase {
   override def calc(input:ArithmeticOpInput):ArithmeticOpResult=
-    new ArithmeticOpResultWord(calcUnsigned(input),calcSigned(input),calcHalf(input))
+    new ArithmeticOpResultWord(calcUnsigned(input),calcSigned(input),calcAux(input))
 }
 
 //http://www.z80.info/z80sflag.htm
@@ -71,13 +74,13 @@ trait FlagZZero extends FlagCalculatorBase {
   override def calcZ(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueOut==0
 }
 trait FlagHCarryByte extends FlagCalculatorBase {
-  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueHalf>0x0F
+  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux>0x0F
 }
 trait FlagHCarryWord extends FlagCalculatorBase {
-  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueHalf > 0x0FFF
+  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux > 0x0FFF
 }
 trait FlagHBorrow extends FlagCalculatorBase {
-  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueHalf<0
+  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux<0
 }
 trait FlagHSet extends FlagCalculatorBase {
   override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=true

@@ -3,15 +3,6 @@ package org.kr.scala.z80.opcode
 import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
-abstract class ArithmeticOperation(val name:String)
-
-object ArithmeticOpType {
-  case object Srl extends ArithmeticOperation("SRL")
-  case object Rld extends ArithmeticOperation("RLD")
-  case object Rrd extends ArithmeticOperation("RRD")
-  case object None extends ArithmeticOperation("NONE")
-}
-
 object RotateShift extends OperationSpec with OpCodeHandler {
   // Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))
   val operationListMap: Map[List[OpCode],ArithmeticOperation] = Map(
@@ -39,10 +30,10 @@ object RotateShift extends OperationSpec with OpCodeHandler {
       OpCode(0xFD,0xCB,0x2E)) -> Sra,
     List(OpCode(0xCB,0x3F),OpCode(0xCB,0x38),OpCode(0xCB,0x39),OpCode(0xCB,0x3A),OpCode(0xCB,0x3B),
       OpCode(0xCB,0x3C),OpCode(0xCB,0x3D),OpCode(0xCB,0x3E),OpCode(0xDD,0xCB,0x3E),
-      OpCode(0xFD,0xCB,0x3E)) -> ArithmeticOpType.Srl
+      OpCode(0xFD,0xCB,0x3E)) -> Srl
   )
 
-  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, ArithmeticOpType.None)
+  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, None8b)
 
   val locationListMap: Map[List[OpCode], LoadLocation] = Map(
     List(OpCode(0x07),OpCode(0x0F),OpCode(0x17),OpCode(0x1F)) -> LoadLocation.register("A"),
@@ -62,6 +53,7 @@ object RotateShift extends OperationSpec with OpCodeHandler {
     OpCode.generateMapByReg(OpCode(0xCB,0x18),2,0)++
     OpCode.generateMapByReg(OpCode(0xCB,0x20),2,0)++
     OpCode.generateMapByReg(OpCode(0xCB,0x28),2,0)++
+    OpCode.generateMapByReg(OpCode(0xCB,0x38),2,0)++
     OpCode.generateMapByReg(OpCode(0xCB,0x03),2,0)
 
   val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
@@ -91,46 +83,26 @@ object RotateShift extends OperationSpec with OpCodeHandler {
     val prevValue=system.getValueFromLocation(loc)
     val prevFlags=system.getFlags
 
-    val (value, flags) = handleRotateShift(oper, prevValue, prevFlags)
+    val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue,OpCode.ANY,prevFlags))
 
     (List(
-      system.putValueToLocation(loc,value),
-      new RegisterChange("F", flags.value)
+      system.putValueToLocation(loc,result.valueOut),
+      new RegisterChange("F", flags())
     ),
       instrSize)
   }
-
-  private def handleRotateShift(operation:ArithmeticOperation,prevValueIn:Int,prevFlags:Flag):(Int,Flag)={
-
-
-
-    val (valueOut,newF)= operation match {
-      case Rlc => Rlc.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Rlca => Rlca.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Rrc => Rrc.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Rrca => Rrca.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Rl => Rl.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Rla => Rla.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Rr => Rr.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Rra => Rra.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Sla => Sla.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-      case Sra => Sra.calcAll(ArithmeticOpInput(prevValueIn,OpCode.ANY,prevFlags))
-    }
-    (valueOut,newF)
-  }
-
 }
 
-class RotateLeftBase(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+class RotateLeftBase(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit7
 
-class RotateLeftBaseAccum(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+class RotateLeftBaseAccum(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCBit7
 
-class RotateRightBase(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+class RotateRightBase(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit0
 
-class RotateRightBaseAccum(override val name:String) extends ArithmeticOperationCalc(name) with ArithmeticCalculatorByte
+class RotateRightBaseAccum(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCBit0
 
 object Rlc extends RotateLeftBase("RLC") {
@@ -176,4 +148,8 @@ object Sla extends RotateLeftBase("SLA") {
 object Sra extends RotateRightBase("SRA") {
   override def calcUnsigned(input: ArithmeticOpInput): Int =
     ((input.value >> 1) & 0xFF) + (if(Z80Utils.getBit(input.value,7)) 0x80 else 0)
+}
+
+object Srl extends RotateRightBase("SRL") {
+  override def calcUnsigned(input: ArithmeticOpInput): Int = (input.value >> 1) & 0xFF
 }

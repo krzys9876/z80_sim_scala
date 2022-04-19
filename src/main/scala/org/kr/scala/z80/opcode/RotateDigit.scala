@@ -1,16 +1,15 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
-import org.kr.scala.z80.utils.Z80Utils
+import org.kr.scala.z80.system.{RegisterChange, SystemChangeBase, Z80System}
 
 object RotateDigit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))
   val operationListMap: Map[List[OpCode],ArithmeticOperation] = Map(
-    List(OpCode(0xED,0x6F)) -> ArithmeticOpType.Rld,
-    List(OpCode(0xED,0x67)) -> ArithmeticOpType.Rrd
+    List(OpCode(0xED,0x6F)) -> Rld,
+    List(OpCode(0xED,0x67)) -> Rrd
   )
 
-  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, ArithmeticOpType.None)
+  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, None8b)
 
   val locationListMap: Map[List[OpCode], LoadLocation] = Map(
     List(OpCode(0xED,0x6F),OpCode(0xED,0x67)) -> LoadLocation.registerAddr("HL")
@@ -28,39 +27,36 @@ object RotateDigit extends OperationSpec with OpCodeHandler {
     val loc=location.find(code)
     val oper=operation.find(code)
 
-    val (valueOutR, valueOutA)=doRotate(
-      oper,
-      system.getValueFromLocation(loc),
-      system.getRegValue("A"))
-    val newF=calcFlags(
-      oper,
-      valueOutA,
-      system.getFlags())
-
+    // input: value => accumulator, operand => location
+    // output: valueOut => accumulator, valueAux => location
+    val (result,newF)=oper.calcAll(
+      ArithmeticOpInput(system.getRegValue("A"),
+        system.getValueFromLocation(loc),
+        system.getFlags))
     val change=List(
-      system.putValueToLocation(loc,valueOutR),
-      new RegisterChange("A", valueOutA),
-      new RegisterChange("F", newF))
+      system.putValueToLocation(loc,result.valueAux),
+      new RegisterChange("A", result.valueOut),
+      new RegisterChange("F", newF()))
 
     (change,instSize.find(code))
   }
+}
 
-  private def doRotate(oper:ArithmeticOperation,valueR:Int,valueA:Int):(Int,Int)={
-    val unchangedDigit1A = valueA & 0xF0
-    val digit2A = valueA & 0x0F
-    val digit1R = (valueR & 0xF0) >> 4
-    val digit2R = valueR & 0x0F
-    oper match {
-      case ArithmeticOpType.Rld => ((digit2R << 4) + digit2A,unchangedDigit1A + digit1R)
-      case ArithmeticOpType.Rrd => ((digit2A << 4) + digit1R,unchangedDigit1A + digit2R)
-    }
-  }
+class RotateDigitBase(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
+  with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset {
 
-  private def calcFlags(oper:ArithmeticOperation,value:Int,prevF:Int):Int=
-    new Flag(prevF)
-        .set(Flag.S,Z80Utils.isNegativeByte(value))
-        .set(Flag.Z,value==0)
-        .reset(Flag.H)
-        .set(Flag.P,Z80Utils.isEvenBits(value))
-        .reset(Flag.N)()
+  def unchangedDigit1A(input:ArithmeticOpInput):Int = input.value & 0xF0
+  def digit2A(input:ArithmeticOpInput):Int = input.value & 0x0F
+  def digit1R(input:ArithmeticOpInput):Int = (input.operand & 0xF0) >> 4
+  def digit2R(input:ArithmeticOpInput):Int = input.operand & 0x0F
+}
+
+object Rld extends RotateDigitBase("RLD") {
+  override def calcAux(input: ArithmeticOpInput): Int = (digit2R(input) << 4) + digit2A(input)
+  override def calcUnsigned(input: ArithmeticOpInput): Int = unchangedDigit1A(input) + digit1R(input)
+}
+
+object Rrd extends RotateDigitBase("RLD") {
+  override def calcAux(input: ArithmeticOpInput): Int = (digit2A(input) << 4) + digit1R(input)
+  override def calcUnsigned(input: ArithmeticOpInput): Int = unchangedDigit1A(input) + digit2R(input)
 }
