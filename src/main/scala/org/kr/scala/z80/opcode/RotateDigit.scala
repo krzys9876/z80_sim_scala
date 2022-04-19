@@ -34,8 +34,8 @@ object RotateDigit extends OperationSpec with OpCodeHandler {
         system.getValueFromLocation(loc),
         system.getFlags))
     val change=List(
-      system.putValueToLocation(loc,result.valueAux),
       new RegisterChange("A", result.valueOut),
+      system.putValueToLocation(loc,result.valueAux),
       new RegisterChange("F", newF()))
 
     (change,instSize.find(code))
