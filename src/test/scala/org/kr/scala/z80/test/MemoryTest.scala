@@ -64,7 +64,6 @@ class MemoryTest extends AnyFunSuite {
       MemoryController.pokeMulti(7,Vector(207,208)) >>=
       MemoryController.poke(9,209)
     //then
-    print(memoryAfter2.get.mem)
     assert(memoryAfter2.get.mem.equals(Vector[Int](100,101,102,103,104,205,206,207,208,209)))
   }
 

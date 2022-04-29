@@ -15,8 +15,8 @@ object AritheticOpLocationBase {
 object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
   val operationListMap: Map[List[OpCode], AritheticOpLocationBase] = Map(
-    List(OpCode(0x87), OpCode(0x80), OpCode(0x81), OpCode(0x82), OpCode(0x83), OpCode(0x84), OpCode(0x85),
-      OpCode(0x86), OpCode(0xDD, 0x86), OpCode(0xFD, 0x86), OpCode(0xC6)) -> new ArithmeticOpLocationAccum(Add8b),
+    List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L,
+      ADD_A_HL, ADD_A_IX_d, ADD_A_IY_d, ADD_A_n) -> new ArithmeticOpLocationAccum(Add8b),
     List(OpCode(0x8F), OpCode(0x88), OpCode(0x89), OpCode(0x8A), OpCode(0x8B), OpCode(0x8C), OpCode(0x8D),
       OpCode(0x8E), OpCode(0xDD, 0x8E), OpCode(0xFD, 0x8E), OpCode(0xCE)) -> new ArithmeticOpLocationAccum(AddC8b),
     List(OpCode(0x97), OpCode(0x90), OpCode(0x91), OpCode(0x92), OpCode(0x93), OpCode(0x94), OpCode(0x95),
@@ -81,18 +81,18 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   val operand: OpCodeMap[LoadLocation] = new OpCodeMap(operandListMap, LoadLocation.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
-    List(OpCode(0x86), OpCode(0x8E), OpCode(0x96), OpCode(0x9E), OpCode(0xA6), OpCode(0xAE), OpCode(0xB6), OpCode(0xBE),
+    List(ADD_A_HL, OpCode(0x8E), OpCode(0x96), OpCode(0x9E), OpCode(0xA6), OpCode(0xAE), OpCode(0xB6), OpCode(0xBE),
       OpCode(0x34), OpCode(0x35),
       OpCode(0x2F), OpCode(0x3F), OpCode(0x37)) -> 1,
-    List(OpCode(0xC6), OpCode(0xCE), OpCode(0xD6), OpCode(0xDE), OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
+    List(ADD_A_n, OpCode(0xCE), OpCode(0xD6), OpCode(0xDE), OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
       OpCode(0xCE), OpCode(0xDE), OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
       OpCode(0xED, 0x44)) -> 2,
-    List(OpCode(0xDD, 0x86), OpCode(0xDD, 0x8E), OpCode(0xDD, 0x96), OpCode(0xDD, 0x9E), OpCode(0xDD, 0xA6),
+    List(ADD_A_IX_d, OpCode(0xDD, 0x8E), OpCode(0xDD, 0x96), OpCode(0xDD, 0x9E), OpCode(0xDD, 0xA6),
       OpCode(0xDD, 0xAE), OpCode(0xDD, 0xB6), OpCode(0xDD, 0xBE), OpCode(0xDD, 0x34), OpCode(0xDD, 0x35),
-      OpCode(0xFD, 0x86), OpCode(0xFD, 0x8E), OpCode(0xFD, 0x96), OpCode(0xFD, 0x9E),
+      ADD_A_IY_d, OpCode(0xFD, 0x8E), OpCode(0xFD, 0x96), OpCode(0xFD, 0x9E),
       OpCode(0xFD, 0xA6), OpCode(0xFD, 0xAE), OpCode(0xFD, 0xB6), OpCode(0xFD, 0xBE),
       OpCode(0xFD, 0x34), OpCode(0xFD, 0x35)) -> 3,
-    OpCode.generateListByReg(OpCode(0x80), 1, 0) -> 1,
+    List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L) -> 1,
     OpCode.generateListByReg(OpCode(0x88), 1, 0) -> 1,
     OpCode.generateListByReg(OpCode(0x90), 1, 0) -> 1,
     OpCode.generateListByReg(OpCode(0x98), 1, 0) -> 1,

@@ -8,7 +8,8 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   d - offset for opcodes using indexed notation (IX/IY+d) (3rd byte)
   supp2 - second supplementary OpCode for 4-byte opcodes (some IX+d/IY+d) (4th byte)
    */
-  override def toString: String = f"OpCode(${num2hex(main)}${if(supp!=OpCode.ANY) ","+num2hex(supp)}${if(supp2!=OpCode.ANY) ","+num2hex(supp2)})"
+  override def toString: String =
+    f"OpCode(${num2hex(main)}${if(supp!=OpCode.ANY) ","+num2hex(supp) else ""}${if(supp2!=OpCode.ANY) ","+num2hex(supp2) else ""})"
 
   private def num2hex(num:Int):String= f"0x$num%02X"
 
@@ -18,6 +19,10 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
       case 2 => OpCode(main,value,supp2)
       case 3 => OpCode(main,supp,value)
     }
+
+  def mainSupp1Only:OpCode= replaceCode(3,OpCode.ANY)
+  def mainOnly:OpCode= mainSupp1Only.replaceCode(2,OpCode.ANY)
+  def equalsAny(opCode:OpCode):Boolean= this.equals(opCode) || this.equals(opCode.mainSupp1Only) || this.equals(opCode.mainOnly)
 
   def getCode(codeNo:Int):Int=
     codeNo match {
@@ -66,6 +71,9 @@ object OpCode {
 
   def generateListByBit(base:OpCode, codeNo:Int, bit:Int):List[OpCode]=
     generateMapByBit(base, codeNo, bit).keys.flatten.toList
+
+  def getOpCodeObject(opCode:OpCode):OpCode=
+    OpCodes.list.find(elem=>elem.equalsAny(opCode)).getOrElse(opCode)
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}
@@ -75,16 +83,21 @@ trait OpCodePrinter {
   override def toString:String=label
 }
 
-class ADD_A(val label:String="ADD A,A") extends OpCode(0x87) with OpCodePrinter {}
-class ADD_B(val label:String="ADD A,B") extends OpCode(0x80) with OpCodePrinter {}
-class ADD_C(val label:String="ADD A,C") extends OpCode(0x81) with OpCodePrinter {}
-class ADD_D(val label:String="ADD A,D") extends OpCode(0x82) with OpCodePrinter {}
-class ADD_E(val label:String="ADD A,E") extends OpCode(0x83) with OpCodePrinter {}
-class ADD_H(val label:String="ADD_A,H") extends OpCode(0x84) with OpCodePrinter {}
-class ADD_L(val label:String="ADD A,L") extends OpCode(0x85) with OpCodePrinter {}
+trait TestOp {}
 
+object OpCodes {
+  val list:List[OpCode]=List(
+    ADD_A_A,ADD_A_B,ADD_A_C,ADD_A_D,ADD_A_E,ADD_A_H,ADD_A_L,ADD_A_HL,ADD_A_IX_d,ADD_A_IY_d,ADD_A_n)
+}
 
-
-
-
-
+object ADD_A_A extends OpCode(0x87) with OpCodePrinter {override val label:String="ADD A,A"}
+object ADD_A_B extends OpCode(0x80) with OpCodePrinter {override val label:String="ADD A,B"}
+object ADD_A_C extends OpCode(0x81) with OpCodePrinter with TestOp {override val label:String="ADD A,C"}
+object ADD_A_D extends OpCode(0x82) with OpCodePrinter {override val label:String="ADD A,D"}
+object ADD_A_E extends OpCode(0x83) with OpCodePrinter with TestOp {override val label:String="ADD A,E"}
+object ADD_A_H extends OpCode(0x84) with OpCodePrinter {override val label:String="ADD A,H"}
+object ADD_A_L extends OpCode(0x85) with OpCodePrinter {override val label:String="ADD A,L"}
+object ADD_A_HL extends OpCode(0x86) with OpCodePrinter {override val label:String="ADD A,(HL)"}
+object ADD_A_IX_d extends OpCode(0xDD,0x86) with OpCodePrinter {override val label:String="ADD A,(IX+d)"}
+object ADD_A_IY_d extends OpCode(0xFD,0x86) with OpCodePrinter {override val label:String="ADD A,(IY+d)"}
+object ADD_A_n extends OpCode(0xC6) with OpCodePrinter {override val label:String="ADD A,n"}

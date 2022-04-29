@@ -4,7 +4,7 @@ abstract class MapHandler[From,To](val mapOfLists:Map[List[From],To]) {
   lazy val m:Map[From,To]=MapHandler.flatten(mapOfLists)
   val defaultFrom:From=>List[From]
   val defaultTo:To
-  lazy val find:From=>To = from =>findInMapOrDefault(from).getOrElse((from,defaultTo))._2
+  lazy val find:From=>To = from =>findInMapOrDefault(from).getOrElse(from->defaultTo)._2
   lazy val contains:From=>Boolean = from =>findInMapOrDefault(from).isDefined
 
   private def findInMapOrDefault(from:From):Option[(From,To)] =

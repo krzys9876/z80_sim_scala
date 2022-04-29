@@ -12,7 +12,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       memoryController.get(pc),
       memoryController.get(pc,1),
       memoryController.get(pc,3))
-    debugger.debug(pc,opCode)
+    debugger.debug(pc,OpCode.getOpCodeObject(opCode))
     handle(opCode)
   }
 
