@@ -1,12 +1,9 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.opcode.{BitManipulation, OpCodes, LoadLocation, OpCode, OpCodePrinter, TestOp}
+import org.kr.scala.z80.opcode.{BitManipulation, OpCodes, LoadLocation, OpCode, OpCodePrinter}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
-
-  val l=OpCodes.list.filter(_.isInstanceOf[TestOp])
-  println(l)
 
   //println(BitManipulation.bit.find(OpCode(0xC8,0x9E)))
 

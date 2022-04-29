@@ -3,105 +3,56 @@ package org.kr.scala.z80.opcode
 import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
-class AritheticOpLocationBase(val operation:ArithmeticOperation)
-class ArithmeticOpLocationAccum(override val operation:ArithmeticOperation) extends AritheticOpLocationBase(operation)
-class ArithmeticOpLocationFlags(override val operation:ArithmeticOperation) extends AritheticOpLocationBase(operation)
-class ArithmeticOpVariableLocation(override val operation:ArithmeticOperation) extends AritheticOpLocationBase(operation)
-
-object AritheticOpLocationBase {
-  val empty:AritheticOpLocationBase=new AritheticOpLocationBase(None8b)
-}
-
 object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
-  val operationListMap: Map[List[OpCode], AritheticOpLocationBase] = Map(
+  val operationListMap: Map[List[OpCode], ArithmeticOperation] = Map(
     List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L,
-      ADD_A_HL, ADD_A_IX_d, ADD_A_IY_d, ADD_A_n) -> new ArithmeticOpLocationAccum(Add8b),
+      ADD_A_HL, ADD_A_IX_d, ADD_A_IY_d, ADD_A_n) -> Add8b,
     List(ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L,
-      ADC_A_HL, ADC_A_IX_d, ADC_A_IY_d, ADC_A_n) -> new ArithmeticOpLocationAccum(AddC8b),
+      ADC_A_HL, ADC_A_IX_d, ADC_A_IY_d, ADC_A_n) -> AddC8b,
     List(SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L,
-      SUB_HL, SUB_IX_d, SUB_IY_d, SUB_n) -> new ArithmeticOpLocationAccum(Sub8b),
+      SUB_HL, SUB_IX_d, SUB_IY_d, SUB_n) -> Sub8b,
     List(SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L,
-      SBC_A_HL, SBC_A_IX_d, SBC_A_IY_d, SBC_A_n) -> new ArithmeticOpLocationAccum(SubC8b),
-    List(OpCode(0xA7), OpCode(0xA0), OpCode(0xA1), OpCode(0xA2), OpCode(0xA3), OpCode(0xA4), OpCode(0xA5),
-      OpCode(0xA6), OpCode(0xDD, 0xA6), OpCode(0xFD, 0xA6), OpCode(0xE6)) -> new ArithmeticOpLocationAccum(And8b),
-    List(OpCode(0xAF), OpCode(0xA8), OpCode(0xA9), OpCode(0xAA), OpCode(0xAB), OpCode(0xAC), OpCode(0xAD),
-      OpCode(0xAE), OpCode(0xDD, 0xAE), OpCode(0xFD, 0xAE), OpCode(0xEE)) -> new ArithmeticOpLocationAccum(Xor8b),
-    List(OpCode(0xB7), OpCode(0xB0), OpCode(0xB1), OpCode(0xB2), OpCode(0xB3), OpCode(0xB4), OpCode(0xB5),
-      OpCode(0xB6), OpCode(0xDD, 0xB6), OpCode(0xFD, 0xB6), OpCode(0xF6)) -> new ArithmeticOpLocationAccum(Or8b),
-    List(OpCode(0xBF), OpCode(0xB8), OpCode(0xB9), OpCode(0xBA), OpCode(0xBB), OpCode(0xBC), OpCode(0xBD),
-      OpCode(0xBE), OpCode(0xDD, 0xBE), OpCode(0xFD, 0xBE), OpCode(0xFE)) -> new ArithmeticOpLocationFlags(Comp8b),
-    List(OpCode(0x3C), OpCode(0x04), OpCode(0x0C), OpCode(0x14), OpCode(0x1C), OpCode(0x24), OpCode(0x2C),
-      OpCode(0x34), OpCode(0xDD, 0x34), OpCode(0xFD, 0x34)) -> new ArithmeticOpVariableLocation(Inc8b),
-    List(OpCode(0x3D), OpCode(0x05), OpCode(0x0D), OpCode(0x15), OpCode(0x1D), OpCode(0x25), OpCode(0x2D),
-      OpCode(0x35), OpCode(0xDD, 0x35), OpCode(0xFD, 0x35)) -> new ArithmeticOpVariableLocation(Dec8b),
-    List(OpCode(0x2F)) -> new ArithmeticOpLocationAccum(Cpl8b),
-    List(OpCode(0xED, 0x44)) -> new ArithmeticOpLocationAccum(Neg8b),
-    List(OpCode(0x3F)) -> new ArithmeticOpLocationFlags(Ccf8b),
-    List(OpCode(0x37)) -> new ArithmeticOpLocationFlags(Scf8b)
+      SBC_A_HL, SBC_A_IX_d, SBC_A_IY_d, SBC_A_n) -> SubC8b,
+    List(AND_A, AND_B, AND_C, AND_D, AND_E, AND_H, AND_L,
+      AND_HL, AND_IX_d, AND_IY_d, AND_n) -> And8b,
+    List(XOR_A, XOR_B, XOR_C, XOR_D, XOR_E, XOR_H, XOR_L,
+      XOR_HL, XOR_IX_d, XOR_IY_d, XOR_n) -> Xor8b,
+    List(OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L,
+      OR_HL, OR_IX_d, OR_IY_d, OR_n) -> Or8b,
+    List(CP_A, CP_B, CP_C, CP_D, CP_E, CP_H, CP_L,
+      CP_HL, CP_IX_d, CP_IY_d, CP_n) -> Comp8b,
+    List(INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L,
+      INC_HL, INC_IX_d, INC_IY_d) -> Inc8b,
+    List(DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L,
+      DEC_HL, DEC_IX_d, DEC_IY_d) -> Dec8b,
+    List(CPL) -> Cpl8b,
+    List(NEG) -> Neg8b,
+    List(CCF) -> Ccf8b,
+    List(SCF) -> Scf8b
   )
 
-  val operation: OpCodeMap[AritheticOpLocationBase] = new OpCodeMap(operationListMap, AritheticOpLocationBase.empty)
+  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, None8b)
 
-  val operandListMap: Map[List[OpCode], LoadLocation] = Map(
-    // accumulator
-    List(OpCode(0x2F), OpCode(0xED, 0x44)) -> LoadLocation.register("A"),
-    //indirect register
-    List(ADD_A_HL, ADC_A_HL, SUB_HL, SBC_A_HL,
-      OpCode(0xA6), OpCode(0xAE), OpCode(0xB6), OpCode(0xBE),
-      OpCode(0x34), OpCode(0x35)
-    ) -> LoadLocation.registerAddr("HL"),
-    //indirect registers with offset
-    List(ADD_A_IX_d, ADC_A_IX_d, SUB_IX_d, SBC_A_IX_d,
-      OpCode(0xDD, 0xA6), OpCode(0xDD, 0xAE), OpCode(0xDD, 0xB6), OpCode(0xDD, 0xBE),
-      OpCode(0xDD, 0x34), OpCode(0xDD, 0x35)
-    ) -> LoadLocation.registerAddrIndirOffset("IX", 2),
-    List(ADD_A_IY_d, ADC_A_IY_d, SUB_IY_d, SBC_A_IY_d,
-      OpCode(0xFD, 0xA6), OpCode(0xFD, 0xAE), OpCode(0xFD, 0xB6), OpCode(0xFD, 0xBE),
-      OpCode(0xFD, 0x34), OpCode(0xFD, 0x35)
-    ) -> LoadLocation.registerAddrIndirOffset("IY", 2),
-    // immediate
-    List(ADD_A_n, ADC_A_n, SUB_n, SBC_A_n,
-      OpCode(0xE6), OpCode(0xEE), OpCode(0xF6),
-      OpCode(0xFE)) -> LoadLocation.registerAddrDirOffset("PC", 1),
-    List(OpCode(0x3F), OpCode(0x37)) -> LoadLocation.empty
-  ) ++
-    //register
-    OpCode.generateMapByReg(OpCode(0x80), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0x88), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0x90), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0x98), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0xA0), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0xA8), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0xB0), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0xB8), 1, 0) ++
-    OpCode.generateMapByReg(OpCode(0x04), 1, 3) ++
-    OpCode.generateMapByReg(OpCode(0x05), 1, 3)
-
-  val operand: OpCodeMap[LoadLocation] = new OpCodeMap(operandListMap, LoadLocation.empty)
+  val source: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.sourceMap, LoadLocation.empty)
+  val destination: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.destinationMap, LoadLocation.empty)
+  val operand: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.operandMap, LoadLocation.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
-    List(ADD_A_HL, ADC_A_HL, SUB_HL, SBC_A_HL, OpCode(0xA6), OpCode(0xAE), OpCode(0xB6), OpCode(0xBE),
-      OpCode(0x34), OpCode(0x35),
-      OpCode(0x2F), OpCode(0x3F), OpCode(0x37)) -> 1,
-    List(ADD_A_n, ADC_A_n, SUB_n, SBC_A_n, OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
-      OpCode(0xCE), OpCode(0xDE), OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
-      OpCode(0xED, 0x44)) -> 2,
-    List(ADD_A_IX_d, ADC_A_IX_d, SUB_IX_d, SBC_A_IX_d, OpCode(0xDD, 0xA6),
-      OpCode(0xDD, 0xAE), OpCode(0xDD, 0xB6), OpCode(0xDD, 0xBE), OpCode(0xDD, 0x34), OpCode(0xDD, 0x35),
-      ADD_A_IY_d, ADC_A_IY_d, SUB_IY_d, SBC_A_IY_d,
-      OpCode(0xFD, 0xA6), OpCode(0xFD, 0xAE), OpCode(0xFD, 0xB6), OpCode(0xFD, 0xBE),
-      OpCode(0xFD, 0x34), OpCode(0xFD, 0x35)) -> 3,
+    List(ADD_A_HL, ADC_A_HL, SUB_HL, SBC_A_HL, AND_HL, XOR_HL, OR_HL, CP_HL, INC_HL, DEC_HL, CPL, CCF, SCF) -> 1,
+    List(ADD_A_n, ADC_A_n, SUB_n, SBC_A_n, AND_n, XOR_n, OR_n, CP_n, NEG) -> 2,
+    List(ADD_A_IX_d, ADC_A_IX_d, SUB_IX_d, SBC_A_IX_d, AND_IX_d, XOR_IX_d, OR_IX_d, CP_IX_d, INC_IX_d, DEC_IX_d,
+      ADD_A_IY_d, ADC_A_IY_d, SUB_IY_d, SBC_A_IY_d, AND_IY_d, XOR_IY_d, OR_IY_d, CP_IY_d, INC_IY_d, DEC_IY_d) -> 3,
     List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L) -> 1,
     List(ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L) -> 1,
     List(SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L) -> 1,
     List(SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L) -> 1,
-    OpCode.generateListByReg(OpCode(0xA0), 1, 0) -> 1,
-    OpCode.generateListByReg(OpCode(0xA8), 1, 0) -> 1,
-    OpCode.generateListByReg(OpCode(0xB0), 1, 0) -> 1,
-    OpCode.generateListByReg(OpCode(0xB8), 1, 0) -> 1,
-    OpCode.generateListByReg(OpCode(0x04), 1, 3) -> 1,
-    OpCode.generateListByReg(OpCode(0x05), 1, 3) -> 1
+    List(AND_A, AND_B, AND_C, AND_D, AND_E, AND_H, AND_L) -> 1,
+    List(XOR_A, XOR_B, XOR_C, XOR_D, XOR_E, XOR_H, XOR_L) -> 1,
+    List(OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L) -> 1,
+    List(CP_A, CP_B, CP_C, CP_D, CP_E, CP_H, CP_L) -> 1,
+    List(INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L) -> 1,
+    List(DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L) -> 1
   )
   override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
 
@@ -111,20 +62,11 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     val operandLoc = Arithmetic8Bit.operand.find(code)
     val operand = system.getValueFromLocation(operandLoc)
     val prevFlags = system.getFlags
-
-    val sourceLocation = oper match {
-      case _: ArithmeticOpVariableLocation => operandLoc
-      case _ => LoadLocation.register("A")
-    }
+    val sourceLocation = Arithmetic8Bit.source.find(code)
     val prevValue = system.getValueFromLocation(sourceLocation)
+    val destLocation = Arithmetic8Bit.destination.find(code)
 
-    val destLocation = oper match {
-      case _: ArithmeticOpLocationAccum => LoadLocation.register("A")
-      case _: ArithmeticOpLocationFlags => LoadLocation.empty
-      case _: ArithmeticOpVariableLocation => operandLoc
-    }
-
-    val (result, flags) = oper.operation.calcAll(ArithmeticOpInput(prevValue, operand, prevFlags))
+    val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, operand, prevFlags))
     val chgList = List(system.putValueToLocation(destLocation, result.valueOut))
     (chgList ++ List(new RegisterChange("F", flags())), instrSize)
   }
