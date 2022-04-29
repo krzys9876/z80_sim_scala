@@ -5,35 +5,7 @@ import org.kr.scala.z80.utils.Z80Utils
 
 object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
-  val operationListMap: Map[List[OpCode], ArithmeticOperation] = Map(
-    List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L,
-      ADD_A_HL, ADD_A_IX_d, ADD_A_IY_d, ADD_A_n) -> Add8b,
-    List(ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L,
-      ADC_A_HL, ADC_A_IX_d, ADC_A_IY_d, ADC_A_n) -> AddC8b,
-    List(SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L,
-      SUB_HL, SUB_IX_d, SUB_IY_d, SUB_n) -> Sub8b,
-    List(SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L,
-      SBC_A_HL, SBC_A_IX_d, SBC_A_IY_d, SBC_A_n) -> SubC8b,
-    List(AND_A, AND_B, AND_C, AND_D, AND_E, AND_H, AND_L,
-      AND_HL, AND_IX_d, AND_IY_d, AND_n) -> And8b,
-    List(XOR_A, XOR_B, XOR_C, XOR_D, XOR_E, XOR_H, XOR_L,
-      XOR_HL, XOR_IX_d, XOR_IY_d, XOR_n) -> Xor8b,
-    List(OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L,
-      OR_HL, OR_IX_d, OR_IY_d, OR_n) -> Or8b,
-    List(CP_A, CP_B, CP_C, CP_D, CP_E, CP_H, CP_L,
-      CP_HL, CP_IX_d, CP_IY_d, CP_n) -> Comp8b,
-    List(INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L,
-      INC_HL, INC_IX_d, INC_IY_d) -> Inc8b,
-    List(DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L,
-      DEC_HL, DEC_IX_d, DEC_IY_d) -> Dec8b,
-    List(CPL) -> Cpl8b,
-    List(NEG) -> Neg8b,
-    List(CCF) -> Ccf8b,
-    List(SCF) -> Scf8b
-  )
-
-  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, None8b)
-
+  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation8bMap, None8b)
   val source: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.sourceMap, LoadLocation.empty)
   val destination: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.destinationMap, LoadLocation.empty)
   val operand: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.operandMap, LoadLocation.empty)

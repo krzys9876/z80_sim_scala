@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.opcode.{BitManipulation, OpCodes, LoadLocation, OpCode, OpCodePrinter}
+import org.kr.scala.z80.opcode.{BitManipulation, OpCodes, LoadLocation, OpCode, Label}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
