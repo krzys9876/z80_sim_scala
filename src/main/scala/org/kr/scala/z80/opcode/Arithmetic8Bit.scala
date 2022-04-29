@@ -17,12 +17,12 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   val operationListMap: Map[List[OpCode], AritheticOpLocationBase] = Map(
     List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L,
       ADD_A_HL, ADD_A_IX_d, ADD_A_IY_d, ADD_A_n) -> new ArithmeticOpLocationAccum(Add8b),
-    List(OpCode(0x8F), OpCode(0x88), OpCode(0x89), OpCode(0x8A), OpCode(0x8B), OpCode(0x8C), OpCode(0x8D),
-      OpCode(0x8E), OpCode(0xDD, 0x8E), OpCode(0xFD, 0x8E), OpCode(0xCE)) -> new ArithmeticOpLocationAccum(AddC8b),
-    List(OpCode(0x97), OpCode(0x90), OpCode(0x91), OpCode(0x92), OpCode(0x93), OpCode(0x94), OpCode(0x95),
-      OpCode(0x96), OpCode(0xDD, 0x96), OpCode(0xFD, 0x96), OpCode(0xD6)) -> new ArithmeticOpLocationAccum(Sub8b),
-    List(OpCode(0x9F), OpCode(0x98), OpCode(0x99), OpCode(0x9A), OpCode(0x9B), OpCode(0x9C), OpCode(0x9D),
-      OpCode(0x9E), OpCode(0xDD, 0x9E), OpCode(0xFD, 0x9E), OpCode(0xDE)) -> new ArithmeticOpLocationAccum(SubC8b),
+    List(ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L,
+      ADC_A_HL, ADC_A_IX_d, ADC_A_IY_d, ADC_A_n) -> new ArithmeticOpLocationAccum(AddC8b),
+    List(SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L,
+      SUB_HL, SUB_IX_d, SUB_IY_d, SUB_n) -> new ArithmeticOpLocationAccum(Sub8b),
+    List(SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L,
+      SBC_A_HL, SBC_A_IX_d, SBC_A_IY_d, SBC_A_n) -> new ArithmeticOpLocationAccum(SubC8b),
     List(OpCode(0xA7), OpCode(0xA0), OpCode(0xA1), OpCode(0xA2), OpCode(0xA3), OpCode(0xA4), OpCode(0xA5),
       OpCode(0xA6), OpCode(0xDD, 0xA6), OpCode(0xFD, 0xA6), OpCode(0xE6)) -> new ArithmeticOpLocationAccum(And8b),
     List(OpCode(0xAF), OpCode(0xA8), OpCode(0xA9), OpCode(0xAA), OpCode(0xAB), OpCode(0xAC), OpCode(0xAD),
@@ -47,21 +47,21 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
     // accumulator
     List(OpCode(0x2F), OpCode(0xED, 0x44)) -> LoadLocation.register("A"),
     //indirect register
-    List(OpCode(0x86), OpCode(0x8E), OpCode(0x96), OpCode(0x9E),
+    List(ADD_A_HL, ADC_A_HL, SUB_HL, SBC_A_HL,
       OpCode(0xA6), OpCode(0xAE), OpCode(0xB6), OpCode(0xBE),
       OpCode(0x34), OpCode(0x35)
     ) -> LoadLocation.registerAddr("HL"),
     //indirect registers with offset
-    List(OpCode(0xDD, 0x86), OpCode(0xDD, 0x8E), OpCode(0xDD, 0x96), OpCode(0xDD, 0x9E),
+    List(ADD_A_IX_d, ADC_A_IX_d, SUB_IX_d, SBC_A_IX_d,
       OpCode(0xDD, 0xA6), OpCode(0xDD, 0xAE), OpCode(0xDD, 0xB6), OpCode(0xDD, 0xBE),
       OpCode(0xDD, 0x34), OpCode(0xDD, 0x35)
     ) -> LoadLocation.registerAddrIndirOffset("IX", 2),
-    List(OpCode(0xFD, 0x86), OpCode(0xFD, 0x8E), OpCode(0xFD, 0x96), OpCode(0xFD, 0x9E),
+    List(ADD_A_IY_d, ADC_A_IY_d, SUB_IY_d, SBC_A_IY_d,
       OpCode(0xFD, 0xA6), OpCode(0xFD, 0xAE), OpCode(0xFD, 0xB6), OpCode(0xFD, 0xBE),
       OpCode(0xFD, 0x34), OpCode(0xFD, 0x35)
     ) -> LoadLocation.registerAddrIndirOffset("IY", 2),
     // immediate
-    List(OpCode(0xC6), OpCode(0xCE), OpCode(0xD6), OpCode(0xDE),
+    List(ADD_A_n, ADC_A_n, SUB_n, SBC_A_n,
       OpCode(0xE6), OpCode(0xEE), OpCode(0xF6),
       OpCode(0xFE)) -> LoadLocation.registerAddrDirOffset("PC", 1),
     List(OpCode(0x3F), OpCode(0x37)) -> LoadLocation.empty
@@ -81,21 +81,21 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   val operand: OpCodeMap[LoadLocation] = new OpCodeMap(operandListMap, LoadLocation.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
-    List(ADD_A_HL, OpCode(0x8E), OpCode(0x96), OpCode(0x9E), OpCode(0xA6), OpCode(0xAE), OpCode(0xB6), OpCode(0xBE),
+    List(ADD_A_HL, ADC_A_HL, SUB_HL, SBC_A_HL, OpCode(0xA6), OpCode(0xAE), OpCode(0xB6), OpCode(0xBE),
       OpCode(0x34), OpCode(0x35),
       OpCode(0x2F), OpCode(0x3F), OpCode(0x37)) -> 1,
-    List(ADD_A_n, OpCode(0xCE), OpCode(0xD6), OpCode(0xDE), OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
+    List(ADD_A_n, ADC_A_n, SUB_n, SBC_A_n, OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
       OpCode(0xCE), OpCode(0xDE), OpCode(0xE6), OpCode(0xEE), OpCode(0xF6), OpCode(0xFE),
       OpCode(0xED, 0x44)) -> 2,
-    List(ADD_A_IX_d, OpCode(0xDD, 0x8E), OpCode(0xDD, 0x96), OpCode(0xDD, 0x9E), OpCode(0xDD, 0xA6),
+    List(ADD_A_IX_d, ADC_A_IX_d, SUB_IX_d, SBC_A_IX_d, OpCode(0xDD, 0xA6),
       OpCode(0xDD, 0xAE), OpCode(0xDD, 0xB6), OpCode(0xDD, 0xBE), OpCode(0xDD, 0x34), OpCode(0xDD, 0x35),
-      ADD_A_IY_d, OpCode(0xFD, 0x8E), OpCode(0xFD, 0x96), OpCode(0xFD, 0x9E),
+      ADD_A_IY_d, ADC_A_IY_d, SUB_IY_d, SBC_A_IY_d,
       OpCode(0xFD, 0xA6), OpCode(0xFD, 0xAE), OpCode(0xFD, 0xB6), OpCode(0xFD, 0xBE),
       OpCode(0xFD, 0x34), OpCode(0xFD, 0x35)) -> 3,
     List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L) -> 1,
-    OpCode.generateListByReg(OpCode(0x88), 1, 0) -> 1,
-    OpCode.generateListByReg(OpCode(0x90), 1, 0) -> 1,
-    OpCode.generateListByReg(OpCode(0x98), 1, 0) -> 1,
+    List(ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L) -> 1,
+    List(SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L) -> 1,
+    List(SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L) -> 1,
     OpCode.generateListByReg(OpCode(0xA0), 1, 0) -> 1,
     OpCode.generateListByReg(OpCode(0xA8), 1, 0) -> 1,
     OpCode.generateListByReg(OpCode(0xB0), 1, 0) -> 1,
