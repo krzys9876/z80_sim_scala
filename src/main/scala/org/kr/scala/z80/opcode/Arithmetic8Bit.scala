@@ -9,24 +9,8 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   val source: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.sourceMap, LoadLocation.empty)
   val destination: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.destinationMap, LoadLocation.empty)
   val operand: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.operandMap, LoadLocation.empty)
-
-  val instructionSizeListMap: Map[List[OpCode], Int] = Map(
-    List(ADD_A_HL, ADC_A_HL, SUB_HL, SBC_A_HL, AND_HL, XOR_HL, OR_HL, CP_HL, INC_HL, DEC_HL, CPL, CCF, SCF) -> 1,
-    List(ADD_A_n, ADC_A_n, SUB_n, SBC_A_n, AND_n, XOR_n, OR_n, CP_n, NEG) -> 2,
-    List(ADD_A_IX_d, ADC_A_IX_d, SUB_IX_d, SBC_A_IX_d, AND_IX_d, XOR_IX_d, OR_IX_d, CP_IX_d, INC_IX_d, DEC_IX_d,
-      ADD_A_IY_d, ADC_A_IY_d, SUB_IY_d, SBC_A_IY_d, AND_IY_d, XOR_IY_d, OR_IY_d, CP_IY_d, INC_IY_d, DEC_IY_d) -> 3,
-    List(ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L) -> 1,
-    List(ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L) -> 1,
-    List(SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L) -> 1,
-    List(SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L) -> 1,
-    List(AND_A, AND_B, AND_C, AND_D, AND_E, AND_H, AND_L) -> 1,
-    List(XOR_A, XOR_B, XOR_C, XOR_D, XOR_E, XOR_H, XOR_L) -> 1,
-    List(OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L) -> 1,
-    List(CP_A, CP_B, CP_C, CP_D, CP_E, CP_H, CP_L) -> 1,
-    List(INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L) -> 1,
-    List(DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L) -> 1
-  )
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
+  val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
+  override lazy val isOper: OpCode=>Boolean = opcode => operation.contains(opcode)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val oper = Arithmetic8Bit.operation.find(code)
