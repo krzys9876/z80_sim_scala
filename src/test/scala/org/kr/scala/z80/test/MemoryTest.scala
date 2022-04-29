@@ -60,7 +60,8 @@ class MemoryTest extends AnyFunSuite {
       memoryAfter1 >>=
       MemoryController.lockTo(5) >>=
       MemoryController.poke(0,200) >>=
-      MemoryController.pokeMulti(1,Vector(201,202,203,204,205,206)) >>=
+      MemoryController.pokeMulti(1,Vector(201,202)) >>=
+      MemoryController.pokeMulti(3,Vector(203,204,205,206)) >>=
       MemoryController.pokeMulti(7,Vector(207,208)) >>=
       MemoryController.poke(9,209)
     //then
