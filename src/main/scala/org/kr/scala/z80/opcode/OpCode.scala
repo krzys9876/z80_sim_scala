@@ -8,7 +8,9 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   d - offset for opcodes using indexed notation (IX/IY+d) (3rd byte)
   supp2 - second supplementary OpCode for 4-byte opcodes (some IX+d/IY+d) (4th byte)
    */
-  override def toString: String = f"OpCode($main${if(supp!=OpCode.ANY) ","+supp}${if(supp2!=OpCode.ANY) ","+supp2})"
+  override def toString: String = f"OpCode(${num2hex(main)}${if(supp!=OpCode.ANY) ","+num2hex(supp)}${if(supp2!=OpCode.ANY) ","+num2hex(supp2)})"
+
+  private def num2hex(num:Int):String= f"0x$num%02X"
 
   def replaceCode(codeNo:Int,value:Int):OpCode=
     codeNo match {
@@ -67,3 +69,22 @@ object OpCode {
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}
+
+trait OpCodePrinter {
+  val label:String
+  override def toString:String=label
+}
+
+class ADD_A(val label:String="ADD A,A") extends OpCode(0x87) with OpCodePrinter {}
+class ADD_B(val label:String="ADD A,B") extends OpCode(0x80) with OpCodePrinter {}
+class ADD_C(val label:String="ADD A,C") extends OpCode(0x81) with OpCodePrinter {}
+class ADD_D(val label:String="ADD A,D") extends OpCode(0x82) with OpCodePrinter {}
+class ADD_E(val label:String="ADD A,E") extends OpCode(0x83) with OpCodePrinter {}
+class ADD_H(val label:String="ADD_A,H") extends OpCode(0x84) with OpCodePrinter {}
+class ADD_L(val label:String="ADD A,L") extends OpCode(0x85) with OpCodePrinter {}
+
+
+
+
+
+

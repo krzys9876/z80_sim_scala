@@ -1,7 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{Flag, InputController, MemoryController, OutputController, Register, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{Debugger, Flag, MemoryController, Register, RegisterController, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
 
 object TestUtils {
@@ -14,11 +14,13 @@ object TestUtils {
     assert(reg(Flag.C) == Z80Utils.getBitFromString(flagsAsString, Flag.C.bit))
   }
 
-  def prepareTest(regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int=1): Z80SystemController = {
+  def prepareTest(regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int=1)
+                 (implicit debugger:Debugger): Z80SystemController = {
     prepareTestWith(Z80SystemController.blank,regList,memList,steps)
   }
 
-  def prepareTestWith(sysBlank:Z80SystemController, regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int): Z80SystemController = {
+  def prepareTestWith(sysBlank:Z80SystemController, regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int)
+                     (implicit debugger:Debugger): Z80SystemController = {
     //given
     val reg = regList.foldLeft(sysBlank.get.registerController)(
       (regC, entry) => regC >>= RegisterController.set(entry._1, entry._2)
@@ -29,12 +31,13 @@ object TestUtils {
     )
     //when
     val sysInit = Z80SystemController(new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController))
-    val sysTest = sysInit >>= Z80SystemController.run(steps)
+    val sysTest = sysInit >>= Z80SystemController.run(debugger)(steps)
     Z80SystemController(sysTest.get)
   }
 
   def testRegOrAddrWithFlags(regList: List[(String, Int)], memList: List[(Int, Int)], resultReg: String, resultAddr: Int,
-                               result: Int, flagsAsString: String, pcAfter: Int = 1): Unit = {
+                               result: Int, flagsAsString: String, pcAfter: Int = 1)
+                            (implicit debugger: Debugger): Unit = {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
@@ -51,7 +54,8 @@ object TestUtils {
 
   def testRegAndAddrWordWithFlags(regList: List[(String, Int)], memList: List[(Int, Int)],
                                   resultReg: String, resultValReg: Int, resultAddr: Int, resultValMem: Int,
-                                  flagsAsString: String, pcAfter: Int = 1): Unit = {
+                                  flagsAsString: String, pcAfter: Int = 1)
+                                 (implicit debugger: Debugger): Unit = {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then

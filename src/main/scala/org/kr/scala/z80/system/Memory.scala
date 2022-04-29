@@ -28,9 +28,9 @@ class Memory(val mem: Vector[Int], val size:Int, val lock:Int=0) {
 }
 
 object Memory {
-  def blank(size:Int):Memory=new Memory(fillZero(Vector[Int](),size),size)
+  def blank(size:Int):Memory=new Memory(fillZero(Vector(),size),size)
   def preloaded(initial:Vector[Int],size:Int):Memory= {
-    new Memory(initial++fillZero(Vector[Int](),size-initial.size),size)
+    new Memory(initial++fillZero(Vector(),size-initial.size),size)
   }
 
   @tailrec

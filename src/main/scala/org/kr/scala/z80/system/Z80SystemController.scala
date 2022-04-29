@@ -12,18 +12,18 @@ object Z80SystemController {
   def apply(state: Z80System):Z80SystemController = new Z80SystemController(state)
   def blank:Z80SystemController = new Z80SystemController(Z80System.blank)
 
-  def run:Int=>Z80System=>Z80SystemController=
+  def run(implicit debug:Debugger):Int=>Z80System=>Z80SystemController=
     toGo=>system=>Z80SystemController(steps(Z80SystemController(system),toGo).state)
 
   @tailrec
-  private def steps(start:Z80SystemController, toGo:Int):Z80SystemController={
+  private def steps(start:Z80SystemController, toGo:Int)(implicit debugger: Debugger):Z80SystemController={
     toGo match {
       case 0 => Z80SystemController(start.state)
-      case _ => steps(start >>= step(),toGo-1)
+      case _ => steps(start >>= step(debugger)(),toGo-1)
     }
   }
 
-  private def step: () => Z80System => Z80SystemController = () => system =>
+  private def step(implicit debugger:Debugger): () => Z80System => Z80SystemController = () => system =>
     Z80SystemController(system.step)
 
   def changeRegister:(String,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {

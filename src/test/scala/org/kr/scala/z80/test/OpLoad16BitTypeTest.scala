@@ -1,9 +1,11 @@
 package org.kr.scala.z80.test
 
+import org.kr.scala.z80.system.{Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpLoad16BitTypeTest extends AnyFunSuite {
-  // TEST LOAD 16-BIT
+
+  implicit val debugger:Debugger=DummyDebugger
 
   test("run LD dd,nn") {
     //given

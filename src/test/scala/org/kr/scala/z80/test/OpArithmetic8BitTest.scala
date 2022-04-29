@@ -1,13 +1,16 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpArithmetic8BitTest extends AnyFunSuite {
+
+  implicit val debugger:Debugger=ConsoleDebugger
+
   test("always pass") {
     assert(1 == 1)
   }
-
 
   private def testArithAccum(regList: List[(String, Int)], memList: List[(Int, Int)], result: Int,
                              flagsAsString: String, pcAfter: Int = 1): Unit = {

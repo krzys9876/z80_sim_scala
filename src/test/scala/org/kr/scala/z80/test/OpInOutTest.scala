@@ -1,9 +1,11 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{InputFile, InputPort, InputPortConstant, Z80SystemController}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, InputFile, InputPort, InputPortConstant, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
+
+  implicit val debugger:Debugger=DummyDebugger
 
   test("run OUT (n),A") {
     //given

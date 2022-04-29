@@ -1,9 +1,12 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
+import org.kr.scala.z80.system.{Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpBitManipulationTest extends AnyFunSuite {
+
+  implicit val debugger:Debugger=DummyDebugger
 
   test ("run BIT b, r/(HL)/(IX/IY+d)") {
     TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x55)), List((0x0000, 0xCB),(0x0001, 0x47)), "", OpCode.ANY, 0x00, "00_1_000",2)

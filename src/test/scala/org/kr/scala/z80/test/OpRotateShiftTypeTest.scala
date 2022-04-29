@@ -1,8 +1,11 @@
 package org.kr.scala.z80.test
 
+import org.kr.scala.z80.system.{Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpRotateShiftTypeTest extends AnyFunSuite {
+
+  implicit val debugger:Debugger=DummyDebugger
 
   test("run RLCA") {
     TestUtils.testRegOrAddrWithFlags(List(("F", 0x00), ("A", 0x01)), List((0x0000, 0x07)), "A", 0x0000, 0x02, "00_0_000")

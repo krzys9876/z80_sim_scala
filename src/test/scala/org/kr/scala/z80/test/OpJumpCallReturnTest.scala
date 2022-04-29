@@ -1,9 +1,13 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
+import org.kr.scala.z80.system.{Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpJumpCallReturnTest extends AnyFunSuite {
+
+  implicit val debugger:Debugger=DummyDebugger
+
   test("run JP nn/cc,nn") {
     TestUtils.testRegOrAddrWithFlags(List(("F",0x00)),List((0,0xC3),(1,0x20),(2,0x10)),"",OpCode.ANY,OpCode.ANY,"00_0_000",0x1020)
     TestUtils.testRegOrAddrWithFlags(List(("F",0xFF)),List((0,0xC3),(1,0x20),(2,0x10)),"",OpCode.ANY,OpCode.ANY,"11_1_111",0x1020)

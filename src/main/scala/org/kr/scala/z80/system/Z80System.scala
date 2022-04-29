@@ -6,13 +6,14 @@ import org.kr.scala.z80.utils.Z80Utils
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
                 val outputController: OutputController,
                 val inputController: InputController) {
-  def step:Z80System= {
-    val PC = registerController.get("PC")
-    handle(
-      OpCode(
-        memoryController.get(PC),
-        memoryController.get(PC,1),
-        memoryController.get(PC,3)))
+  def step(implicit debugger:Debugger):Z80System= {
+    val pc = registerController.get("PC")
+    val opCode=OpCode(
+      memoryController.get(pc),
+      memoryController.get(pc,1),
+      memoryController.get(pc,3))
+    debugger.debug(pc,opCode)
+    handle(opCode)
   }
 
   private def handle(opcode:OpCode):Z80System={
