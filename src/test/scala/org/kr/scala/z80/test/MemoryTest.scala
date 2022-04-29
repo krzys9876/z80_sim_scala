@@ -50,4 +50,22 @@ class MemoryTest extends AnyFunSuite {
     //then
     assert(afterState.get.mem.equals(Vector[Int](0,0,67,0,0)))
   }
+
+  test("lock lower memory") {
+    //given
+    val memoryController=MemoryController.blank(10)
+    val memoryAfter1=memoryController >>= MemoryController.pokeMulti(0,Vector(100,101,102,103,104,105,106,107,108,109))
+    //when
+    val memoryAfter2=
+      memoryAfter1 >>=
+      MemoryController.lockTo(5) >>=
+      MemoryController.poke(0,200) >>=
+      MemoryController.pokeMulti(1,Vector(201,202,203,204,205,206)) >>=
+      MemoryController.pokeMulti(7,Vector(207,208)) >>=
+      MemoryController.poke(9,209)
+    //then
+    print(memoryAfter2.get.mem)
+    assert(memoryAfter2.get.mem.equals(Vector[Int](100,101,102,103,104,205,206,207,208,209)))
+  }
+
 }
