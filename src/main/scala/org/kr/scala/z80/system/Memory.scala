@@ -11,6 +11,9 @@ class Memory(val mem: Vector[Int], val size:Int) {
     new Memory((mem.slice(0,address) :+ value) ++ mem.slice(address+1,size),size)
   def replaceAt(address:Int,values:Vector[Int]):Memory=
     new Memory(mem.slice(0,address) ++ values ++ mem.slice(address+values.size,size),size)
+  def loadHexLine(loader:HexLineLoader):Memory=replaceAt(loader.address,loader.values)
+  def loadHexLine(line:String):Memory= loadHexLine(new HexLineLoader(line))
+  def loadHexLines(lines:List[String]):Memory= lines.foldLeft(this)((mem,line)=>mem.loadHexLine(line))
 }
 
 object Memory {

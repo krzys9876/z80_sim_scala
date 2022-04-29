@@ -5,6 +5,7 @@ class MemoryController(override val state:Memory) extends BaseStateMonad[Memory]
 }
 
 object MemoryController {
+
   def apply(state: Memory):MemoryController = new MemoryController(state)
   def blank(size:Int):MemoryController = new MemoryController(Memory.blank(size))
 
@@ -12,4 +13,10 @@ object MemoryController {
     MemoryController(Memory(memory.replaceAt(address, value)))
   def pokeMulti: (Int, Vector[Int]) => Memory => MemoryController = (address, values) => memory =>
     MemoryController(Memory(memory.replaceAt(address, values)))
+  def loadHexLine:String => Memory => MemoryController = line => memory =>
+    MemoryController(Memory(memory.loadHexLine(line)))
+  def loadHexLines:List[String] => Memory => MemoryController = lines => memory =>
+    MemoryController(Memory(memory.loadHexLines(lines)))
+
+
 }

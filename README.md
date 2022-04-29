@@ -48,6 +48,8 @@ And here it is :slightly_smiling_face:
 ### Skipped instructions ###
 RETN
 
+most IO except for IN & OUT
+
 ## Ultimate goal ##
 
 To be able to run 1978 Microsoft Basic with simulated I/O console.

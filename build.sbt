@@ -8,7 +8,7 @@ val coreDependencies = Seq(
 )
 
 val testDependencies = Seq(
-  "org.scalatest" %% "scalatest" % "3.2.9" % Test
+  "org.scalatest" %% "scalatest" % "3.2.11" % Test
 )
 
 libraryDependencies ++= coreDependencies ++ testDependencies
