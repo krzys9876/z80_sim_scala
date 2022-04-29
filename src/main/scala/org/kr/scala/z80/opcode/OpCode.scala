@@ -83,6 +83,7 @@ trait Label {
   override def toString:String=label
 }
 
+//Building blocks for OpCode definition
 trait OpCodeSourceLocation {
   val source:LoadLocation
 }
@@ -180,27 +181,31 @@ object OpCodes {
     DEC_A,DEC_B,DEC_C,DEC_D,DEC_E,DEC_H,DEC_L,DEC_HL,DEC_IX_d,DEC_IY_d,
     CPL,SCF,CCF,NEG
   )
+
+  //private def filterTo(pred:OpCode=>Boolean):List[OpCode]=list.filter(pred(_))
+
+  private def opCodeListToMap[OpCodeAttr,Attr](getAttr:OpCodeAttr=>Attr):Map[List[OpCode],Attr]=
+    list.filter(_.isInstanceOf[OpCodeAttr]).map(op=>List(op)->getAttr(op.asInstanceOf[OpCodeAttr])).toMap
+
   //TODO: flatten list - refactor OpCodeMap
-  val operandMap:Map[List[OpCode],LoadLocation]= list
+  //NOTE: cannot use generics in vals (only defs) - these maps are used in vals in other classes
+  val operandMap:Map[List[OpCode],LoadLocation]= //opCodeListToMap[OpCodeOperandLocation,LoadLocation](op=>op.operand)
+  //filterTo(op=>op.isInstanceOf[OpCodeOperandLocation]).map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
+    list
     .filter(_.isInstanceOf[OpCodeOperandLocation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand)
-    .toMap
+    .map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
   val sourceMap:Map[List[OpCode],LoadLocation]= list
     .filter(_.isInstanceOf[OpCodeSourceLocation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeSourceLocation].source)
-    .toMap
+    .map(op=> List(op)->op.asInstanceOf[OpCodeSourceLocation].source).toMap
   val destinationMap:Map[List[OpCode],LoadLocation]= list
     .filter(_.isInstanceOf[OpCodeDestLocation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeDestLocation].destination)
-    .toMap
+    .map(op=> List(op)->op.asInstanceOf[OpCodeDestLocation].destination).toMap
   val operation8bMap:Map[List[OpCode],ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeArithmetic8b])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeArithmetic8b].operation)
-    .toMap
+    .map(op=> List(op)->op.asInstanceOf[OpCodeArithmetic8b].operation).toMap
   val sizeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeSize].size)
-    .toMap
+    .map(op=> List(op)->op.asInstanceOf[OpCodeSize].size).toMap
 }
 
 //ADD

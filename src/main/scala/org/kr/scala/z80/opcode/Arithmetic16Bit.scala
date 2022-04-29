@@ -75,9 +75,7 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
 }
 
 object Add16b extends ArithmeticOperation("ADD_16B") with ArithmeticCalculatorWord
-  with FlagCalculatorBase
   with FlagHCarryWord with FlagNReset with FlagCCarry {
-
   override def calcUnsigned(input: ArithmeticOpInput): Int = input.value + input.operand
   override def calcSigned(input: ArithmeticOpInput): Int =
     Z80Utils.rawWordTo2Compl(input.value) + Z80Utils.rawWordTo2Compl(input.operand)
@@ -85,9 +83,7 @@ object Add16b extends ArithmeticOperation("ADD_16B") with ArithmeticCalculatorWo
 }
 
 object AddC16b extends ArithmeticOperation("ADD_CARRY_16B") with ArithmeticCalculatorWord
-  with FlagSSignWord with FlagZZero with FlagHCarryWord
-  with FlagPOverflowWord with FlagNReset with FlagCCarry {
-
+  with FlagSSignWord with FlagZZero with FlagHCarryWord with FlagPOverflowWord with FlagNReset with FlagCCarry {
   override def calcUnsigned(input: ArithmeticOpInput): Int = input.value + input.operand + input.flags.flagValue(Flag.C)
   override def calcSigned(input: ArithmeticOpInput): Int =
     Z80Utils.rawWordTo2Compl(input.value) + Z80Utils.rawWordTo2Compl(input.operand) + input.flags.flagValue(Flag.C)
@@ -96,9 +92,7 @@ object AddC16b extends ArithmeticOperation("ADD_CARRY_16B") with ArithmeticCalcu
 }
 
 object SubC16b extends ArithmeticOperation("SUB_CARRY_16B") with ArithmeticCalculatorWord
-  with FlagSSignWord with FlagZZero with FlagHBorrow
-  with FlagPOverflowWord with FlagNSet with FlagCBorrow {
-
+  with FlagSSignWord with FlagZZero with FlagHBorrow with FlagPOverflowWord with FlagNSet with FlagCBorrow {
   override def calcUnsigned(input: ArithmeticOpInput): Int = input.value - input.operand - input.flags.flagValue(Flag.C)
   override def calcSigned(input: ArithmeticOpInput): Int =
     Z80Utils.rawWordTo2Compl(input.value) - Z80Utils.rawWordTo2Compl(input.operand) - input.flags.flagValue(Flag.C)

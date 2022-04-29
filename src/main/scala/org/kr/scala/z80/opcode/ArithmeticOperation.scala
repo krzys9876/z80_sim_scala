@@ -28,7 +28,7 @@ class ArithmeticOpResultWord(override val valueUnsigned:Int, override val valueS
 
 trait ArithmeticCalculatorBase {
   def calcUnsigned(input:ArithmeticOpInput):Int=OpCode.ANY
-  def calcSigned(input:ArithmeticOpInput):Int=OpCode.ANY
+  def calcSigned(input:ArithmeticOpInput):Int=calcUnsigned(input)
   def calcAux(input:ArithmeticOpInput):Int=OpCode.ANY
 
   def calc(input:ArithmeticOpInput):ArithmeticOpResult
@@ -44,6 +44,7 @@ trait ArithmeticCalculatorWord extends ArithmeticCalculatorBase {
     new ArithmeticOpResultWord(calcUnsigned(input),calcSigned(input),calcAux(input))
 }
 
+//Building blocks for flag calculation
 //http://www.z80.info/z80sflag.htm
 trait FlagCalculatorBase {
   def calcS(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=input.flags(Flag.S)
