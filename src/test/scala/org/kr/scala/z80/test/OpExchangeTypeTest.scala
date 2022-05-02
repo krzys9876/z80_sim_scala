@@ -1,11 +1,11 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpExchangeTypeTest extends AnyFunSuite {
 
-  implicit val debugger:Debugger=DummyDebugger
+  implicit val debugger:Debugger=ConsoleDebugger
 
   test("run EX DE,HL") {
     //given

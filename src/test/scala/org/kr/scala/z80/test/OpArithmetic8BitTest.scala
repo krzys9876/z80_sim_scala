@@ -6,7 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class OpArithmetic8BitTest extends AnyFunSuite {
 
-  implicit val debugger:Debugger=ConsoleDebugger
+  implicit val debugger:Debugger=DummyDebugger
 
   test("always pass") {
     assert(1 == 1)

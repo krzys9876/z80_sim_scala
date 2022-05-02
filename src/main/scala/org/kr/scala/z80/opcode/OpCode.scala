@@ -1,10 +1,6 @@
 package org.kr.scala.z80.opcode
 
-/*trait RegisterFromBit {
-  def getRegisterFromBit(codeNo:Int, bit:Int):LoadLocation
-}*/
-
-case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) /*extends RegisterFromBit*/ {
+case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   /* OpCode format:
   main (supp) (d) (supp2)
   main - primary OpCode for 1-byte opcodes (1st byte of any operation)
@@ -24,13 +20,14 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) /*extends R
       case 3 => OpCode(main,supp,value)
     }
 
-  lazy val numberOfCodes:Int=
-    if(supp2==OpCode.ANY)
-      if(supp==OpCode.ANY) {
-        if(main==OpCode.ANY) 0
-        else 1
-      } else 2
-    else 3
+  lazy val numberOfCodes:Int= {
+    (main,supp,supp2) match {
+      case (OpCode.ANY,OpCode.ANY,OpCode.ANY) => 0
+      case (_,OpCode.ANY,OpCode.ANY) => 1
+      case (_,_,OpCode.ANY) => 2
+      case (_,_,_) => 3
+    }
+  }
 
 
   def mainSupp1Only:OpCode= replaceCode(3,OpCode.ANY)
@@ -43,12 +40,6 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) /*extends R
       case 2 => supp
       case 3 => supp2
     }
-
-  /*override def getRegisterFromBit(codeNo:Int, bit:Int):LoadLocation= {
-    val code=getCode(codeNo)
-    val bits=(code >> bit) & 0x07
-    OpCode.registerMap.getOrElse(bits,LoadLocation.empty)
-  }*/
 }
 
 object OpCode {
@@ -238,19 +229,31 @@ trait Size2 extends OpCodeSize {override val size:Int=2}
 trait Size3 extends OpCodeSize {override val size:Int=3}
 trait Size4 extends OpCodeSize {override val size:Int=4}
 
+trait OpCodeExchangeLocation {
+  val exchange:List[ExchangeLocationBase]
+}
+trait ExchangeDEHL extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=List(new ExchangeLocation("DE","HL"))}
+trait ExchangeAF1 extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=List(new ExchangeLocation("AF","AF1"))}
+trait ExchangeAll1 extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=
+  List(new ExchangeLocation("BC","BC1"),new ExchangeLocation("DE","DE1"),new ExchangeLocation("HL","HL1"))}
+trait ExchangeSPHL extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=List(new ExchangeLocationIndirect("SP","HL"))}
+trait ExchangeSPIX extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=List(new ExchangeLocationIndirect("SP","IX"))}
+trait ExchangeSPIY extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=List(new ExchangeLocationIndirect("SP","IY"))}
+
 object OpCodes {
   val list:List[OpCode]=
     ADD_A_reg.codes ++ ADC_A_reg.codes ++ SUB_reg.codes ++ SBC_A_reg.codes ++
     AND_reg.codes ++ XOR_reg.codes ++ OR_reg.codes ++ CP_reg.codes ++
-    INC_reg.codes ++ DEC_reg.codes ++
-        List(
+    INC_reg.codes ++ DEC_reg.codes ++ List(
     //Arithmetic8b
     ADD_A_n,ADC_A_n,SUB_n,SBC_A_n,AND_n,XOR_n,OR_n,CP_n,CPL,SCF,CCF,NEG,
     //Arithmetic16b
     ADD_HL_BC,ADD_HL_DE,ADD_HL_HL,ADD_HL_SP,ADD_IX_BC,ADD_IX_DE,ADD_IX_IX,ADD_IX_SP,
     ADD_IY_BC,ADD_IY_DE,ADD_IY_IY,ADD_IY_SP,ADC_HL_BC,ADC_HL_DE,ADC_HL_HL,ADC_HL_SP,
     SBC_HL_BC,SBC_HL_DE,SBC_HL_HL,SBC_HL_SP,INC_BC,INC_DE,INC_HL_16,INC_SP,INC_IX,INC_IY,
-    DEC_BC,DEC_DE,DEC_HL_16,DEC_SP,DEC_IX,DEC_IY
+    DEC_BC,DEC_DE,DEC_HL_16,DEC_SP,DEC_IX,DEC_IY,
+    //Excange
+    EX_DE_HL, EX_AF_AF1, EXX, EX_SP_HL, EX_SP_IX, EX_SP_IY
   )
 
   //private def filterTo(pred:OpCode=>Boolean):List[OpCode]=list.filter(pred(_))
@@ -277,6 +280,9 @@ object OpCodes {
   val operation16bMap:Map[List[OpCode],ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeArithmetic16b])
     .map(op=> List(op)->op.asInstanceOf[OpCodeArithmetic16b].operation).toMap
+  val exchangeMap:Map[List[OpCode],List[ExchangeLocationBase]]= list
+    .filter(_.isInstanceOf[OpCodeExchangeLocation])
+    .map(op=> List(op)->op.asInstanceOf[OpCodeExchangeLocation].exchange).toMap
   val sizeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
     .map(op=> List(op)->op.asInstanceOf[OpCodeSize].size).toMap
@@ -297,7 +303,7 @@ object ADD_A_n extends OpCode(0xC6) with Arith8bAdd with OperandN with Size2 wit
 object ADC_A_reg {
   val codes: List[Arithmetic8bDef] =
     OpCode.generateOpCodesType1(OpCode(0x88)).map(op=>
-      new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"ADC A,${op._2.label}") with Arith8bAddC)
+new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"ADC A,${op._2.label}") with Arith8bAddC)
 }
 object ADC_A_n extends OpCode(0xCE) with Arith8bAddC with OperandN with Size2 with Label {override val label:String="ADC A,n"}
 //SUB
@@ -386,3 +392,10 @@ object DEC_SP extends OpCode(0x3B) with Arith16bDec with SourceDestSP with Size1
 object DEC_IX extends OpCode(0xDD,0x2B) with Arith16bDec with SourceDestIX with Size2 with Label {override val label:String="DEC IX"}
 object DEC_IY extends OpCode(0xFD,0x2B) with Arith16bDec with SourceDestIY with Size2 with Label {override val label:String="DEC IY"}
 
+// Exchange
+object EX_DE_HL extends OpCode(0xEB) with ExchangeDEHL with Size1 with Label {override val label:String="EX DE,HL"}
+object EX_AF_AF1 extends OpCode(0x08) with ExchangeAF1 with Size1 with Label {override val label:String="EX AF,AF'"}
+object EXX extends OpCode(0xD9) with ExchangeAll1 with Size1 with Label {override val label:String="EXX"}
+object EX_SP_HL extends OpCode(0xE3) with ExchangeSPHL with Size1 with Label {override val label:String="EX (SP),HL"}
+object EX_SP_IX extends OpCode(0xDD,0xE3) with ExchangeSPIX with Size2 with Label {override val label:String="EX (SP),IX"}
+object EX_SP_IY extends OpCode(0xFD,0xE3) with ExchangeSPIY with Size2 with Label {override val label:String="EX (SP),IY"}
