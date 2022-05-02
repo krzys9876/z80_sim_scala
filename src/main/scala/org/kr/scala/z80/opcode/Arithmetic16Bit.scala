@@ -6,35 +6,8 @@ import org.kr.scala.z80.utils.Z80Utils
 object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 52
   val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation16bMap, None16b)
-
-  /*val sourceListMap: Map[List[OpCode],LoadLocation] = Map(
-    List(OpCode(0x09),OpCode(0xDD,0x09),OpCode(0xFD,0x09),OpCode(0xED,0x4A),OpCode(0xED,0x42),
-      OpCode(0x03),OpCode(0x0B)) -> LoadLocation.register("BC"),
-    List(OpCode(0x19),OpCode(0xDD,0x19),OpCode(0xFD,0x19),OpCode(0xED,0x5A),OpCode(0xED,0x52),
-      OpCode(0x13),OpCode(0x1B)) -> LoadLocation.register("DE"),
-    List(OpCode(0x29),OpCode(0xED,0x6A),OpCode(0xED,0x62),OpCode(0x23),OpCode(0x2B)) -> LoadLocation.register("HL"),
-    List(OpCode(0x39),OpCode(0xDD,0x39),OpCode(0xFD,0x39),OpCode(0xED,0x7A),OpCode(0xED,0x72),
-      OpCode(0x33),OpCode(0x3B)) -> LoadLocation.register("SP"),
-    List(OpCode(0xDD,0x29),OpCode(0xDD,0x23),OpCode(0xDD,0x2B)) -> LoadLocation.register("IX"),
-    List(OpCode(0xFD,0x29),OpCode(0xFD,0x23),OpCode(0xFD,0x2B)) -> LoadLocation.register("IY")
-  )
-  val source: OpCodeMap[LoadLocation] = new OpCodeMap(sourceListMap, LoadLocation.empty)*/
   val source: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.sourceMap, LoadLocation.empty)
-
-  val destinationListMap: Map[List[OpCode],LoadLocation] = Map(
-    List(OpCode(0x09),OpCode(0x19),OpCode(0x29),OpCode(0x39),OpCode(0xED,0x4A),OpCode(0xED,0x42),
-      OpCode(0xED,0x5A),OpCode(0xED,0x52),OpCode(0xED,0x6A),OpCode(0xED,0x62),OpCode(0xED,0x7A),OpCode(0xED,0x72),
-      OpCode(0x23),OpCode(0x2B)) -> LoadLocation.register("HL"),
-    List(OpCode(0xDD,0x09),OpCode(0xDD,0x19),OpCode(0xDD,0x39),OpCode(0xDD,0x29),
-      OpCode(0xDD,0x23),OpCode(0xDD,0x2B)) -> LoadLocation.register("IX"),
-    List(OpCode(0xFD,0x09),OpCode(0xFD,0x19),OpCode(0xFD,0x39),OpCode(0xFD,0x29),
-      OpCode(0xFD,0x23),OpCode(0xFD,0x2B)) -> LoadLocation.register("IY"),
-    List(OpCode(0x03),OpCode(0x0B)) -> LoadLocation.register("BC"),
-    List(OpCode(0x13),OpCode(0x1B)) -> LoadLocation.register("DE"),
-    List(OpCode(0x33),OpCode(0x3B)) -> LoadLocation.register("SP")
-  )
-  val destination: OpCodeMap[LoadLocation] = new OpCodeMap(destinationListMap, LoadLocation.empty)
-
+  val destination: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.destinationMap, LoadLocation.empty)
   val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
   override lazy val isOper: OpCode=>Boolean = opcode => operation.contains(opcode)
 

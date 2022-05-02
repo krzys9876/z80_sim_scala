@@ -1,11 +1,11 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpArithmetic16BitTest extends AnyFunSuite{
 
-  implicit val debugger:Debugger=ConsoleDebugger
+  implicit val debugger:Debugger=DummyDebugger
 
   private def testArithReg(regList: List[(String, Int)], memList: List[(Int, Int)], resultReg: String,
                                result: Int, flagsAsString: String, pcAfter: Int = 1): Unit = {
