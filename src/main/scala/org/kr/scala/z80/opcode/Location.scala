@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode
 
 case class Location(reg:String, immediate:Int, offsetPC:Int, addressReg:String, directOffset:Int, indirectOffset2Compl:Int, isWord:Boolean=false) {
-  override def toString: String =
+  override lazy val toString: String =
     this match {
       case Location(r,_,_,_,_,_,_) if r!="" => f"$r$isWordString"
       case Location(_,i,_,_,_,_,_) if i!=OpCode.ANY => f"$i$isWordString"
@@ -14,6 +14,21 @@ case class Location(reg:String, immediate:Int, offsetPC:Int, addressReg:String, 
         }
       case _ => "empty"
     }
+
+  lazy val label: String =
+    this match {
+      case Location(r,_,_,_,_,_,_) if r!="" => f"$r"
+      case Location(_,i,_,_,_,_,_) if i!=OpCode.ANY => f"$i$isWordString"
+      case Location(_,_,pco,_,_,_,_) if pco!=OpCode.ANY => f"(PC+0x$pco%02X)$isWordString"
+      case Location(_,_,_,r,dirO,indirO,_) if r!="" =>
+        (dirO, indirO) match {
+          case (OpCode.ANY,OpCode.ANY) => f"($r)"
+          case (o,OpCode.ANY) => f"($r+0x$o%02X)$isWordString"
+          case (OpCode.ANY,o) => f"($r+d)"
+        }
+      case _ => "empty"
+    }
+
   private val isWordString=if(isWord) "w" else "b"
 }
 

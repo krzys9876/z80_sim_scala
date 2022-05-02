@@ -1,12 +1,12 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{Debugger, DummyDebugger}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpArithmetic8BitTest extends AnyFunSuite {
 
-  implicit val debugger:Debugger=DummyDebugger
+  implicit val debugger:Debugger=ConsoleDebugger
 
   test("always pass") {
     assert(1 == 1)
@@ -98,7 +98,6 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     testArithAccum(List(("F", 0x01), ("A", 0x52), ("C", 0x4A)), List((0x0000, 0x99)), 0x07, "00_1_010")
     testArithAccum(List(("F", 0x01), ("A", 0x53), ("D", 0x4A)), List((0x0000, 0x9A)), 0x08, "00_1_010")
     testArithAccum(List(("F", 0x01), ("A", 0x54), ("E", 0x40)), List((0x0000, 0x9B)), 0x13, "00_0_010")
-    testArithAccum(List(("F", 0x01), ("A", 0x55), ("H", 0x40)), List((0x0000, 0x9C)), 0x14, "00_0_010")
     testArithAccum(List(("F", 0x01), ("A", 0x56), ("L", 0x40)), List((0x0000, 0x9D)), 0x15, "00_0_010")
   }
 
