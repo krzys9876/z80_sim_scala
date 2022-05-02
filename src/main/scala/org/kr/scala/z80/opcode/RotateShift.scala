@@ -35,16 +35,16 @@ object RotateShift extends OperationSpec with OpCodeHandler {
 
   val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, None8b)
 
-  val locationListMap: Map[List[OpCode], LoadLocation] = Map(
-    List(OpCode(0x07),OpCode(0x0F),OpCode(0x17),OpCode(0x1F)) -> LoadLocation.register("A"),
+  val locationListMap: Map[List[OpCode], Location] = Map(
+    List(OpCode(0x07),OpCode(0x0F),OpCode(0x17),OpCode(0x1F)) -> Location.register("A"),
     List(OpCode(0xCB,0x06),OpCode(0xCB,0x0E),OpCode(0xCB,0x16),OpCode(0xCB,0x1E),
-      OpCode(0xCB,0x26),OpCode(0xCB,0x2E),OpCode(0xCB,0x3E)) -> LoadLocation.registerAddr("HL"),
+      OpCode(0xCB,0x26),OpCode(0xCB,0x2E),OpCode(0xCB,0x3E)) -> Location.registerAddr("HL"),
     List(OpCode(0xDD,0xCB,0x06),OpCode(0xDD,0xCB,0x0E),OpCode(0xDD,0xCB,0x16),OpCode(0xDD,0xCB,0x1E),
       OpCode(0xDD,0xCB,0x26),OpCode(0xDD,0xCB,0x2E),OpCode(0xDD,0xCB,0x3E)
-    ) -> LoadLocation.registerAddrIndirOffset("IX",2),
+    ) -> Location.registerAddrIndirOffset("IX",2),
     List(OpCode(0xFD,0xCB,0x06),OpCode(0xFD,0xCB,0x0E),OpCode(0xFD,0xCB,0x16),OpCode(0xFD,0xCB,0x1E),
       OpCode(0xFD,0xCB,0x26),OpCode(0xFD,0xCB,0x2E),OpCode(0xFD,0xCB,0x3E)
-    ) -> LoadLocation.registerAddrIndirOffset("IY",2)
+    ) -> Location.registerAddrIndirOffset("IY",2)
   )++
   //registers
     OpCode.generateMapByReg(OpCode(0xCB,0x00),2,0)++
@@ -56,7 +56,7 @@ object RotateShift extends OperationSpec with OpCodeHandler {
     OpCode.generateMapByReg(OpCode(0xCB,0x38),2,0)++
     OpCode.generateMapByReg(OpCode(0xCB,0x03),2,0)
 
-  val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
+  val location: OpCodeMap[Location] = new OpCodeMap(locationListMap, Location.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0x07),OpCode(0x0F),OpCode(0x17),OpCode(0x1F)) ->1,

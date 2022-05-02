@@ -6,9 +6,9 @@ import org.kr.scala.z80.utils.Z80Utils
 object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
   val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation8bMap, None8b)
-  val source: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.sourceMap, LoadLocation.empty)
-  val destination: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.destinationMap, LoadLocation.empty)
-  val operand: OpCodeMap[LoadLocation] = new OpCodeMap(OpCodes.operandMap, LoadLocation.empty)
+  val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
+  val operand: OpCodeMap[Location] = new OpCodeMap(OpCodes.operandMap, Location.empty)
   val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
   override lazy val isOper: OpCode=>Boolean = opcode => operation.contains(opcode)
 

@@ -11,11 +11,11 @@ object RotateDigit extends OperationSpec with OpCodeHandler {
 
   val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(operationListMap, None8b)
 
-  val locationListMap: Map[List[OpCode], LoadLocation] = Map(
-    List(OpCode(0xED,0x6F),OpCode(0xED,0x67)) -> LoadLocation.registerAddr("HL")
+  val locationListMap: Map[List[OpCode], Location] = Map(
+    List(OpCode(0xED,0x6F),OpCode(0xED,0x67)) -> Location.registerAddr("HL")
   )
 
-  val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
+  val location: OpCodeMap[Location] = new OpCodeMap(locationListMap, Location.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0xED,0x6F),OpCode(0xED,0x67)) ->2

@@ -1,6 +1,10 @@
 package org.kr.scala.z80.opcode
 
-case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
+/*trait RegisterFromBit {
+  def getRegisterFromBit(codeNo:Int, bit:Int):LoadLocation
+}*/
+
+case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) /*extends RegisterFromBit*/ {
   /* OpCode format:
   main (supp) (d) (supp2)
   main - primary OpCode for 1-byte opcodes (1st byte of any operation)
@@ -30,22 +34,28 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
       case 2 => supp
       case 3 => supp2
     }
+
+  /*override def getRegisterFromBit(codeNo:Int, bit:Int):LoadLocation= {
+    val code=getCode(codeNo)
+    val bits=(code >> bit) & 0x07
+    OpCode.registerMap.getOrElse(bits,LoadLocation.empty)
+  }*/
 }
 
 object OpCode {
   val ANY:Int = Int.MinValue
-  val registerMap:Map[Int,LoadLocation]=Map(
-    7->LoadLocation.register("A"),
-    0->LoadLocation.register("B"),
-    1->LoadLocation.register("C"),
-    2->LoadLocation.register("D"),
-    3->LoadLocation.register("E"),
-    4->LoadLocation.register("H"),
-    5->LoadLocation.register("L"))
+  val registerMap:Map[Int,Location]=Map(
+    7->Location.register("A"),
+    0->Location.register("B"),
+    1->Location.register("C"),
+    2->Location.register("D"),
+    3->Location.register("E"),
+    4->Location.register("H"),
+    5->Location.register("L"))
 
-  private def codeGenReg(base:Int,bit:Int):Map[Int,LoadLocation]={
+  private def codeGenReg(base:Int,bit:Int):Map[Int,Location]={
     val baseOper=base & (~(0x07 << bit))
-    registerMap.foldLeft(Map[Int,LoadLocation]())((m,entry)=>m++Map(baseOper+(entry._1 << bit)->entry._2))
+    registerMap.foldLeft(Map[Int,Location]())((m, entry)=>m++Map(baseOper+(entry._1 << bit)->entry._2))
   }
 
   private def codeGenBit(base:Int,bit:Int):Map[Int,Int]={
@@ -56,9 +66,9 @@ object OpCode {
   private def mapToOpCodeMap[To](base:OpCode,codeNo:Int,baseMap:Map[Int,To]):Map[List[OpCode],To]=
     baseMap.map(entry=>List(base.replaceCode(codeNo,entry._1))->entry._2)
 
-  def generateMapByReg(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],LoadLocation]={
+  def generateMapByReg(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],Location]={
     val regMap=codeGenReg(base.getCode(codeNo),bit)
-    mapToOpCodeMap[LoadLocation](base,codeNo,regMap)
+    mapToOpCodeMap[Location](base,codeNo,regMap)
   }
 
   def generateMapByBit(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],Int]={
@@ -85,46 +95,46 @@ trait Label {
 
 //Building blocks for OpCode definition
 trait OpCodeSourceLocation {
-  val source:LoadLocation
+  val source:Location
 }
-trait SourceA extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("A")}
-trait SourceB extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("B")}
-trait SourceC extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("C")}
-trait SourceD extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("D")}
-trait SourceE extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("E")}
-trait SourceH extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("H")}
-trait SourceL extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("L")}
-trait SourceHLra extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.registerAddr("HL")}
-trait SourceBC extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("BC")}
-trait SourceDE extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("DE")}
-trait SourceHL extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("HL")}
-trait SourceSP extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("SP")}
-trait SourceIX extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("IX")}
-trait SourceIY extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.register("IY")}
-trait SourceIXd extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.registerAddrIndirOffset("IX", 2)}
-trait SourceIYd extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.registerAddrIndirOffset("IY", 2)}
-trait SourceN extends OpCodeSourceLocation {override val source:LoadLocation=LoadLocation.registerAddrDirOffset("PC", 1)}
+trait SourceA extends OpCodeSourceLocation {override val source:Location=Location.register("A")}
+trait SourceB extends OpCodeSourceLocation {override val source:Location=Location.register("B")}
+trait SourceC extends OpCodeSourceLocation {override val source:Location=Location.register("C")}
+trait SourceD extends OpCodeSourceLocation {override val source:Location=Location.register("D")}
+trait SourceE extends OpCodeSourceLocation {override val source:Location=Location.register("E")}
+trait SourceH extends OpCodeSourceLocation {override val source:Location=Location.register("H")}
+trait SourceL extends OpCodeSourceLocation {override val source:Location=Location.register("L")}
+trait SourceHLra extends OpCodeSourceLocation {override val source:Location=Location.registerAddr("HL")}
+trait SourceBC extends OpCodeSourceLocation {override val source:Location=Location.register("BC")}
+trait SourceDE extends OpCodeSourceLocation {override val source:Location=Location.register("DE")}
+trait SourceHL extends OpCodeSourceLocation {override val source:Location=Location.register("HL")}
+trait SourceSP extends OpCodeSourceLocation {override val source:Location=Location.register("SP")}
+trait SourceIX extends OpCodeSourceLocation {override val source:Location=Location.register("IX")}
+trait SourceIY extends OpCodeSourceLocation {override val source:Location=Location.register("IY")}
+trait SourceIXd extends OpCodeSourceLocation {override val source:Location=Location.registerAddrIndirOffset("IX", 2)}
+trait SourceIYd extends OpCodeSourceLocation {override val source:Location=Location.registerAddrIndirOffset("IY", 2)}
+trait SourceN extends OpCodeSourceLocation {override val source:Location=Location.registerAddrDirOffset("PC", 1)}
 
 trait OpCodeDestLocation {
-  val destination:LoadLocation
+  val destination:Location
 }
-trait DestinationA extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("A")}
-trait DestinationB extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("B")}
-trait DestinationC extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("C")}
-trait DestinationD extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("D")}
-trait DestinationE extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("E")}
-trait DestinationH extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("H")}
-trait DestinationL extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("L")}
-trait DestinationHLra extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.registerAddr("HL")}
-trait DestinationBC extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("BC")}
-trait DestinationDE extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("DE")}
-trait DestinationHL extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("HL")}
-trait DestinationSP extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("SP")}
-trait DestinationIX extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("IX")}
-trait DestinationIY extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.register("IY")}
-trait DestinationIXd extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.registerAddrIndirOffset("IX", 2)}
-trait DestinationIYd extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.registerAddrIndirOffset("IY", 2)}
-trait DestinationN extends OpCodeDestLocation {override val destination:LoadLocation=LoadLocation.registerAddrDirOffset("PC", 1)}
+trait DestinationA extends OpCodeDestLocation {override val destination:Location=Location.register("A")}
+trait DestinationB extends OpCodeDestLocation {override val destination:Location=Location.register("B")}
+trait DestinationC extends OpCodeDestLocation {override val destination:Location=Location.register("C")}
+trait DestinationD extends OpCodeDestLocation {override val destination:Location=Location.register("D")}
+trait DestinationE extends OpCodeDestLocation {override val destination:Location=Location.register("E")}
+trait DestinationH extends OpCodeDestLocation {override val destination:Location=Location.register("H")}
+trait DestinationL extends OpCodeDestLocation {override val destination:Location=Location.register("L")}
+trait DestinationHLra extends OpCodeDestLocation {override val destination:Location=Location.registerAddr("HL")}
+trait DestinationBC extends OpCodeDestLocation {override val destination:Location=Location.register("BC")}
+trait DestinationDE extends OpCodeDestLocation {override val destination:Location=Location.register("DE")}
+trait DestinationHL extends OpCodeDestLocation {override val destination:Location=Location.register("HL")}
+trait DestinationSP extends OpCodeDestLocation {override val destination:Location=Location.register("SP")}
+trait DestinationIX extends OpCodeDestLocation {override val destination:Location=Location.register("IX")}
+trait DestinationIY extends OpCodeDestLocation {override val destination:Location=Location.register("IY")}
+trait DestinationIXd extends OpCodeDestLocation {override val destination:Location=Location.registerAddrIndirOffset("IX", 2)}
+trait DestinationIYd extends OpCodeDestLocation {override val destination:Location=Location.registerAddrIndirOffset("IY", 2)}
+trait DestinationN extends OpCodeDestLocation {override val destination:Location=Location.registerAddrDirOffset("PC", 1)}
 
 trait SourceDestA extends SourceA with DestinationA
 trait SourceDestB extends SourceB with DestinationB
@@ -144,19 +154,20 @@ trait SourceDestIXd extends SourceIXd with DestinationIXd
 trait SourceDestIYd extends SourceIYd with DestinationIYd
 
 trait OpCodeOperandLocation {
-  val operand:LoadLocation
+  val operand:Location
 }
-trait OperandA extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.register("A")}
-trait OperandB extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.register("B")}
-trait OperandC extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.register("C")}
-trait OperandD extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.register("D")}
-trait OperandE extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.register("E")}
-trait OperandH extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.register("H")}
-trait OperandL extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.register("L")}
-trait OperandHL extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.registerAddr("HL")}
-trait OperandIXd extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.registerAddrIndirOffset("IX", 2)}
-trait OperandIYd extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.registerAddrIndirOffset("IY", 2)}
-trait OperandN extends OpCodeOperandLocation {override val operand:LoadLocation=LoadLocation.registerAddrDirOffset("PC", 1)}
+
+trait OperandA extends OpCodeOperandLocation {override val operand:Location=Location.register("A")}
+trait OperandB extends OpCodeOperandLocation {override val operand:Location=Location.register("B")}
+trait OperandC extends OpCodeOperandLocation {override val operand:Location=Location.register("C")}
+trait OperandD extends OpCodeOperandLocation {override val operand:Location=Location.register("D")}
+trait OperandE extends OpCodeOperandLocation {override val operand:Location=Location.register("E")}
+trait OperandH extends OpCodeOperandLocation {override val operand:Location=Location.register("H")}
+trait OperandL extends OpCodeOperandLocation {override val operand:Location=Location.register("L")}
+trait OperandHL extends OpCodeOperandLocation {override val operand:Location=Location.registerAddr("HL")}
+trait OperandIXd extends OpCodeOperandLocation {override val operand:Location=Location.registerAddrIndirOffset("IX", 2)}
+trait OperandIYd extends OpCodeOperandLocation {override val operand:Location=Location.registerAddrIndirOffset("IY", 2)}
+trait OperandN extends OpCodeOperandLocation {override val operand:Location=Location.registerAddrDirOffset("PC", 1)}
 
 trait OpCodeArithmetic8b {
   val operation:ArithmeticOperation
@@ -195,9 +206,10 @@ trait Size3 extends OpCodeSize {override val size:Int=3}
 trait Size4 extends OpCodeSize {override val size:Int=4}
 
 object OpCodes {
-  val list:List[OpCode]=List(
+  val list:List[OpCode]=ADD_A_reg.l ++ List(
     //Arithmetic8b
-    ADD_A_A,ADD_A_B,ADD_A_C,ADD_A_D,ADD_A_E,ADD_A_H,ADD_A_L,ADD_A_HL,ADD_A_IX_d,ADD_A_IY_d,ADD_A_n,
+    /*ADD_A_A,ADD_A_B,ADD_A_C,ADD_A_D,ADD_A_E,ADD_A_H,ADD_A_L,*/
+    ADD_A_HL,ADD_A_IX_d,ADD_A_IY_d,ADD_A_n,
     ADC_A_A,ADC_A_B,ADC_A_C,ADC_A_D,ADC_A_E,ADC_A_H,ADC_A_L,ADC_A_HL,ADC_A_IX_d,ADC_A_IY_d,ADC_A_n,
     SUB_A,SUB_B,SUB_C,SUB_D,SUB_E,SUB_H,SUB_L,SUB_HL,SUB_IX_d,SUB_IY_d,SUB_n,
     SBC_A_A,SBC_A_B,SBC_A_C,SBC_A_D,SBC_A_E,SBC_A_H,SBC_A_L,SBC_A_HL,SBC_A_IX_d,SBC_A_IY_d,SBC_A_n,
@@ -222,15 +234,15 @@ object OpCodes {
 
   //TODO: flatten list - refactor OpCodeMap
   //NOTE: cannot use generics in vals (only defs) - these maps are used in vals in other classes
-  val operandMap:Map[List[OpCode],LoadLocation]= //opCodeListToMap[OpCodeOperandLocation,LoadLocation](op=>op.operand)
+  val operandMap:Map[List[OpCode],Location]= //opCodeListToMap[OpCodeOperandLocation,LoadLocation](op=>op.operand)
   //filterTo(op=>op.isInstanceOf[OpCodeOperandLocation]).map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
     list
     .filter(_.isInstanceOf[OpCodeOperandLocation])
     .map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
-  val sourceMap:Map[List[OpCode],LoadLocation]= list
+  val sourceMap:Map[List[OpCode],Location]= list
     .filter(_.isInstanceOf[OpCodeSourceLocation])
     .map(op=> List(op)->op.asInstanceOf[OpCodeSourceLocation].source).toMap
-  val destinationMap:Map[List[OpCode],LoadLocation]= list
+  val destinationMap:Map[List[OpCode],Location]= list
     .filter(_.isInstanceOf[OpCodeDestLocation])
     .map(op=> List(op)->op.asInstanceOf[OpCodeDestLocation].destination).toMap
   val operation8bMap:Map[List[OpCode],ArithmeticOperation]= list
@@ -245,14 +257,23 @@ object OpCodes {
 }
 
 //Arithmetic 8b
+// generator for ADD A,x - TBC if this is an efficient and readable way of defining opcodes
+class Arithmetic8bDef(main:Int, supp:Int, val operand:Location, val label:String)
+  extends OpCode(main,supp) with Arith8bAdd with OpCodeOperandLocation with Size1 with Label
+object ADD_A_reg {
+  val srcMap:Map[OpCode,Location]=OpCode.generateMapByReg(OpCode(0x080),1,0).map(entry=>entry._1.head -> entry._2)
+  val l: List[OpCode with Arith8bAdd with OpCodeOperandLocation with Size1 with Label] =
+    srcMap.keys.map(opcode=>new Arithmetic8bDef(opcode.main,opcode.supp,srcMap.getOrElse(opcode,Location.empty), f"ADD A,${srcMap.getOrElse(opcode,Location.empty).reg}")).toList
+}
+
 //ADD
-object ADD_A_A extends OpCode(0x87) with Arith8bAdd with OperandA with Size1 with Label {override val label:String="ADD A,A"}
+/*object ADD_A_A extends OpCode(0x87) with Arith8bAdd with OperandA with Size1 with Label {override val label:String="ADD A,A"}
 object ADD_A_B extends OpCode(0x80) with Arith8bAdd with OperandB with Size1 with Label {override val label:String="ADD A,B"}
 object ADD_A_C extends OpCode(0x81) with Arith8bAdd with OperandC with Size1 with Label {override val label:String="ADD A,C"}
 object ADD_A_D extends OpCode(0x82) with Arith8bAdd with OperandD with Size1 with Label {override val label:String="ADD A,D"}
 object ADD_A_E extends OpCode(0x83) with Arith8bAdd with OperandE with Size1 with Label {override val label:String="ADD A,E"}
 object ADD_A_H extends OpCode(0x84) with Arith8bAdd with OperandH with Size1 with Label {override val label:String="ADD A,H"}
-object ADD_A_L extends OpCode(0x85) with Arith8bAdd with OperandL with Size1 with Label {override val label:String="ADD A,L"}
+object ADD_A_L extends OpCode(0x85) with Arith8bAdd with OperandL with Size1 with Label {override val label:String="ADD A,L"}*/
 object ADD_A_HL extends OpCode(0x86) with Arith8bAdd with OperandHL with Size1 with Label {override val label:String="ADD A,(HL)"}
 object ADD_A_IX_d extends OpCode(0xDD,0x86) with Arith8bAdd with OperandIXd with Size3 with Label {override val label:String="ADD A,(IX+d)"}
 object ADD_A_IY_d extends OpCode(0xFD,0x86) with Arith8bAdd with OperandIYd with Size3 with Label {override val label:String="ADD A,(IY+d)"}
@@ -402,3 +423,4 @@ object DEC_HL_16 extends OpCode(0x2B) with Arith16bDec with SourceDestHL with Si
 object DEC_SP extends OpCode(0x3B) with Arith16bDec with SourceDestSP with Size1 with Label {override val label:String="DEC SP"}
 object DEC_IX extends OpCode(0xDD,0x2B) with Arith16bDec with SourceDestIX with Size2 with Label {override val label:String="DEC IX"}
 object DEC_IY extends OpCode(0xFD,0x2B) with Arith16bDec with SourceDestIY with Size2 with Label {override val label:String="DEC IY"}
+

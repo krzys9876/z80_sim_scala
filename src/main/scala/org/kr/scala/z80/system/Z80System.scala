@@ -47,14 +47,14 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   def readPort(port:Int):Int=inputController.read(port)
 
-  def getValueFromLocation(loc:LoadLocation):Int =
+  def getValueFromLocation(loc:Location):Int =
     loc match {
-      case l if l==LoadLocation.empty => OpCode.ANY
-      case LoadLocation(r,_,_,_,_,_,_) if r!="" => getRegValue(r)
-      case LoadLocation(_,i,_,_,_,_,_) if i!=OpCode.ANY => i
-      case LoadLocation(_,_,pco,_,_,_,isWord) if pco!=OpCode.ANY =>
+      case l if l==Location.empty => OpCode.ANY
+      case Location(r,_,_,_,_,_,_) if r!="" => getRegValue(r)
+      case Location(_,i,_,_,_,_,_) if i!=OpCode.ANY => i
+      case Location(_,_,pco,_,_,_,isWord) if pco!=OpCode.ANY =>
         if(isWord) getWord(getWordFromMemoryAtPC(pco)) else getByte(getWordFromMemoryAtPC(pco))
-      case LoadLocation(_,_,_,r,dirO,indirO,isWord) if r!="" =>
+      case Location(_,_,_,r,dirO,indirO,isWord) if r!="" =>
         (dirO,indirO,isWord) match {
           case (OpCode.ANY,OpCode.ANY,_) => if(isWord) getWordFromMemoryAtReg(r,0) else getByteFromMemoryAtReg(r,0)
           case (o,OpCode.ANY,isWord) => if(isWord) getWordFromMemoryAtReg(r,o) else getByteFromMemoryAtReg(r,o)
@@ -66,18 +66,18 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     if(isWord) new MemoryChangeWord(address,value)
     else new MemoryChangeByte(address,value)
 
-  def putValueToLocation(location:LoadLocation,value:Int,isWord:Boolean=false):SystemChangeBase =
+  def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChangeBase =
     location match {
-      case LoadLocation(r,_,_,_,_,_,_) if r!="" => new RegisterChange(r,value)
-      case LoadLocation(_,_,pco,_,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromMemoryAtPC(pco),value,isWord)
-      case LoadLocation(_,_,_,r,dirO,indirO,_) if r!="" =>
+      case Location(r,_,_,_,_,_,_) if r!="" => new RegisterChange(r,value)
+      case Location(_,_,pco,_,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromMemoryAtPC(pco),value,isWord)
+      case Location(_,_,_,r,dirO,indirO,_) if r!="" =>
         (dirO,indirO) match {
           case (dirO,OpCode.ANY) if dirO!=OpCode.ANY => putValueToMemory(getAddressFromReg(r,dirO),value,isWord)
           case (OpCode.ANY,OpCode.ANY) => putValueToMemory(getAddressFromReg(r,0),value,isWord)
           case (OpCode.ANY,indirOff2Compl) =>
             putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl))),value,isWord)
         }
-      case l if l==LoadLocation.empty => new DummyChange
+      case l if l==Location.empty => new DummyChange
     }
 }
 

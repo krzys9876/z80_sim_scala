@@ -78,29 +78,29 @@ object JumpCallReturn extends OperationSpec with OpCodeHandler {
 
   val operation: OpCodeMap[JumpOperation] = new OpCodeMap(operationListMap, JumpType.None)
 
-  val locationListMap: Map[List[OpCode],LoadLocation] = Map(
+  val locationListMap: Map[List[OpCode],Location] = Map(
     List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2))->LoadLocation.registerAddrDirOffset("PC",1,isWord = true),
-    List(OpCode(0xE9))->LoadLocation.register("HL"),
-    List(OpCode(0xDD,0xE9))->LoadLocation.register("IX"),
-    List(OpCode(0xFD,0xE9))->LoadLocation.register("IY"),
+      OpCode(0xFA),OpCode(0xF2))->Location.registerAddrDirOffset("PC",1,isWord = true),
+    List(OpCode(0xE9))->Location.register("HL"),
+    List(OpCode(0xDD,0xE9))->Location.register("IX"),
+    List(OpCode(0xFD,0xE9))->Location.register("IY"),
     List(OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20),
-      OpCode(0x10))->LoadLocation.registerAddrDirOffset("PC",1),
+      OpCode(0x10))->Location.registerAddrDirOffset("PC",1),
     List(OpCode(0xCD),OpCode(0xDC),OpCode(0xD4),OpCode(0xCC),OpCode(0xC4),OpCode(0xEC),OpCode(0xE4),
-      OpCode(0xFC),OpCode(0xF4))->LoadLocation.registerAddrDirOffset("PC",1,isWord = true),
+      OpCode(0xFC),OpCode(0xF4))->Location.registerAddrDirOffset("PC",1,isWord = true),
     List(OpCode(0xC9),OpCode(0xD8),OpCode(0xD0),OpCode(0xC8),OpCode(0xC0),OpCode(0xE8),OpCode(0xE0),OpCode(0xF8),OpCode(0xF0),
-      OpCode(0xED,0x4D))->LoadLocation.registerAddr("SP",isWord = true),
-    List(OpCode(0xC7))->LoadLocation.immediate(0x0000),
-    List(OpCode(0xCF))->LoadLocation.immediate(0x0008),
-    List(OpCode(0xD7))->LoadLocation.immediate(0x0010),
-    List(OpCode(0xDF))->LoadLocation.immediate(0x0018),
-    List(OpCode(0xE7))->LoadLocation.immediate(0x0020),
-    List(OpCode(0xEF))->LoadLocation.immediate(0x0028),
-    List(OpCode(0xF7))->LoadLocation.immediate(0x0030),
-    List(OpCode(0xFF))->LoadLocation.immediate(0x0038)
+      OpCode(0xED,0x4D))->Location.registerAddr("SP",isWord = true),
+    List(OpCode(0xC7))->Location.immediate(0x0000),
+    List(OpCode(0xCF))->Location.immediate(0x0008),
+    List(OpCode(0xD7))->Location.immediate(0x0010),
+    List(OpCode(0xDF))->Location.immediate(0x0018),
+    List(OpCode(0xE7))->Location.immediate(0x0020),
+    List(OpCode(0xEF))->Location.immediate(0x0028),
+    List(OpCode(0xF7))->Location.immediate(0x0030),
+    List(OpCode(0xFF))->Location.immediate(0x0038)
   )
 
-  val location: OpCodeMap[LoadLocation] = new OpCodeMap(locationListMap, LoadLocation.empty)
+  val location: OpCodeMap[Location] = new OpCodeMap(locationListMap, Location.empty)
 
   val instructionSizeListMap: Map[List[OpCode], Int] = Map(
     List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
@@ -145,7 +145,7 @@ object JumpCallReturn extends OperationSpec with OpCodeHandler {
   // Jump relative - relative operand is 2's complement and must be incremented by 2
   private def calcRelativeAddress(pc:Int,relative:Int):Int=Z80Utils.word2ComplToRaw(pc+2+Z80Utils.rawByteTo2Compl(relative))
 
-  private def handleJump(oper:JumpOperation,cond:JumpCondition,checker:JumpConditionChecker,location:LoadLocation,instrSize:Int)
+  private def handleJump(oper:JumpOperation, cond:JumpCondition, checker:JumpConditionChecker, location:Location, instrSize:Int)
                         (implicit system:Z80System):List[SystemChangeBase]= {
     val prevPC=system.getRegValue("PC")
     val address=calcAddress(oper,system.getValueFromLocation(location),prevPC)
