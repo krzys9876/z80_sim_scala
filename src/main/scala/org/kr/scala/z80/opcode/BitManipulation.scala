@@ -13,154 +13,16 @@ object BitOpType {
 }
 
 object BitManipulation extends OperationSpec with OpCodeHandler {
-  //Z80 manual p.55
+  //Z80 manual p.55 - NOTE error in opCode: 0xCB, not 0xC8!
+  val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  val bit: OpCodeMap[Int] = new OpCodeMap(OpCodes.bitNumMap, 0)
+  val operation: OpCodeMap[BitOperation] = new OpCodeMap(OpCodes.bitManipulationMap, BitOpType.None)
+  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
-  val locationListMap: Map[List[OpCode],Location] = Map(
-    //register
-    OpCode.generateListByBit(OpCode(0xCB,0x47),2,3)->Location.register("A"),
-    OpCode.generateListByBit(OpCode(0xCB,0x40),2,3)->Location.register("B"),
-    OpCode.generateListByBit(OpCode(0xCB,0x41),2,3)->Location.register("C"),
-    OpCode.generateListByBit(OpCode(0xCB,0x42),2,3)->Location.register("D"),
-    OpCode.generateListByBit(OpCode(0xCB,0x43),2,3)->Location.register("E"),
-    OpCode.generateListByBit(OpCode(0xCB,0x44),2,3)->Location.register("H"),
-    OpCode.generateListByBit(OpCode(0xCB,0x45),2,3)->Location.register("L"),
-    OpCode.generateListByBit(OpCode(0xCB,0x87),2,3)->Location.register("A"),
-    OpCode.generateListByBit(OpCode(0xCB,0x80),2,3)->Location.register("B"),
-    OpCode.generateListByBit(OpCode(0xCB,0x81),2,3)->Location.register("C"),
-    OpCode.generateListByBit(OpCode(0xCB,0x82),2,3)->Location.register("D"),
-    OpCode.generateListByBit(OpCode(0xCB,0x83),2,3)->Location.register("E"),
-    OpCode.generateListByBit(OpCode(0xCB,0x84),2,3)->Location.register("H"),
-    OpCode.generateListByBit(OpCode(0xCB,0x85),2,3)->Location.register("L"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC7),2,3)->Location.register("A"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC0),2,3)->Location.register("B"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC1),2,3)->Location.register("C"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC2),2,3)->Location.register("D"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC3),2,3)->Location.register("E"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC4),2,3)->Location.register("H"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC5),2,3)->Location.register("L"),
-    //indirect register
-    OpCode.generateListByBit(OpCode(0xCB,0x46),2,3)->Location.registerAddr("HL"),
-    OpCode.generateListByBit(OpCode(0xCB,0x86),2,3)->Location.registerAddr("HL"),
-    OpCode.generateListByBit(OpCode(0xCB,0xC6),2,3)->Location.registerAddr("HL"),
-    //indirect register with offset
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0x46),3,3)->Location.registerAddrIndirOffset("IX",2),
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0x46),3,3)->Location.registerAddrIndirOffset("IY",2),
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0x86),3,3)->Location.registerAddrIndirOffset("IX",2),
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0x86),3,3)->Location.registerAddrIndirOffset("IY",2),
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0xC6),3,3)->Location.registerAddrIndirOffset("IX",2),
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0xC6),3,3)->Location.registerAddrIndirOffset("IY",2)
-  )
-
-  val location: OpCodeMap[Location] = new OpCodeMap(locationListMap, Location.empty)
-
-  val bitListMap: Map[List[OpCode],Int] =
-    OpCode.generateMapByBit(OpCode(0xCB,0x47),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x40),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x41),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x42),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x43),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x44),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x45),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x46),2,3)++
-    OpCode.generateMapByBit(OpCode(0xDD,0xCB,0x46),3,3)++
-    OpCode.generateMapByBit(OpCode(0xFD,0xCB,0x46),3,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x87),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x80),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x81),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x82),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x83),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x84),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x85),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0x86),2,3)++
-    OpCode.generateMapByBit(OpCode(0xDD,0xCB,0x86),3,3)++
-    OpCode.generateMapByBit(OpCode(0xFD,0xCB,0x86),3,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC7),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC0),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC1),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC2),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC3),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC4),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC5),2,3)++
-    OpCode.generateMapByBit(OpCode(0xCB,0xC6),2,3)++
-    OpCode.generateMapByBit(OpCode(0xDD,0xCB,0xC6),3,3)++
-    OpCode.generateMapByBit(OpCode(0xFD,0xCB,0xC6),3,3)
-
-
-  val bit: OpCodeMap[Int] = new OpCodeMap(bitListMap, 0)
-
-  val operationListMap: Map[List[OpCode],BitOperation] = Map(
-    OpCode.generateListByBit(OpCode(0xCB,0x47),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x40),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x41),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x42),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x43),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x44),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x45),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x46),2,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0x46),3,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0x46),3,3)-> BitOpType.Test,
-    OpCode.generateListByBit(OpCode(0xCB,0x87),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0x80),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0x81),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0x82),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0x83),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0x84),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0x85),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0x86),2,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0x86),3,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0x86),3,3)-> BitOpType.Reset,
-    OpCode.generateListByBit(OpCode(0xCB,0xC7),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xCB,0xC0),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xCB,0xC1),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xCB,0xC2),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xCB,0xC3),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xCB,0xC4),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xCB,0xC5),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xCB,0xC6),2,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0xC6),3,3)-> BitOpType.Set,
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0xC6),3,3)-> BitOpType.Set
-
-  )
-
-  val operation: OpCodeMap[BitOperation] = new OpCodeMap(operationListMap, BitOpType.None)
-
-  val instructionSizeListMap: Map[List[OpCode], Int] = Map(
-    OpCode.generateListByBit(OpCode(0xCB,0x47),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x40),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x41),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x42),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x43),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x44),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x45),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x46),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0x46),3,3)-> 4,
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0x46),3,3)-> 4,
-    OpCode.generateListByBit(OpCode(0xCB,0x87),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x80),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x81),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x82),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x83),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x84),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x85),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0x86),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0x86),3,3)-> 4,
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0x86),3,3)-> 4,
-    OpCode.generateListByBit(OpCode(0xCB,0xC7),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0xC0),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0xC1),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0xC2),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0xC3),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0xC4),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0xC5),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xCB,0xC6),2,3)-> 2,
-    OpCode.generateListByBit(OpCode(0xDD,0xCB,0xC6),3,3)-> 4,
-    OpCode.generateListByBit(OpCode(0xFD,0xCB,0xC6),3,3)-> 4
-
-  )
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
+  override lazy val isOper: OpCode=>Boolean = opcode => operation.contains(opcode)
 
   override def handle(code:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
-    val loc=location.find(code)
+    val loc=source.find(code)
 
     val (value, flags) =
       handleBitManipulation(

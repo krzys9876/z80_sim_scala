@@ -101,6 +101,21 @@ object OpCode {
       if(code.numberOfCodes==1) OpCode(base.main+(code.main << bit)) else OpCode(code.main,base.main+(code.supp << bit)))
     opCodes.zip(baseLocationsType1).zip(baseSizesType1).map(entry=>(entry._1._1,entry._1._2,entry._2))
   }
+
+  //TYPE2: registers decoded as in TYPE1 - used only for bit manipulation
+  // opcodes multiplied by bits 0-7
+  val baseBitsType2:List[Int]=for{b<-List.range(0,8)} yield b
+  val baseSizesType2:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
+  def generateOpCodesType2(base:OpCode):List[(OpCode,Location,Int,Int)]= {
+    val codeLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType2).map(entry=>(entry._1._1,entry._1._2,entry._2))
+    for{
+      bit<-baseBitsType2 //bits (rows)
+      (code,loc,size)<-codeLocSize //codes+locations+size (columns)
+    } yield
+      (if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main+(bit << 3))
+      else OpCode(code.main,base.main,base.supp+code.supp+(bit << 3)),
+      loc,bit,size)
+  }
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}
@@ -240,11 +255,22 @@ trait ExchangeSPHL extends OpCodeExchangeLocation {override val exchange:List[Ex
 trait ExchangeSPIX extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=List(new ExchangeLocationIndirect("SP","IX"))}
 trait ExchangeSPIY extends OpCodeExchangeLocation {override val exchange:List[ExchangeLocationBase]=List(new ExchangeLocationIndirect("SP","IY"))}
 
+trait OpCodeBitManipulation {
+  val operation:BitOperation
+}
+trait BitTest extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Test}
+trait BitReset extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Reset}
+trait BitSet extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Set}
+
+
+
 object OpCodes {
   val list:List[OpCode]=
     ADD_A_reg.codes ++ ADC_A_reg.codes ++ SUB_reg.codes ++ SBC_A_reg.codes ++
     AND_reg.codes ++ XOR_reg.codes ++ OR_reg.codes ++ CP_reg.codes ++
-    INC_reg.codes ++ DEC_reg.codes ++ List(
+    INC_reg.codes ++ DEC_reg.codes ++
+    BIT_b_reg.codes ++ RES_b_reg.codes ++ SET_b_reg.codes ++
+      List(
     //Arithmetic8b
     ADD_A_n,ADC_A_n,SUB_n,SBC_A_n,AND_n,XOR_n,OR_n,CP_n,CPL,SCF,CCF,NEG,
     //Arithmetic16b
@@ -252,7 +278,7 @@ object OpCodes {
     ADD_IY_BC,ADD_IY_DE,ADD_IY_IY,ADD_IY_SP,ADC_HL_BC,ADC_HL_DE,ADC_HL_HL,ADC_HL_SP,
     SBC_HL_BC,SBC_HL_DE,SBC_HL_HL,SBC_HL_SP,INC_BC,INC_DE,INC_HL_16,INC_SP,INC_IX,INC_IY,
     DEC_BC,DEC_DE,DEC_HL_16,DEC_SP,DEC_IX,DEC_IY,
-    //Excange
+    //Exchange
     EX_DE_HL, EX_AF_AF1, EXX, EX_SP_HL, EX_SP_IX, EX_SP_IY
   )
 
@@ -283,6 +309,12 @@ object OpCodes {
   val exchangeMap:Map[List[OpCode],List[ExchangeLocationBase]]= list
     .filter(_.isInstanceOf[OpCodeExchangeLocation])
     .map(op=> List(op)->op.asInstanceOf[OpCodeExchangeLocation].exchange).toMap
+  val bitManipulationMap:Map[List[OpCode],BitOperation]= list
+    .filter(_.isInstanceOf[OpCodeBitManipulation])
+    .map(op=> List(op)->op.asInstanceOf[OpCodeBitManipulation].operation).toMap
+  val bitNumMap:Map[List[OpCode],Int]= list
+    .filter(_.isInstanceOf[BitManipulationDef])
+    .map(op=> List(op)->op.asInstanceOf[BitManipulationDef].bit).toMap
   val sizeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
     .map(op=> List(op)->op.asInstanceOf[OpCodeSize].size).toMap
@@ -399,3 +431,23 @@ object EXX extends OpCode(0xD9) with ExchangeAll1 with Size1 with Label {overrid
 object EX_SP_HL extends OpCode(0xE3) with ExchangeSPHL with Size1 with Label {override val label:String="EX (SP),HL"}
 object EX_SP_IX extends OpCode(0xDD,0xE3) with ExchangeSPIX with Size2 with Label {override val label:String="EX (SP),IX"}
 object EX_SP_IY extends OpCode(0xFD,0xE3) with ExchangeSPIY with Size2 with Label {override val label:String="EX (SP),IY"}
+
+//Bit manipulation
+// generator for BIT, RES, SET
+class BitManipulationDef(main:Int, supp:Int, supp2:Int, val source:Location, val bit:Int, val size:Int, val label:String)
+  extends OpCode(main,supp,supp2) with OpCodeSourceLocation with OpCodeSize with Label
+//BIT
+object BIT_b_reg {
+  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0x40)).map(op=>
+    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,f"BIT ${op._3},${op._2.label}") with BitTest)
+}
+//RESET
+object RES_b_reg {
+  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0x80)).map(op=>
+    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,f"RES ${op._3},${op._2.label}") with BitReset)
+}
+//SET
+object SET_b_reg {
+  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0xC0)).map(op=>
+    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,f"SET ${op._3},${op._2.label}") with BitSet)
+}

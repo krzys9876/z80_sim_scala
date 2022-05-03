@@ -5,8 +5,10 @@ import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
 
-  println(OpCodes.operation8bMap.keys)
-  println(OpCodes.operation8bMap.keys.flatten.toList)
+  val l=OpCode.generateOpCodesType2(OpCode(0xCB,0x40))
+  l.foreach(println)
+  //println(OpCodes.operation8bMap.keys)
+  //println(OpCodes.operation8bMap.keys.flatten.toList)
   //println(OpCodes.operation8bMap.keys.flatten.toList.contains(ADD_A_H))
 
   //println(BitManipulation.bit.find(OpCode(0xC8,0x9E)))
