@@ -88,7 +88,8 @@ object OpCode {
   def generateFromLists(opcodes:List[OpCode],locations:List[Location],sizes:List[Int]):List[(OpCode,Location,Int)]=
     opcodes.zip(locations).zip(sizes).map(entry=>(entry._1._1,entry._1._2,entry._2))
 
-  //TYPE1: registers decoded by bits 0-2 or 3-5, opcode pattern: B-L,A: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
+  //TYPE1: registers decoded by bits 0-2 or 3-5, used for arithmetic operations
+  // opcode pattern: B-L,A: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
   val baseCodesType1:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
     OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05),
     OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
@@ -104,17 +105,18 @@ object OpCode {
 
   //TYPE2: registers decoded as in TYPE1 - used only for bit manipulation
   // opcodes multiplied by bits 0-7
-  val baseBitsType2:List[Int]=for{b<-List.range(0,8)} yield b
+  // Z80 manual, pages 55-57
   val baseSizesType2:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
   def generateOpCodesType2(base:OpCode):List[(OpCode,Location,Int,Int)]= {
     val codeLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType2).map(entry=>(entry._1._1,entry._1._2,entry._2))
-    for{
-      bit<-baseBitsType2 //bits (rows)
-      (code,loc,size)<-codeLocSize //codes+locations+size (columns)
-    } yield
-      (if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main+(bit << 3))
+    for {
+      bit<-List.range(0,8) //bits (rows in Z80 manual)
+      (code,loc,size)<-codeLocSize //codes+locations+size (columns in Z80 manual)
+    } yield (
+      if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main+(bit << 3))
       else OpCode(code.main,base.main,base.supp+code.supp+(bit << 3)),
-      loc,bit,size)
+      loc,bit,size
+    )
   }
 }
 
