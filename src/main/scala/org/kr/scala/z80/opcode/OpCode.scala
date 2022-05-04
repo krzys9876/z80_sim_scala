@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, Load8BitOpType, Neg8b, Or8b, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   /* OpCode format:
@@ -314,7 +314,18 @@ trait OpCodeLoad8Bit extends OpCodeSourceLocation with OpCodeDestLocation {
 }
 trait Load8BitOp extends OpCodeLoad8Bit {override val operation:Load8BitOpType=Load8BitOpType.Load}
 
+trait OpCodeLoad16Bit extends OpCodeSourceLocation with OpCodeDestLocation {
+  val operation:Load16BitOpType
+}
+trait Load16BitOp extends OpCodeLoad16Bit {override val operation:Load16BitOpType=Load16BitOpType.Load}
 
+trait OpStackChange  {
+  val stackChange:Int
+}
+trait PushStack extends OpStackChange {override val stackChange:Int= -2}
+trait PopStack extends OpStackChange {override val stackChange:Int= 2}
+
+//TODO: all pointer to opcode handler in definition of every opcode - this will also simplify Z80System.handle method
 object OpCodes {
   val list:List[OpCode]=
     ADD_A_reg.codes ++ ADC_A_reg.codes ++ SUB_reg.codes ++ SBC_A_reg.codes ++
@@ -333,7 +344,11 @@ object OpCodes {
     //Exchange
     EX_DE_HL, EX_AF_AF1, EXX, EX_SP_HL, EX_SP_IX, EX_SP_IY,
     //Load 8 bit
-    LD_A_I,LD_A_R,LD_I_A,LD_R_A,LD_A_BC,LD_A_DE,LD_BC_A,LD_DE_A,LD_A_nn,LD_nn_A
+    LD_A_I,LD_A_R,LD_I_A,LD_R_A,LD_A_BC,LD_A_DE,LD_BC_A,LD_DE_A,LD_A_nn,LD_nn_A,
+    //Load 16 bit
+    PUSH_AF,PUSH_BC,PUSH_DE,PUSH_HL,PUSH_IX,PUSH_IY,POP_AF,POP_BC,POP_DE,POP_HL,POP_IX,POP_IY,
+    LD_SP_HL,LD_SP_IX,LD_SP_IY,LD_nn_BC,LD_nn_DE,LD_nn_HL,LD_nn_SP,LD_nn_IX,LD_nn_IY,
+    LD_BC_nn,LD_DE_nn,LD_HL_nn,LD_SP_nn,LD_IX_nn,LD_IY_nn,LD_BC_i,LD_DE_i,LD_HL_i,LD_SP_i,LD_IX_i,LD_IY_i
   )
 
   //private def filterTo(pred:OpCode=>Boolean):List[OpCode]=list.filter(pred(_))
@@ -372,6 +387,12 @@ object OpCodes {
   val load8bMap:Map[List[OpCode],Load8BitOpType]= list
     .filter(_.isInstanceOf[Load8BitOp])
     .map(op=> List(op)->op.asInstanceOf[Load8BitOp].operation).toMap
+  val load16bMap:Map[List[OpCode],Load16BitOpType]= list
+    .filter(_.isInstanceOf[Load16BitOp])
+    .map(op=> List(op)->op.asInstanceOf[Load16BitOp].operation).toMap
+  val stackChangeMap:Map[List[OpCode],Int]= list
+    .filter(_.isInstanceOf[OpStackChange])
+    .map(op=> List(op)->op.asInstanceOf[OpStackChange].stackChange).toMap
 
   val sizeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
@@ -546,3 +567,42 @@ object LD_BC_A extends Load8bitDef(0x02,OpCode.ANY,Location.register("A"),Locati
 object LD_DE_A extends Load8bitDef(0x12,OpCode.ANY,Location.register("A"),Location.registerAddr("DE"),1,"LD (DE),A")
 object LD_A_nn extends Load8bitDef(0x3A,OpCode.ANY,Location.indirAddress(1),Location.register("A"),3,"LD A,(nn)")
 object LD_nn_A extends Load8bitDef(0x32,OpCode.ANY,Location.register("A"),Location.indirAddress(1),3,"LD (nn),A")
+
+//Load 16 bit
+// Z80 manual page 45 (NOTE: PUSH qq are X5, not X6!)
+// generator for LD (8 bit)
+class Load16bitDef(main:Int, supp:Int, val source:Location, val destination:Location, val size:Int, val label:String)
+  extends OpCode(main,supp) with Load16BitOp with OpCodeSize with Label
+object PUSH_AF extends Load16bitDef(0xF5,OpCode.ANY,Location.register("AF"),Location.registerAddrDirOffset("SP", -2, isWord = true),1,"PUSH AF") with PushStack
+object PUSH_BC extends Load16bitDef(0xC5,OpCode.ANY,Location.register("BC"),Location.registerAddrDirOffset("SP", -2, isWord = true),1,"PUSH BC") with PushStack
+object PUSH_DE extends Load16bitDef(0xD5,OpCode.ANY,Location.register("DE"),Location.registerAddrDirOffset("SP", -2, isWord = true),1,"PUSH DE") with PushStack
+object PUSH_HL extends Load16bitDef(0xE5,OpCode.ANY,Location.register("HL"),Location.registerAddrDirOffset("SP", -2, isWord = true),1,"PUSH HL") with PushStack
+object PUSH_IX extends Load16bitDef(0xDD,0xE5,Location.register("IX"),Location.registerAddrDirOffset("SP", -2, isWord = true),2,"PUSH IX") with PushStack
+object PUSH_IY extends Load16bitDef(0xFD,0xE5,Location.register("IY"),Location.registerAddrDirOffset("SP", -2, isWord = true),2,"PUSH IY") with PushStack
+object POP_AF extends Load16bitDef(0xF1,OpCode.ANY,Location.registerAddr("SP",isWord = true),Location.register("AF"),1,"POP AF") with PopStack
+object POP_BC extends Load16bitDef(0xC1,OpCode.ANY,Location.registerAddr("SP",isWord = true),Location.register("BC"),1,"POP BC") with PopStack
+object POP_DE extends Load16bitDef(0xD1,OpCode.ANY,Location.registerAddr("SP",isWord = true),Location.register("DE"),1,"POP DE") with PopStack
+object POP_HL extends Load16bitDef(0xE1,OpCode.ANY,Location.registerAddr("SP",isWord = true),Location.register("HL"),1,"POP HL") with PopStack
+object POP_IX extends Load16bitDef(0xDD,0xE1,Location.registerAddr("SP",isWord = true),Location.register("IX"),2,"POP IX") with PopStack
+object POP_IY extends Load16bitDef(0xFD,0xE1,Location.registerAddr("SP",isWord = true),Location.register("IY"),2,"POP IY") with PopStack
+object LD_SP_HL extends Load16bitDef(0xF9,OpCode.ANY,Location.register("HL"),Location.register("SP"),1,"LD SP,HL")
+object LD_SP_IX extends Load16bitDef(0xDD,0xF9,Location.register("IX"),Location.register("SP"),2,"LD SP,IX")
+object LD_SP_IY extends Load16bitDef(0xFD,0xF9,Location.register("IY"),Location.register("SP"),2,"LD SP,IY")
+object LD_nn_BC extends Load16bitDef(0xED,0x43,Location.register("BC"),Location.indirAddress(2,isWord = true),4,"LD (nn),BC")
+object LD_nn_DE extends Load16bitDef(0xED,0x53,Location.register("DE"),Location.indirAddress(2,isWord = true),4,"LD (nn),DE")
+object LD_nn_HL extends Load16bitDef(0x22,OpCode.ANY,Location.register("HL"),Location.indirAddress(1,isWord = true),3,"LD (nn),HL")
+object LD_nn_SP extends Load16bitDef(0xED,0x73,Location.register("SP"),Location.indirAddress(2,isWord = true),4,"LD (nn),SP")
+object LD_nn_IX extends Load16bitDef(0xDD,0x22,Location.register("IX"),Location.indirAddress(2,isWord = true),4,"LD (nn),IX")
+object LD_nn_IY extends Load16bitDef(0xFD,0x22,Location.register("IY"),Location.indirAddress(2,isWord = true),4,"LD (nn),IY")
+object LD_BC_nn extends Load16bitDef(0xED,0x4B,Location.indirAddress(2,isWord = true),Location.register("BC"),4,"LD BC,(nn)")
+object LD_DE_nn extends Load16bitDef(0xED,0x5B,Location.indirAddress(2,isWord = true),Location.register("DE"),4,"LD DE,(nn)")
+object LD_HL_nn extends Load16bitDef(0x2A,OpCode.ANY,Location.indirAddress(1,isWord = true),Location.register("HL"),3,"LD HL,(nn)")
+object LD_SP_nn extends Load16bitDef(0xED,0x7B,Location.indirAddress(2,isWord = true),Location.register("SP"),4,"LD SP,(nn)")
+object LD_IX_nn extends Load16bitDef(0xDD,0x2A,Location.indirAddress(2,isWord = true),Location.register("IX"),4,"LD IX,(nn)")
+object LD_IY_nn extends Load16bitDef(0xFD,0x2A,Location.indirAddress(2,isWord = true),Location.register("IY"),4,"LD IY,(nn)")
+object LD_BC_i extends Load16bitDef(0x01,OpCode.ANY,Location.registerAddrDirOffset("PC", 1, isWord = true),Location.register("BC"),3,"LD BC,nn")
+object LD_DE_i extends Load16bitDef(0x11,OpCode.ANY,Location.registerAddrDirOffset("PC", 1, isWord = true),Location.register("DE"),3,"LD DE,nn")
+object LD_HL_i extends Load16bitDef(0x21,OpCode.ANY,Location.registerAddrDirOffset("PC", 1, isWord = true),Location.register("HL"),3,"LD HL,nn")
+object LD_SP_i extends Load16bitDef(0x31,OpCode.ANY,Location.registerAddrDirOffset("PC", 1, isWord = true),Location.register("SP"),3,"LD SP,nn")
+object LD_IX_i extends Load16bitDef(0xDD,0x21,Location.registerAddrDirOffset("PC", 2, isWord = true),Location.register("IX"),4,"LD IX,nn")
+object LD_IY_i extends Load16bitDef(0xFD,0x21,Location.registerAddrDirOffset("PC", 2, isWord = true),Location.register("IY"),4,"LD IY,nn")
