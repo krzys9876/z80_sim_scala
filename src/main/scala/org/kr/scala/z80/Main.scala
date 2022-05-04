@@ -1,11 +1,11 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.opcode.{BitManipulation, Label, Location, OpCode, OpCodes}
+import org.kr.scala.z80.opcode.{Label, Location, OpCode, OpCodes}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
 
-  val l=OpCode.generateOpCodesType4(OpCode(0x70),1)
+  val l=OpCode.generateOpCodesType6(OpCode(0xCB,0x00))
   l.foreach(println)
   //println(OpCodes.operation8bMap.keys)
   //println(OpCodes.operation8bMap.keys.flatten.toList)

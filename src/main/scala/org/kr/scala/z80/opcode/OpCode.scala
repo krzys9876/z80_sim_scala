@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   /* OpCode format:
@@ -163,6 +163,17 @@ object OpCode {
     opCodes.zip(baseLocationsType5).zip(baseSizesType5).map(entry=>(entry._1._1,entry._1._2,entry._2))
   }
 
+  //TYPE6: registers decoded by bits 0-2, used for rotate and shift
+  // opcode pattern: A-L: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
+  val baseCodesType6:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
+    OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05),OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
+  val baseLocationsType6:List[Location]=baseLocationsType1
+  val baseSizesType6:List[Int]=baseSizesType5
+  def generateOpCodesType6(base:OpCode):List[(OpCode,Location,Int)]= {
+    val opCodes=baseCodesType6.map(code=>
+      if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main) else OpCode(code.main,base.main,base.supp+code.supp))
+    opCodes.zip(baseLocationsType6).zip(baseSizesType6).map(entry=>(entry._1._1,entry._1._2,entry._2))
+  }
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}
@@ -273,6 +284,12 @@ trait Arith8bNeg extends OpCodeArithmetic8b with SourceDestA {override val opera
 trait Arith8bCcf extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Ccf8b}
 trait Arith8bScf extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Scf8b}
 
+trait OpCodeRotateDigit extends SourceA with OperandHL {
+  val operation:ArithmeticOperation
+}
+trait RotateDigitLeft extends OpCodeRotateDigit {override val operation:ArithmeticOperation=RotateDL}
+trait RotateDigitRight extends OpCodeRotateDigit {override val operation:ArithmeticOperation=RotateDR}
+
 trait OpCodeSize {
   val size:Int
 }
@@ -325,6 +342,22 @@ trait OpStackChange  {
 trait PushStack extends OpStackChange {override val stackChange:Int= -2}
 trait PopStack extends OpStackChange {override val stackChange:Int= 2}
 
+trait OpCodeRotateShift {
+  val operation:ArithmeticOperation
+}
+trait RotateShiftRlc extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRlc}
+trait RotateShiftRlca extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRlca}
+trait RotateShiftRrc extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRrc}
+trait RotateShiftRrca extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRrca}
+trait RotateShiftRl extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRl}
+trait RotateShiftRla extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRla}
+trait RotateShiftRr extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRr}
+trait RotateShiftRra extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShRra}
+trait RotateShiftSla extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShSla}
+trait RotateShiftSra extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShSra}
+trait RotateShiftSrl extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShSrl}
+
+
 //TODO: all pointer to opcode handler in definition of every opcode - this will also simplify Z80System.handle method
 object OpCodes {
   val list:List[OpCode]=
@@ -333,9 +366,14 @@ object OpCodes {
     INC_reg.codes ++ DEC_reg.codes ++
     BIT_b_reg.codes ++ RES_b_reg.codes ++ SET_b_reg.codes ++
     LD_reg_all.codes ++ LD_HL_reg.codes ++ LD_IXd_reg.codes ++ LD_IYd_reg.codes ++ LD_all_n.codes ++
+    RLC_all.codes ++ RRC_all.codes ++ RL_all.codes ++ RR_all.codes ++ SLA_all.codes ++ SRA_all.codes ++ SRL_all.codes ++
       List(
     //Arithmetic8b
     ADD_A_n,ADC_A_n,SUB_n,SBC_A_n,AND_n,XOR_n,OR_n,CP_n,CPL,SCF,CCF,NEG,
+    //Rotate digit
+    RLD,RRD,
+    //Rotate shift
+    RLCA,RRCA,RLA,RRA,
     //Arithmetic16b
     ADD_HL_BC,ADD_HL_DE,ADD_HL_HL,ADD_HL_SP,ADD_IX_BC,ADD_IX_DE,ADD_IX_IX,ADD_IX_SP,
     ADD_IY_BC,ADD_IY_DE,ADD_IY_IY,ADD_IY_SP,ADC_HL_BC,ADC_HL_DE,ADC_HL_HL,ADC_HL_SP,
@@ -350,11 +388,6 @@ object OpCodes {
     LD_SP_HL,LD_SP_IX,LD_SP_IY,LD_nn_BC,LD_nn_DE,LD_nn_HL,LD_nn_SP,LD_nn_IX,LD_nn_IY,
     LD_BC_nn,LD_DE_nn,LD_HL_nn,LD_SP_nn,LD_IX_nn,LD_IY_nn,LD_BC_i,LD_DE_i,LD_HL_i,LD_SP_i,LD_IX_i,LD_IY_i
   )
-
-  //private def filterTo(pred:OpCode=>Boolean):List[OpCode]=list.filter(pred(_))
-
-  private def opCodeListToMap[OpCodeAttr,Attr](getAttr:OpCodeAttr=>Attr):Map[List[OpCode],Attr]=
-    list.filter(_.isInstanceOf[OpCodeAttr]).map(op=>List(op)->getAttr(op.asInstanceOf[OpCodeAttr])).toMap
 
   //TODO: flatten list - refactor OpCodeMap
   //NOTE: cannot use generics in vals (only defs) - these maps are used in vals in other classes
@@ -372,6 +405,12 @@ object OpCodes {
   val operation8bMap:Map[List[OpCode],ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeArithmetic8b])
     .map(op=> List(op)->op.asInstanceOf[OpCodeArithmetic8b].operation).toMap
+  val rotateShiftMap:Map[List[OpCode],ArithmeticOperation]= list
+    .filter(_.isInstanceOf[OpCodeRotateShift])
+    .map(op=> List(op)->op.asInstanceOf[OpCodeRotateShift].operation).toMap
+  val rotateDigitMap:Map[List[OpCode],ArithmeticOperation]= list
+    .filter(_.isInstanceOf[OpCodeRotateDigit])
+    .map(op=> List(op)->op.asInstanceOf[OpCodeRotateDigit].operation).toMap
   val operation16bMap:Map[List[OpCode],ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeArithmetic16b])
     .map(op=> List(op)->op.asInstanceOf[OpCodeArithmetic16b].operation).toMap
@@ -463,11 +502,13 @@ object DEC_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x05),3).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"DEC ${op._2.label}") with SourceDestFromOperand with Arith8bDec)
 }
-//
 object CPL extends OpCode(0x2F) with Arith8bCpl with OperandA with Size1 with Label {override val label:String="CPL"}
 object NEG extends OpCode(0xED,0x44) with Arith8bNeg with OperandA with Size2 with Label {override val label:String="NEG"}
 object SCF extends OpCode(0x37) with Arith8bScf with Size1 with Label {override val label:String="SCF"}
 object CCF extends OpCode(0x3F) with Arith8bCcf with Size1 with Label {override val label:String="CCF"}
+// Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))
+object RLD extends OpCode(0xED,0x6F) with RotateDigitLeft with Size2 with Label {override val label:String="RLD"}
+object RRD extends OpCode(0xED,0x67) with RotateDigitRight with Size2 with Label {override val label:String="RRD"}
 
 //Arithmetic 16b
 object ADD_HL_BC extends OpCode(0x09) with Arith16bAdd with SourceBC with DestinationHL with Size1 with Label {override val label:String="ADD HL,BC"}
@@ -606,3 +647,41 @@ object LD_HL_i extends Load16bitDef(0x21,OpCode.ANY,Location.registerAddrDirOffs
 object LD_SP_i extends Load16bitDef(0x31,OpCode.ANY,Location.registerAddrDirOffset("PC", 1, isWord = true),Location.register("SP"),3,"LD SP,nn")
 object LD_IX_i extends Load16bitDef(0xDD,0x21,Location.registerAddrDirOffset("PC", 2, isWord = true),Location.register("IX"),4,"LD IX,nn")
 object LD_IY_i extends Load16bitDef(0xFD,0x21,Location.registerAddrDirOffset("PC", 2, isWord = true),Location.register("IY"),4,"LD IY,nn")
+
+//Rotate and shift
+// Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))
+// generator for rotate and shift
+class RotateShiftDef(main:Int, supp:Int, supp2:Int, val source:Location, val size:Int, val label:String)
+  extends OpCode(main,supp,supp2) with OpCodeSourceLocation with OpCodeSize with Label
+object RLC_all {
+  val codes: List[RotateShiftDef] = OpCode.generateOpCodesType6(OpCode(0xCB,0x00)).map(op=>
+    new RotateShiftDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,f"RLC ${op._2.label}") with RotateShiftRlc)
+}
+object RRC_all {
+  val codes: List[RotateShiftDef] = OpCode.generateOpCodesType6(OpCode(0xCB,0x08)).map(op=>
+    new RotateShiftDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,f"RRC ${op._2.label}") with RotateShiftRrc)
+}
+object RL_all {
+  val codes: List[RotateShiftDef] = OpCode.generateOpCodesType6(OpCode(0xCB,0x10)).map(op=>
+    new RotateShiftDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,f"RL ${op._2.label}") with RotateShiftRl)
+}
+object RR_all {
+  val codes: List[RotateShiftDef] = OpCode.generateOpCodesType6(OpCode(0xCB,0x18)).map(op=>
+    new RotateShiftDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,f"RR ${op._2.label}") with RotateShiftRr)
+}
+object SLA_all {
+  val codes: List[RotateShiftDef] = OpCode.generateOpCodesType6(OpCode(0xCB,0x20)).map(op=>
+    new RotateShiftDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,f"SLA ${op._2.label}") with RotateShiftSla)
+}
+object SRA_all {
+  val codes: List[RotateShiftDef] = OpCode.generateOpCodesType6(OpCode(0xCB,0x28)).map(op=>
+    new RotateShiftDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,f"SRA ${op._2.label}") with RotateShiftSra)
+}
+object SRL_all {
+  val codes: List[RotateShiftDef] = OpCode.generateOpCodesType6(OpCode(0xCB,0x38)).map(op=>
+    new RotateShiftDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,f"SRL ${op._2.label}") with RotateShiftSrl)
+}
+object RLCA extends OpCode(0x07) with RotateShiftRlca with SourceA with Size1 with Label {override val label:String="RLCA"}
+object RRCA extends OpCode(0x0F) with RotateShiftRrca with SourceA with Size1 with Label {override val label:String="RRCA"}
+object RLA extends OpCode(0x17) with RotateShiftRla with SourceA with Size1 with Label {override val label:String="RLA"}
+object RRA extends OpCode(0x1F) with RotateShiftRra with SourceA with Size1 with Label {override val label:String="RRA"}
