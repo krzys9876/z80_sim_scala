@@ -1,9 +1,10 @@
-package org.kr.scala.z80.opcode
+package org.kr.scala.z80.opcode.handler
 
+import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeHandler, OpCodeMap, OpCodes, OperationSpec}
 import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
-sealed abstract class BitOperation(val name:String)
+sealed abstract class BitOperation(val name: String)
 
 object BitOpType {
   case object Test extends BitOperation("TEST")
@@ -46,3 +47,4 @@ object BitManipulation extends OperationSpec with OpCodeHandler {
     }
   }
 }
+

@@ -1,5 +1,9 @@
-package org.kr.scala.z80.opcode
+package org.kr.scala.z80.opcode.handler
 
+import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow,
+  FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet,
+  FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, None8b,
+  OpCode, OpCodeHandler, OpCodeMap, OpCodes, OperationSpec}
 import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
@@ -10,7 +14,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
   val operand: OpCodeMap[Location] = new OpCodeMap(OpCodes.operandMap, Location.empty)
   val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  override lazy val isOper: OpCode=>Boolean = opcode => operation.contains(opcode)
+  override lazy val isOper: OpCode => Boolean = opcode => operation.contains(opcode)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val oper = Arithmetic8Bit.operation.find(code)

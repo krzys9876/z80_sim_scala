@@ -1,5 +1,6 @@
-package org.kr.scala.z80.opcode
+package org.kr.scala.z80.opcode.handler
 
+import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
@@ -9,24 +10,25 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
   val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
   val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  override lazy val isOper: OpCode=>Boolean = opcode => operation.contains(opcode)
+  override lazy val isOper: OpCode => Boolean = opcode => operation.contains(opcode)
 
-  override def handle(code: OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val oper = operation.find(code)
-    val sourceLoc=source.find(code)
-    val destLoc=destination.find(code)
+    val sourceLoc = source.find(code)
+    val destLoc = destination.find(code)
 
-    val calcInput=ArithmeticOpInput(
+    val calcInput = ArithmeticOpInput(
       system.getValueFromLocation(destLoc),
       system.getValueFromLocation(sourceLoc),
       system.getFlags)
 
     val (result, flags) = oper.calcAll(calcInput)
-    val chgList=List(system.putValueToLocation(destLoc,result.valueOut), new RegisterChange("F", flags()))
+    val chgList = List(system.putValueToLocation(destLoc, result.valueOut), new RegisterChange("F", flags()))
 
     (chgList, instSize.find(code))
   }
 }
+
 
 object Add16b extends ArithmeticOperation("ADD_16B") with ArithmeticCalculatorWord
   with FlagHCarryWord with FlagNReset with FlagCCarry {

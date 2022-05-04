@@ -1,5 +1,7 @@
 package org.kr.scala.z80.opcode
 
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, Load8BitOpType, Neg8b, Or8b, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   /* OpCode format:
   main (supp) (d) (supp2)
