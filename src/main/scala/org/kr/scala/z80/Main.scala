@@ -5,7 +5,7 @@ import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
 
-  val l=OpCode.generateOpCodesType2(OpCode(0xCB,0x40))
+  val l=OpCode.generateOpCodesType4(OpCode(0x70),1)
   l.foreach(println)
   //println(OpCodes.operation8bMap.keys)
   //println(OpCodes.operation8bMap.keys.flatten.toList)

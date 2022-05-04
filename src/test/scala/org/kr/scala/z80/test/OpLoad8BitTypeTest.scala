@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpLoad8BitTypeTest extends AnyFunSuite {
@@ -10,9 +10,9 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
   test("run LD B,0xFE") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List(),List((10,0x06),(11,0xFE)),11) //LD H,0xFE
+    val sysTest=TestUtils.prepareTest(List(),List((0,0x06),(1,0xFE))) //LD H,0xFE
     //then
-    assert(sysTest.get.registerController.get("PC")==12)
+    assert(sysTest.get.registerController.get("PC")==2)
     assert(sysTest.get.registerController.get("B")==0xFE)
   }
 
@@ -67,9 +67,9 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     //given
     //when
     val sysTest=TestUtils.prepareTest(List(("IX",0x0100),("IY",0x0109),("A",0x01),("B",0x02)),
-      List((0,0xDD),(1,0x77),(2,0x03), //LD D,(IX+5)
-        (3,0xFD),(4,0x70),(5,0xFC), //LD E,(IY-2)
-        (0x0103,0x01),(0x0105,0x02)),2)
+      List((0,0xDD),(1,0x77),(2,0x03), //LD (IX+3),A
+        (3,0xFD),(4,0x70),(5,0xFC) //LD (IY-4),B
+      ),2)
     //then
     assert(sysTest.get.registerController.get("PC")==6)
     assert(sysTest.get.memoryController.get(0x0103)==0x01)

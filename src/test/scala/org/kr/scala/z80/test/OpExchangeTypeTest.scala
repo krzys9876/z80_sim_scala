@@ -5,7 +5,7 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class OpExchangeTypeTest extends AnyFunSuite {
 
-  implicit val debugger:Debugger=ConsoleDebugger
+  implicit val debugger:Debugger=DummyDebugger
 
   test("run EX DE,HL") {
     //given

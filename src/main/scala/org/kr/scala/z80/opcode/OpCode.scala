@@ -89,7 +89,7 @@ object OpCode {
     opcodes.zip(locations).zip(sizes).map(entry=>(entry._1._1,entry._1._2,entry._2))
 
   //TYPE1: registers decoded by bits 0-2 or 3-5, used for arithmetic operations
-  // opcode pattern: B-L,A: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
+  // opcode pattern: A-L: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
   val baseCodesType1:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
     OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05),
     OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
@@ -118,6 +118,49 @@ object OpCode {
       loc,bit,size
     )
   }
+
+  //TYPE3: registers decoded by bits 3-5 - used only for load
+  // opcodes multiplied by list of registers
+  val baseLocationsType3:List[Location]=List(Location.register("A"),Location.register("B"),Location.register("C"),
+    Location.register("D"),Location.register("E"),Location.register("H"),Location.register("L"))
+  val baseCodesType3:List[OpCode]=List(OpCode(0x38),OpCode(0x00),OpCode(0x08),
+    OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28))
+  def generateOpCodesType3(base:OpCode):List[(OpCode,Location,Location,Int)]= {
+    val codeSrcLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType1).map(entry=>(entry._1._1,entry._1._2,entry._2))
+    val codeDestLoc=baseCodesType3.zip(baseLocationsType3)
+    for {
+      (destCode,destLoc)<-codeDestLoc //codes+dest locations (main registers only)
+      (code,srcLoc,size)<-codeSrcLocSize //codes+source locations+size (columns in Z80 manual)
+    } yield (
+      if(code.numberOfCodes==1) OpCode(base.main+code.main+destCode.main)
+      else OpCode(code.main,base.main+code.supp+destCode.main),
+      srcLoc,destLoc,size
+    )
+  }
+
+  //TYPE4: registers decoded by bits 0-2, used for selected load operations
+  // opcode pattern: A-L only
+  val baseCodesType4:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
+    OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05))
+  val baseLocationsType4:List[Location]=baseLocationsType3
+  def generateOpCodesType4(base:OpCode,size:Int):List[(OpCode,Location,Int)]= {
+    val opCodes=baseCodesType4.map(code=>
+      if(base.numberOfCodes==1) OpCode(base.main+code.main) else OpCode(base.main,base.supp+code.main))
+    opCodes.zip(baseLocationsType4).map(entry=>(entry._1,entry._2,size))
+  }
+
+  //TYPE5: registers decoded by bits 3-5, used for selected load operations
+  // opcode pattern: A-L: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
+  val baseCodesType5:List[OpCode]=List(OpCode(0x38),OpCode(0x00),OpCode(0x08),
+    OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28),OpCode(0x30),OpCode(0xDD,0x30),OpCode(0xFD,0x30))
+  val baseLocationsType5:List[Location]=baseLocationsType1
+  val baseSizesType5:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
+  def generateOpCodesType5(base:OpCode):List[(OpCode,Location,Int)]= {
+    val opCodes=baseCodesType5.map(code=>
+      if(code.numberOfCodes==1) OpCode(base.main+code.main) else OpCode(code.main,base.main+code.supp))
+    opCodes.zip(baseLocationsType5).zip(baseSizesType5).map(entry=>(entry._1._1,entry._1._2,entry._2))
+  }
+
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}
@@ -264,6 +307,10 @@ trait BitTest extends OpCodeBitManipulation {override val operation:BitOperation
 trait BitReset extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Reset}
 trait BitSet extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Set}
 
+trait OpCodeLoad8Bit extends OpCodeSourceLocation with OpCodeDestLocation {
+  val operation:Load8BitOpType
+}
+trait Load8BitOp extends OpCodeLoad8Bit {override val operation:Load8BitOpType=Load8BitOpType.Load}
 
 
 object OpCodes {
@@ -272,6 +319,7 @@ object OpCodes {
     AND_reg.codes ++ XOR_reg.codes ++ OR_reg.codes ++ CP_reg.codes ++
     INC_reg.codes ++ DEC_reg.codes ++
     BIT_b_reg.codes ++ RES_b_reg.codes ++ SET_b_reg.codes ++
+    LD_reg_all.codes ++ LD_HL_reg.codes ++ LD_IXd_reg.codes ++ LD_IYd_reg.codes ++ LD_all_n.codes ++
       List(
     //Arithmetic8b
     ADD_A_n,ADC_A_n,SUB_n,SBC_A_n,AND_n,XOR_n,OR_n,CP_n,CPL,SCF,CCF,NEG,
@@ -281,7 +329,9 @@ object OpCodes {
     SBC_HL_BC,SBC_HL_DE,SBC_HL_HL,SBC_HL_SP,INC_BC,INC_DE,INC_HL_16,INC_SP,INC_IX,INC_IY,
     DEC_BC,DEC_DE,DEC_HL_16,DEC_SP,DEC_IX,DEC_IY,
     //Exchange
-    EX_DE_HL, EX_AF_AF1, EXX, EX_SP_HL, EX_SP_IX, EX_SP_IY
+    EX_DE_HL, EX_AF_AF1, EXX, EX_SP_HL, EX_SP_IX, EX_SP_IY,
+    //Load 8 bit
+    LD_A_I,LD_A_R,LD_I_A,LD_R_A,LD_A_BC,LD_A_DE,LD_BC_A,LD_DE_A,LD_A_nn,LD_nn_A
   )
 
   //private def filterTo(pred:OpCode=>Boolean):List[OpCode]=list.filter(pred(_))
@@ -317,6 +367,10 @@ object OpCodes {
   val bitNumMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[BitManipulationDef])
     .map(op=> List(op)->op.asInstanceOf[BitManipulationDef].bit).toMap
+  val load8bMap:Map[List[OpCode],Load8BitOpType]= list
+    .filter(_.isInstanceOf[Load8BitOp])
+    .map(op=> List(op)->op.asInstanceOf[Load8BitOp].operation).toMap
+
   val sizeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
     .map(op=> List(op)->op.asInstanceOf[OpCodeSize].size).toMap
@@ -453,3 +507,40 @@ object SET_b_reg {
   val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0xC0)).map(op=>
     new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,f"SET ${op._3},${op._2.label}") with BitSet)
 }
+
+//Load 8 bit
+// Z80 manual page 42
+// generator for LD (8 bit)
+class Load8bitDef(main:Int, supp:Int, val source:Location, val destination:Location, val size:Int, val label:String)
+  extends OpCode(main,supp)  with Load8BitOp with OpCodeSize with Label
+//LD A-L,A-L/(HL)/(IX+d)/(IY+d)
+object LD_reg_all {
+  val codes: List[Load8bitDef] = OpCode.generateOpCodesType3(OpCode(0x40)).map(op=>
+    new Load8bitDef(op._1.main,op._1.supp,op._2,op._3,op._4,f"LD ${op._3},${op._2.label}"))
+}
+object LD_HL_reg {
+  val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0x70),1).map(op=>
+    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddr("HL"),op._3,f"LD (HL),${op._2.label}"))
+}
+object LD_IXd_reg {
+  val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0xDD,0x70),3).map(op=>
+    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddrIndirOffset("IX",2),op._3,f"LD (IX+d),${op._2.label}"))
+}
+object LD_IYd_reg {
+  val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0xFD,0x70),3).map(op=>
+    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddrIndirOffset("IY",2),op._3,f"LD (IY+d),${op._2.label}"))
+}
+object LD_all_n {
+  val codes: List[Load8bitDef] = OpCode.generateOpCodesType5(OpCode(0x06)).map(op=>
+    new Load8bitDef(op._1.main,op._1.supp,Location.registerAddrDirOffset("PC",op._3-1),op._2,op._3,f"LD ${op._2.label},n"))
+}
+object LD_A_I extends Load8bitDef(0xED,0x57,Location.register("I"),Location.register("A"),2,"LD A,I")
+object LD_A_R extends Load8bitDef(0xED,0x5F,Location.register("R"),Location.register("A"),2,"LD A,R")
+object LD_I_A extends Load8bitDef(0xED,0x47,Location.register("A"),Location.register("I"),2,"LD I,A")
+object LD_R_A extends Load8bitDef(0xED,0x4F,Location.register("A"),Location.register("R"),2,"LD R,A")
+object LD_A_BC extends Load8bitDef(0x0A,OpCode.ANY,Location.registerAddr("BC"),Location.register("A"),1,"LD A,(BC)")
+object LD_A_DE extends Load8bitDef(0x1A,OpCode.ANY,Location.registerAddr("DE"),Location.register("A"),1,"LD A,(DE)")
+object LD_BC_A extends Load8bitDef(0x02,OpCode.ANY,Location.register("A"),Location.registerAddr("BC"),1,"LD (BC),A")
+object LD_DE_A extends Load8bitDef(0x12,OpCode.ANY,Location.register("A"),Location.registerAddr("DE"),1,"LD (DE),A")
+object LD_A_nn extends Load8bitDef(0x3A,OpCode.ANY,Location.indirAddress(1),Location.register("A"),3,"LD A,(nn)")
+object LD_nn_A extends Load8bitDef(0x32,OpCode.ANY,Location.register("A"),Location.indirAddress(1),3,"LD (nn),A")
