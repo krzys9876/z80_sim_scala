@@ -5,8 +5,7 @@ import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
 
-  val l=OpCode.generateOpCodesType7(OpCode(0xC2),3)
-  l.foreach(println)
+  println(OpCodes.handlerMap.m)
   //println(OpCodes.operation8bMap.keys)
   //println(OpCodes.operation8bMap.keys.flatten.toList)
   //println(OpCodes.operation8bMap.keys.flatten.toList.contains(ADD_A_H))

@@ -1,16 +1,24 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b,
-  Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation,
-  Inc16b, Inc8b, JumpCondition, JumpOperation, JumpType, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla,
-  RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b,
-  Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpCondition, JumpOperation, JumpType, Load16Bit, Load16BitOpType, Load8Bit, Load8BitOpType, Neg8b, Nop, OpCodeHandler, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
 import org.kr.scala.z80.system.Flag
 
 trait Label {
   val label:String
   override def toString:String=label
 }
+
+trait OpCodeHandledBy {
+  val handler:OpCodeHandler
+}
+trait HandleNop extends OpCodeHandledBy {override val handler:OpCodeHandler=Nop}
+trait HandleLoad8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Load8Bit}
+trait HandleLoad16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Load16Bit}
+trait HandleArithmetic8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic8Bit}
+trait HandleArithmetic16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic16Bit}
+trait HandleJump extends OpCodeHandledBy {override val handler:OpCodeHandler=JumpCallReturn}
+trait HandleInOut extends OpCodeHandledBy {override val handler:OpCodeHandler=InputOutput}
+
 
 //Building blocks for OpCode definition
 trait OpCodeSourceLocation {

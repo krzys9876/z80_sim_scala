@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{BitOperation, ExchangeLocationBase, InOutOperation, JumpCondition, JumpOperation, Load16BitOpType, Load8BitOpType, OpCodeHandler}
+import org.kr.scala.z80.opcode.handler.{BitOperation, ExchangeLocationBase, InOutOperation, JumpCondition, JumpOperation, Load16BitOpType, Load8BitOpType, OpCodeHandler, Unknown}
 
 //TODO: all pointer to opcode handler in definition of every opcode - this will also simplify Z80System.handle method
 object OpCodes {
@@ -42,61 +42,63 @@ object OpCodes {
 
   //TODO: flatten list - refactor OpCodeMap
   //NOTE: cannot use generics in vals (only defs) - these maps are used in vals in other classes
-  val operandMap:Map[List[OpCode],Location]= //opCodeListToMap[OpCodeOperandLocation,LoadLocation](op=>op.operand)
+  val operandMap:Map[OpCode,Location]= //opCodeListToMap[OpCodeOperandLocation,LoadLocation](op=>op.operand)
   //filterTo(op=>op.isInstanceOf[OpCodeOperandLocation]).map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
   list
     .filter(_.isInstanceOf[OpCodeOperandLocation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
-  val sourceMap:Map[List[OpCode],Location]= list
+    .map(op=> op->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
+  val sourceMap:Map[OpCode,Location]= list
     .filter(_.isInstanceOf[OpCodeSourceLocation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeSourceLocation].source).toMap
-  val destinationMap:Map[List[OpCode],Location]= list
+    .map(op=> op->op.asInstanceOf[OpCodeSourceLocation].source).toMap
+  val destinationMap:Map[OpCode,Location]= list
     .filter(_.isInstanceOf[OpCodeDestLocation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeDestLocation].destination).toMap
-  val operation8bMap:Map[List[OpCode],ArithmeticOperation]= list
+    .map(op=> op->op.asInstanceOf[OpCodeDestLocation].destination).toMap
+  val operation8bMap:Map[OpCode,ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeArithmetic8b])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeArithmetic8b].operation).toMap
-  val rotateShiftMap:Map[List[OpCode],ArithmeticOperation]= list
+    .map(op=> op->op.asInstanceOf[OpCodeArithmetic8b].operation).toMap
+  val rotateShiftMap:Map[OpCode,ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeRotateShift])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeRotateShift].operation).toMap
-  val rotateDigitMap:Map[List[OpCode],ArithmeticOperation]= list
+    .map(op=> op->op.asInstanceOf[OpCodeRotateShift].operation).toMap
+  val rotateDigitMap:Map[OpCode,ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeRotateDigit])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeRotateDigit].operation).toMap
-  val operation16bMap:Map[List[OpCode],ArithmeticOperation]= list
+    .map(op=> op->op.asInstanceOf[OpCodeRotateDigit].operation).toMap
+  val operation16bMap:Map[OpCode,ArithmeticOperation]= list
     .filter(_.isInstanceOf[OpCodeArithmetic16b])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeArithmetic16b].operation).toMap
-  val exchangeMap:Map[List[OpCode],List[ExchangeLocationBase]]= list
+    .map(op=> op->op.asInstanceOf[OpCodeArithmetic16b].operation).toMap
+  val exchangeMap:Map[OpCode,List[ExchangeLocationBase]]= list
     .filter(_.isInstanceOf[OpCodeExchangeLocation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeExchangeLocation].exchange).toMap
-  val bitManipulationMap:Map[List[OpCode],BitOperation]= list
+    .map(op=> op->op.asInstanceOf[OpCodeExchangeLocation].exchange).toMap
+  val bitManipulationMap:Map[OpCode,BitOperation]= list
     .filter(_.isInstanceOf[OpCodeBitManipulation])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeBitManipulation].operation).toMap
-  val bitNumMap:Map[List[OpCode],Int]= list
+    .map(op=> op->op.asInstanceOf[OpCodeBitManipulation].operation).toMap
+  val bitNumMap:Map[OpCode,Int]= list
     .filter(_.isInstanceOf[BitManipulationDef])
-    .map(op=> List(op)->op.asInstanceOf[BitManipulationDef].bit).toMap
-  val load8bMap:Map[List[OpCode],Load8BitOpType]= list
+    .map(op=> op->op.asInstanceOf[BitManipulationDef].bit).toMap
+  val load8bMap:Map[OpCode,Load8BitOpType]= list
     .filter(_.isInstanceOf[Load8BitOp])
-    .map(op=> List(op)->op.asInstanceOf[Load8BitOp].operation).toMap
-  val load16bMap:Map[List[OpCode],Load16BitOpType]= list
+    .map(op=> op->op.asInstanceOf[Load8BitOp].operation).toMap
+  val load16bMap:Map[OpCode,Load16BitOpType]= list
     .filter(_.isInstanceOf[Load16BitOp])
-    .map(op=> List(op)->op.asInstanceOf[Load16BitOp].operation).toMap
-  val stackChangeMap:Map[List[OpCode],Int]= list
+    .map(op=> op->op.asInstanceOf[Load16BitOp].operation).toMap
+  val stackChangeMap:Map[OpCode,Int]= list
     .filter(_.isInstanceOf[OpStackChange])
-    .map(op=> List(op)->op.asInstanceOf[OpStackChange].stackChange).toMap
-  val jumpConditionMap:Map[List[OpCode],JumpCondition]= list
+    .map(op=> op->op.asInstanceOf[OpStackChange].stackChange).toMap
+  val jumpConditionMap:Map[OpCode,JumpCondition]= list
     .filter(_.isInstanceOf[OpCodeJumpCondition])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeJumpCondition].condition).toMap
-  val jumpOperationMap:Map[List[OpCode],JumpOperation]= list
+    .map(op=> op->op.asInstanceOf[OpCodeJumpCondition].condition).toMap
+  val jumpOperationMap:Map[OpCode,JumpOperation]= list
     .filter(_.isInstanceOf[OpCodeJump])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeJump].operation).toMap
-  val inOutOperationMap:Map[List[OpCode],InOutOperation]= list
+    .map(op=> op->op.asInstanceOf[OpCodeJump].operation).toMap
+  val inOutOperationMap:Map[OpCode,InOutOperation]= list
     .filter(_.isInstanceOf[OpCodeInOut])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeInOut].operation).toMap
-  val nopMap:Map[List[OpCode],_]= list
-    .filter(_.equals(NOP))
-    .map(op=> List(op)->Nil).toMap
+    .map(op=> op->op.asInstanceOf[OpCodeInOut].operation).toMap
 
-  val sizeMap:Map[List[OpCode],Int]= list
+  val sizeMap:Map[OpCode,Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
-    .map(op=> List(op)->op.asInstanceOf[OpCodeSize].size).toMap
+    .map(op=> op->op.asInstanceOf[OpCodeSize].size).toMap
+
+  lazy val handlerMapInput:Map[OpCode,OpCodeHandler]= list
+    .filter(_.isInstanceOf[OpCodeHandledBy])
+    .map(op=>op->op.asInstanceOf[OpCodeHandledBy].handler).toMap
+  lazy val handlerMap:OpCodeMap[OpCodeHandler]=new OpCodeMap(handlerMapInput,Unknown)
 }

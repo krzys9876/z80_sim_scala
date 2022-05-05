@@ -4,11 +4,11 @@ import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{DummyChange, OutputChange, SystemChangeBase, Z80System}
 
 object InputOutput extends OperationSpec with OpCodeHandler {
-  val portLocation: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
-  val valueLocation: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  val operation: OpCodeMap[InOutOperation] = new OpCodeMap(OpCodes.inOutOperationMap, InOutOpType.None)
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  override lazy val isOper: OpCode => Boolean = opcode => operation.contains(opcode)
+  // requires lazy initialization
+  lazy val portLocation: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
+  lazy val valueLocation: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  lazy val operation: OpCodeMap[InOutOperation] = new OpCodeMap(OpCodes.inOutOperationMap, InOutOpType.None)
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val port = system.getValueFromLocation(portLocation.find(code))

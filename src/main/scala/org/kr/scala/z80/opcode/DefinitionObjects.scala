@@ -293,15 +293,15 @@ object RST_all {
 }
 
 //IN/OUT
-object IN_A_n extends OpCode(0xDB) with DestinationN with SourceA with InOper with Size2 with Label {override val label:String="IN A,(n)"}
-object OUT_n_A extends OpCode(0xD3) with DestinationN with SourceA with OutOper with Size2 with Label {override val label:String="OUT (n),A"}
-object OUT_C_A extends OpCode(0xED,0x79) with DestinationC with SourceA with OutOper with Size2 with Label {override val label:String="OUT (C),A"}
-object OUT_C_B extends OpCode(0xED,0x41) with DestinationC with SourceB with OutOper with Size2 with Label {override val label:String="OUT (C),B"}
-object OUT_C_C extends OpCode(0xED,0x49) with DestinationC with SourceC with OutOper with Size2 with Label {override val label:String="OUT (C),C"}
-object OUT_C_D extends OpCode(0xED,0x51) with DestinationC with SourceD with OutOper with Size2 with Label {override val label:String="OUT (C),D"}
-object OUT_C_E extends OpCode(0xED,0x59) with DestinationC with SourceE with OutOper with Size2 with Label {override val label:String="OUT (C),E"}
-object OUT_C_H extends OpCode(0xED,0x61) with DestinationC with SourceH with OutOper with Size2 with Label {override val label:String="OUT (C),H"}
-object OUT_C_L extends OpCode(0xED,0x69) with DestinationC with SourceL with OutOper with Size2 with Label {override val label:String="OUT (C),L"}
+object IN_A_n extends OpCode(0xDB) with DestinationN with SourceA with InOper with Size2 with HandleInOut with Label {override val label:String="IN A,(n)"}
+object OUT_n_A extends OpCode(0xD3) with DestinationN with SourceA with OutOper with Size2 with HandleInOut with Label {override val label:String="OUT (n),A"}
+object OUT_C_A extends OpCode(0xED,0x79) with DestinationC with SourceA with OutOper with HandleInOut with Size2 with Label {override val label:String="OUT (C),A"}
+object OUT_C_B extends OpCode(0xED,0x41) with DestinationC with SourceB with OutOper with HandleInOut with Size2 with Label {override val label:String="OUT (C),B"}
+object OUT_C_C extends OpCode(0xED,0x49) with DestinationC with SourceC with OutOper with HandleInOut with Size2 with Label {override val label:String="OUT (C),C"}
+object OUT_C_D extends OpCode(0xED,0x51) with DestinationC with SourceD with OutOper with HandleInOut with Size2 with Label {override val label:String="OUT (C),D"}
+object OUT_C_E extends OpCode(0xED,0x59) with DestinationC with SourceE with OutOper with HandleInOut with Size2 with Label {override val label:String="OUT (C),E"}
+object OUT_C_H extends OpCode(0xED,0x61) with DestinationC with SourceH with OutOper with HandleInOut with Size2 with Label {override val label:String="OUT (C),H"}
+object OUT_C_L extends OpCode(0xED,0x69) with DestinationC with SourceL with OutOper with HandleInOut with Size2 with Label {override val label:String="OUT (C),L"}
 
 //NOP
-object NOP extends  OpCode(0x00) with Size1 with Label {override val label:String="NOP"}
+object NOP extends  OpCode(0x00) with Size1 with HandleNop with Label {override val label:String="NOP"}

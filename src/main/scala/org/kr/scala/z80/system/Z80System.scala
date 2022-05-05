@@ -18,7 +18,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handle(opcode:OpCode):Z80System={
-    val handler=opcodeHandlers.find(_.isOper(opcode)).getOrElse(Unknown)
+    val handler:OpCodeHandler =
+      if(OpCodes.handlerMap.contains(opcode)) OpCodes.handlerMap.find(opcode)
+      else opcodeHandlers.find(_.isOper(opcode)).getOrElse(Unknown)
     implicit val system:Z80System=this
     val (change,forwardPC)=handler.handle(opcode)
     returnAfterChange(change,forwardPC)
