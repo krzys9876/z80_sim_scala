@@ -3,7 +3,7 @@ package org.kr.scala.z80.opcode.handler
 import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow,
   FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet,
   FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, None8b,
-  OpCode, OpCodeHandler, OpCodeMap, OpCodes, OperationSpec}
+  OpCode, OpCodeMap, OpCodes, OperationSpec}
 import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 

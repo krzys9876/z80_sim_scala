@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeHandler, OpCodeMap, OpCodes, OperationSpec}
+import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeMap, OpCodes, OperationSpec}
 import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
