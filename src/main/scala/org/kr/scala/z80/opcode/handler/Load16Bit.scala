@@ -11,13 +11,10 @@ object Load16BitOpType {
 }
 
 object Load16Bit extends LoadSpec with OpCodeHandler {
-  override val sourceLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  override val destLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  val stackChange: OpCodeMap[Int] = new OpCodeMap(OpCodes.stackChangeMap, 0)
-
-  val loadList: OpCodeMap[Load16BitOpType] = new OpCodeMap(OpCodes.load16bMap, Load16BitOpType.None)
-  override lazy val isOper: OpCode => Boolean = opcode => loadList.contains(opcode)
+  override lazy val sourceLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  override lazy val destLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
+  lazy val stackChange: OpCodeMap[Int] = new OpCodeMap(OpCodes.stackChangeMap, 0)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val sourceLoc = Load16Bit.sourceLoc.find(code)

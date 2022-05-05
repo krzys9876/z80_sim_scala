@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpCondition, JumpOperation, JumpType, Load16Bit, Load16BitOpType, Load8Bit, Load8BitOpType, Neg8b, Nop, OpCodeHandler, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpCondition, JumpOperation, JumpType, Load16Bit, Load16BitOpType, Load8Bit, Load8BitOpType, Neg8b, Nop, OpCodeHandler, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
 import org.kr.scala.z80.system.Flag
 
 trait Label {
@@ -16,6 +16,8 @@ trait HandleLoad8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler
 trait HandleLoad16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Load16Bit}
 trait HandleArithmetic8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic8Bit}
 trait HandleArithmetic16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic16Bit}
+trait HandleRotateShift extends OpCodeHandledBy {override val handler:OpCodeHandler=RotateShift}
+trait HandleRotateDigit extends OpCodeHandledBy {override val handler:OpCodeHandler=RotateDigit}
 trait HandleJump extends OpCodeHandledBy {override val handler:OpCodeHandler=JumpCallReturn}
 trait HandleInOut extends OpCodeHandledBy {override val handler:OpCodeHandler=InputOutput}
 
@@ -177,11 +179,6 @@ trait OpCodeLoad8Bit extends OpCodeSourceLocation with OpCodeDestLocation {
   val operation:Load8BitOpType
 }
 trait Load8BitOp extends OpCodeLoad8Bit {override val operation:Load8BitOpType=Load8BitOpType.Load}
-
-trait OpCodeLoad16Bit extends OpCodeSourceLocation with OpCodeDestLocation {
-  val operation:Load16BitOpType
-}
-trait Load16BitOp extends OpCodeLoad16Bit {override val operation:Load16BitOpType=Load16BitOpType.Load}
 
 trait OpStackChange  {
   val stackChange:Int

@@ -4,10 +4,9 @@ import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{RegisterChange, SystemChangeBase, Z80System}
 
 object RotateDigit extends OperationSpec with OpCodeHandler {
-  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.rotateDigitMap, None8b)
-  val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.operandMap, Location.empty)
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  override lazy val isOper: OpCode => Boolean = opcode => operation.contains(opcode)
+  lazy val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.rotateDigitMap, None8b)
+  lazy val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.operandMap, Location.empty)
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     //http://www.z80.info/z80sflag.htm

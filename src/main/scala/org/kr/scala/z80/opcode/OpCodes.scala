@@ -77,9 +77,6 @@ object OpCodes {
   val load8bMap:Map[OpCode,Load8BitOpType]= list
     .filter(_.isInstanceOf[Load8BitOp])
     .map(op=> op->op.asInstanceOf[Load8BitOp].operation).toMap
-  val load16bMap:Map[OpCode,Load16BitOpType]= list
-    .filter(_.isInstanceOf[Load16BitOp])
-    .map(op=> op->op.asInstanceOf[Load16BitOp].operation).toMap
   val stackChangeMap:Map[OpCode,Int]= list
     .filter(_.isInstanceOf[OpStackChange])
     .map(op=> op->op.asInstanceOf[OpStackChange].stackChange).toMap
