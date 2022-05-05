@@ -15,12 +15,10 @@ object BitOpType {
 
 object BitManipulation extends OperationSpec with OpCodeHandler {
   //Z80 manual p.55 - NOTE error in opCode: 0xCB, not 0xC8!
-  val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  val bit: OpCodeMap[Int] = new OpCodeMap(OpCodes.bitNumMap, 0)
-  val operation: OpCodeMap[BitOperation] = new OpCodeMap(OpCodes.bitManipulationMap, BitOpType.None)
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-
-  override lazy val isOper: OpCode=>Boolean = opcode => operation.contains(opcode)
+  lazy val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  lazy val bit: OpCodeMap[Int] = new OpCodeMap(OpCodes.bitNumMap, 0)
+  lazy val operation: OpCodeMap[BitOperation] = new OpCodeMap(OpCodes.bitManipulationMap, BitOpType.None)
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
   override def handle(code:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
     val loc=source.find(code)

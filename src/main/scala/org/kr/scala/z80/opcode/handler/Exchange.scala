@@ -16,9 +16,8 @@ class ExchangeLocationIndirect(override val reg1:String,override val reg2: Strin
 
 
 object Exchange extends OperationSpec with OpCodeHandler {
-  val exchangeLoc: OpCodeMap[List[ExchangeLocationBase]] = new OpCodeMap(OpCodes.exchangeMap, List(ExchangeLocationBase.empty))
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  override lazy val isOper: OpCode=>Boolean = opcode => exchangeLoc.contains(opcode)
+  lazy val exchangeLoc: OpCodeMap[List[ExchangeLocationBase]] = new OpCodeMap(OpCodes.exchangeMap, List(ExchangeLocationBase.empty))
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
   override def handle(opcode:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
     val exchangeLocList=Exchange.exchangeLoc.find(opcode)

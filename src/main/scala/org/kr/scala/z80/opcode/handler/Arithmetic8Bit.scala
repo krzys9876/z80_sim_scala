@@ -9,25 +9,26 @@ import org.kr.scala.z80.utils.Z80Utils
 
 object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
-  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation8bMap, None8b)
-  val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
-  val operand: OpCodeMap[Location] = new OpCodeMap(OpCodes.operandMap, Location.empty)
-  val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  override lazy val isOper: OpCode => Boolean = opcode => operation.contains(opcode)
+  lazy val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation8bMap, None8b)
+  lazy val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  lazy val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
+  //TODO: evaluate if limiting map size improves speed
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(
+    OpCodes.sizeMap
+      .filter(entry=>OpCodes.handlerMap.contains(entry._1)),
+    0)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val oper = Arithmetic8Bit.operation.find(code)
     val instrSize = Arithmetic8Bit.instSize.find(code)
-    val operandLoc = Arithmetic8Bit.operand.find(code)
-    val operand = system.getValueFromLocation(operandLoc)
+    val destLoc = Arithmetic8Bit.destination.find(code)
+    val dest = system.getValueFromLocation(destLoc)
     val prevFlags = system.getFlags
     val sourceLocation = Arithmetic8Bit.source.find(code)
     val prevValue = system.getValueFromLocation(sourceLocation)
-    val destLocation = Arithmetic8Bit.destination.find(code)
 
-    val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, operand, prevFlags))
-    val chgList = List(system.putValueToLocation(destLocation, result.valueOut))
+    val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))
+    val chgList = List(system.putValueToLocation(sourceLocation, result.valueOut))
     (chgList ++ List(new RegisterChange("F", flags())), instrSize)
   }
 }

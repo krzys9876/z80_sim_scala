@@ -11,12 +11,9 @@ object Load8BitOpType {
 }
 
 object Load8Bit extends LoadSpec with OpCodeHandler {
-  override val sourceLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  override val destLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-
-  val loadList: OpCodeMap[Load8BitOpType] = new OpCodeMap(OpCodes.load8bMap, Load8BitOpType.None)
-  override lazy val isOper: OpCode => Boolean = opcode => loadList.contains(opcode)
+  override lazy val sourceLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  override lazy val destLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val value = system.getValueFromLocation(sourceLoc.find(code))

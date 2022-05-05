@@ -1,12 +1,12 @@
 package org.kr.scala.z80
 
 import org.kr.scala.z80.opcode.handler.Load16Bit
-import org.kr.scala.z80.opcode.{Label, Location, OpCode, OpCodes}
+import org.kr.scala.z80.opcode.{ADD_A_reg, Label, Location, OpCode, OpCodes}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Main extends App {
 
-  println(Load16Bit.sourceLoc.m.contains(OpCode(0x01)))
+  println(ADD_A_reg.codes)
   //println(OpCodes.operation8bMap.keys)
   //println(OpCodes.operation8bMap.keys.flatten.toList)
   //println(OpCodes.operation8bMap.keys.flatten.toList.contains(ADD_A_H))

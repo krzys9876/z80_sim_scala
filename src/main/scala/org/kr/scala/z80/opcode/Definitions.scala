@@ -4,122 +4,122 @@ import org.kr.scala.z80.opcode.handler.JumpCondition
 
 //Arithmetic 8b
 // generator for ADD A,x - TBC if this is an efficient and readable way of defining opcodes
-class Arithmetic8bDef(main:Int, supp:Int, val operand:Location, val size:Int, val label:String)
-  extends OpCode(main,supp) with OpCodeOperandLocation with OpCodeSize with Label
+class Arithmetic8bDef(main:Int, supp:Int, val destination:Location, val size:Int, val label:String)
+  extends OpCode(main,supp) with HandleArithmetic8Bit with OpCodeDestLocation with OpCodeSize with Label
 
 //ADD
 object ADD_A_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x80)).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"ADD A,${op._2.label}") with Arith8bAdd)
 }
-object ADD_A_n extends OpCode(0xC6) with Arith8bAdd with OperandN with Size2 with Label {override val label:String="ADD A,n"}
+object ADD_A_n extends OpCode(0xC6) with HandleArithmetic8Bit with Arith8bAdd with DestinationN with Size2 with Label {override val label:String="ADD A,n"}
 //ADC
 object ADC_A_reg {
   val codes: List[Arithmetic8bDef] =
     OpCode.generateOpCodesType1(OpCode(0x88)).map(op=>
       new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"ADC A,${op._2.label}") with Arith8bAddC)
 }
-object ADC_A_n extends OpCode(0xCE) with Arith8bAddC with OperandN with Size2 with Label {override val label:String="ADC A,n"}
+object ADC_A_n extends OpCode(0xCE) with HandleArithmetic8Bit with Arith8bAddC with DestinationN with Size2 with Label {override val label:String="ADC A,n"}
 //SUB
 object SUB_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x90)).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"SUB ${op._2.label}") with Arith8bSub)
 }
-object SUB_n extends OpCode(0xD6) with Arith8bSub with OperandN with Size2 with Label {override val label:String="SUB n"}
+object SUB_n extends OpCode(0xD6) with HandleArithmetic8Bit with Arith8bSub with DestinationN with Size2 with Label {override val label:String="SUB n"}
 //SBC
 object SBC_A_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x98)).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"SBC A,${op._2.label}") with Arith8bSubC)
 }
-object SBC_A_n extends OpCode(0xDE) with Arith8bSubC with OperandN with Size2 with Label {override val label:String="SBC A,n"}
+object SBC_A_n extends OpCode(0xDE) with HandleArithmetic8Bit with Arith8bSubC with DestinationN with Size2 with Label {override val label:String="SBC A,n"}
 //AND
 object AND_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0xA0)).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"AND ${op._2.label}") with Arith8bAnd)
 }
-object AND_n extends OpCode(0xE6) with Arith8bAnd with OperandN with Size2 with Label {override val label:String="AND n"}
+object AND_n extends OpCode(0xE6) with HandleArithmetic8Bit with Arith8bAnd with DestinationN with Size2 with Label {override val label:String="AND n"}
 //XOR
 object XOR_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0xA8)).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"XOR ${op._2.label}") with Arith8bXor)
 }
-object XOR_n extends OpCode(0xEE) with Arith8bXor with OperandN with Size2 with Label {override val label:String="XOR n"}
+object XOR_n extends OpCode(0xEE) with HandleArithmetic8Bit with Arith8bXor with DestinationN with Size2 with Label {override val label:String="XOR n"}
 //OR
 object OR_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0xB0)).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"OR ${op._2.label}") with Arith8bOr)
 }
-object OR_n extends OpCode(0xF6) with Arith8bOr with OperandN with Size2 with Label {override val label:String="OR n"}
+object OR_n extends OpCode(0xF6) with HandleArithmetic8Bit with Arith8bOr with DestinationN with Size2 with Label {override val label:String="OR n"}
 //CP
 object CP_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0xB8)).map(op=>
-    new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"CP ${op._2.label}") with Arith8bCp with DestinationEmpty)
+    new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"CP ${op._2.label}") with Arith8bCp)
 }
-object CP_n extends OpCode(0xFE) with Arith8bCp with OperandN with Size2 with Label {override val label:String="CP n"}
+object CP_n extends OpCode(0xFE) with HandleArithmetic8Bit with Arith8bCp with DestinationN with Size2 with Label {override val label:String="CP n"}
 //INC
 object INC_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x04),3).map(op=>
-    new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"INC ${op._2.label}") with SourceDestFromOperand with Arith8bInc)
+    new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"INC ${op._2.label}") with SourceFromDestination with Arith8bInc)
 }
 //DEC
 object DEC_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x05),3).map(op=>
-    new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"DEC ${op._2.label}") with SourceDestFromOperand with Arith8bDec)
+    new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"DEC ${op._2.label}") with SourceFromDestination with Arith8bDec)
 }
-object CPL extends OpCode(0x2F) with Arith8bCpl with OperandA with Size1 with Label {override val label:String="CPL"}
-object NEG extends OpCode(0xED,0x44) with Arith8bNeg with OperandA with Size2 with Label {override val label:String="NEG"}
-object SCF extends OpCode(0x37) with Arith8bScf with Size1 with Label {override val label:String="SCF"}
-object CCF extends OpCode(0x3F) with Arith8bCcf with Size1 with Label {override val label:String="CCF"}
+object CPL extends OpCode(0x2F) with HandleArithmetic8Bit with Arith8bCpl with Size1 with Label {override val label:String="CPL"}
+object NEG extends OpCode(0xED,0x44) with HandleArithmetic8Bit with Arith8bNeg with Size2 with Label {override val label:String="NEG"}
+object SCF extends OpCode(0x37) with HandleArithmetic8Bit with Arith8bScf with Size1 with Label {override val label:String="SCF"}
+object CCF extends OpCode(0x3F) with HandleArithmetic8Bit with Arith8bCcf with Size1 with Label {override val label:String="CCF"}
 // Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))
 object RLD extends OpCode(0xED,0x6F) with RotateDigitLeft with HandleRotateDigit with Size2 with Label {override val label:String="RLD"}
 object RRD extends OpCode(0xED,0x67) with RotateDigitRight with HandleRotateDigit with Size2 with Label {override val label:String="RRD"}
 
 //Arithmetic 16b
-object ADD_HL_BC extends OpCode(0x09) with Arith16bAdd with SourceBC with DestinationHL with Size1 with Label {override val label:String="ADD HL,BC"}
-object ADD_HL_DE extends OpCode(0x19) with Arith16bAdd with SourceDE with DestinationHL with Size1 with Label {override val label:String="ADD HL,DE"}
-object ADD_HL_HL extends OpCode(0x29) with Arith16bAdd with SourceHL with DestinationHL with Size1 with Label {override val label:String="ADD HL,HL"}
-object ADD_HL_SP extends OpCode(0x39) with Arith16bAdd with SourceSP with DestinationHL with Size1 with Label {override val label:String="ADD HL,SP"}
-object ADD_IX_BC extends OpCode(0xDD,0x09) with Arith16bAdd with DestinationIX with SourceBC with Size2 with Label {override val label:String="ADD IX,BC"}
-object ADD_IX_DE extends OpCode(0xDD,0x19) with Arith16bAdd with DestinationIX with SourceDE with Size2 with Label {override val label:String="ADD IX,DE"}
-object ADD_IX_IX extends OpCode(0xDD,0x29) with Arith16bAdd with DestinationIX with SourceIX with Size2 with Label {override val label:String="ADD IX,IX"}
-object ADD_IX_SP extends OpCode(0xDD,0x39) with Arith16bAdd with DestinationIX with SourceSP with Size2 with Label {override val label:String="ADD IX,SP"}
-object ADD_IY_BC extends OpCode(0xFD,0x09) with Arith16bAdd with DestinationIY with SourceBC with Size2 with Label {override val label:String="ADD IY,BC"}
-object ADD_IY_DE extends OpCode(0xFD,0x19) with Arith16bAdd with DestinationIY with SourceDE with Size2 with Label {override val label:String="ADD IY,DE"}
-object ADD_IY_IY extends OpCode(0xFD,0x29) with Arith16bAdd with DestinationIY with SourceIY with Size2 with Label {override val label:String="ADD IY,IX"}
-object ADD_IY_SP extends OpCode(0xFD,0x39) with Arith16bAdd with DestinationIY with SourceSP with Size2 with Label {override val label:String="ADD IY,SP"}
-object ADC_HL_BC extends OpCode(0xED,0x4A) with Arith16bAddC with DestinationHL with SourceBC with Size2 with Label {override val label:String="ADC HL,BC"}
-object ADC_HL_DE extends OpCode(0xED,0x5A) with Arith16bAddC with DestinationHL with SourceDE with Size2 with Label {override val label:String="ADC HL,DE"}
-object ADC_HL_HL extends OpCode(0xED,0x6A) with Arith16bAddC with DestinationHL with SourceHL with Size2 with Label {override val label:String="ADC HL,HL"}
-object ADC_HL_SP extends OpCode(0xED,0x7A) with Arith16bAddC with DestinationHL with SourceSP with Size2 with Label {override val label:String="ADC HL,SP"}
-object SBC_HL_BC extends OpCode(0xED,0x42) with Arith16bSubC with DestinationHL with SourceBC with Size2 with Label {override val label:String="SBC HL,BC"}
-object SBC_HL_DE extends OpCode(0xED,0x52) with Arith16bSubC with DestinationHL with SourceDE with Size2 with Label {override val label:String="SBC HL,DE"}
-object SBC_HL_HL extends OpCode(0xED,0x62) with Arith16bSubC with DestinationHL with SourceHL with Size2 with Label {override val label:String="SBC HL,HL"}
-object SBC_HL_SP extends OpCode(0xED,0x72) with Arith16bSubC with DestinationHL with SourceSP with Size2 with Label {override val label:String="SBC HL,SP"}
-object INC_BC extends OpCode(0x03) with Arith16bInc with SourceDestBC with Size1 with Label {override val label:String="INC BC"}
-object INC_DE extends OpCode(0x13) with Arith16bInc with SourceDestDE with Size1 with Label {override val label:String="INC DE"}
-object INC_HL_16 extends OpCode(0x23) with Arith16bInc with SourceDestHL with Size1 with Label {override val label:String="INC HL"}
-object INC_SP extends OpCode(0x33) with Arith16bInc with SourceDestSP with Size1 with Label {override val label:String="INC SP"}
-object INC_IX extends OpCode(0xDD,0x23) with Arith16bInc with SourceDestIX with Size2 with Label {override val label:String="INC IX"}
-object INC_IY extends OpCode(0xFD,0x23) with Arith16bInc with SourceDestIY with Size2 with Label {override val label:String="INC IY"}
-object DEC_BC extends OpCode(0x0B) with Arith16bDec with SourceDestBC with Size1 with Label {override val label:String="DEC BC"}
-object DEC_DE extends OpCode(0x1B) with Arith16bDec with SourceDestDE with Size1 with Label {override val label:String="DEC DE"}
-object DEC_HL_16 extends OpCode(0x2B) with Arith16bDec with SourceDestHL with Size1 with Label {override val label:String="DEC HL"}
-object DEC_SP extends OpCode(0x3B) with Arith16bDec with SourceDestSP with Size1 with Label {override val label:String="DEC SP"}
-object DEC_IX extends OpCode(0xDD,0x2B) with Arith16bDec with SourceDestIX with Size2 with Label {override val label:String="DEC IX"}
-object DEC_IY extends OpCode(0xFD,0x2B) with Arith16bDec with SourceDestIY with Size2 with Label {override val label:String="DEC IY"}
+object ADD_HL_BC extends OpCode(0x09) with HandleArithmetic16Bit with Arith16bAdd with SourceBC with DestinationHL with Size1 with Label {override val label:String="ADD HL,BC"}
+object ADD_HL_DE extends OpCode(0x19) with HandleArithmetic16Bit with Arith16bAdd with SourceDE with DestinationHL with Size1 with Label {override val label:String="ADD HL,DE"}
+object ADD_HL_HL extends OpCode(0x29) with HandleArithmetic16Bit with Arith16bAdd with SourceHL with DestinationHL with Size1 with Label {override val label:String="ADD HL,HL"}
+object ADD_HL_SP extends OpCode(0x39) with HandleArithmetic16Bit with Arith16bAdd with SourceSP with DestinationHL with Size1 with Label {override val label:String="ADD HL,SP"}
+object ADD_IX_BC extends OpCode(0xDD,0x09) with HandleArithmetic16Bit with Arith16bAdd with DestinationIX with SourceBC with Size2 with Label {override val label:String="ADD IX,BC"}
+object ADD_IX_DE extends OpCode(0xDD,0x19) with HandleArithmetic16Bit with Arith16bAdd with DestinationIX with SourceDE with Size2 with Label {override val label:String="ADD IX,DE"}
+object ADD_IX_IX extends OpCode(0xDD,0x29) with HandleArithmetic16Bit with Arith16bAdd with DestinationIX with SourceIX with Size2 with Label {override val label:String="ADD IX,IX"}
+object ADD_IX_SP extends OpCode(0xDD,0x39) with HandleArithmetic16Bit with Arith16bAdd with DestinationIX with SourceSP with Size2 with Label {override val label:String="ADD IX,SP"}
+object ADD_IY_BC extends OpCode(0xFD,0x09) with HandleArithmetic16Bit with Arith16bAdd with DestinationIY with SourceBC with Size2 with Label {override val label:String="ADD IY,BC"}
+object ADD_IY_DE extends OpCode(0xFD,0x19) with HandleArithmetic16Bit with Arith16bAdd with DestinationIY with SourceDE with Size2 with Label {override val label:String="ADD IY,DE"}
+object ADD_IY_IY extends OpCode(0xFD,0x29) with HandleArithmetic16Bit with Arith16bAdd with DestinationIY with SourceIY with Size2 with Label {override val label:String="ADD IY,IX"}
+object ADD_IY_SP extends OpCode(0xFD,0x39) with HandleArithmetic16Bit with Arith16bAdd with DestinationIY with SourceSP with Size2 with Label {override val label:String="ADD IY,SP"}
+object ADC_HL_BC extends OpCode(0xED,0x4A) with HandleArithmetic16Bit with Arith16bAddC with DestinationHL with SourceBC with Size2 with Label {override val label:String="ADC HL,BC"}
+object ADC_HL_DE extends OpCode(0xED,0x5A) with HandleArithmetic16Bit with Arith16bAddC with DestinationHL with SourceDE with Size2 with Label {override val label:String="ADC HL,DE"}
+object ADC_HL_HL extends OpCode(0xED,0x6A) with HandleArithmetic16Bit with Arith16bAddC with DestinationHL with SourceHL with Size2 with Label {override val label:String="ADC HL,HL"}
+object ADC_HL_SP extends OpCode(0xED,0x7A) with HandleArithmetic16Bit with Arith16bAddC with DestinationHL with SourceSP with Size2 with Label {override val label:String="ADC HL,SP"}
+object SBC_HL_BC extends OpCode(0xED,0x42) with HandleArithmetic16Bit with Arith16bSubC with DestinationHL with SourceBC with Size2 with Label {override val label:String="SBC HL,BC"}
+object SBC_HL_DE extends OpCode(0xED,0x52) with HandleArithmetic16Bit with Arith16bSubC with DestinationHL with SourceDE with Size2 with Label {override val label:String="SBC HL,DE"}
+object SBC_HL_HL extends OpCode(0xED,0x62) with HandleArithmetic16Bit with Arith16bSubC with DestinationHL with SourceHL with Size2 with Label {override val label:String="SBC HL,HL"}
+object SBC_HL_SP extends OpCode(0xED,0x72) with HandleArithmetic16Bit with Arith16bSubC with DestinationHL with SourceSP with Size2 with Label {override val label:String="SBC HL,SP"}
+object INC_BC extends OpCode(0x03) with HandleArithmetic16Bit with Arith16bInc with SourceDestBC with Size1 with Label {override val label:String="INC BC"}
+object INC_DE extends OpCode(0x13) with HandleArithmetic16Bit with Arith16bInc with SourceDestDE with Size1 with Label {override val label:String="INC DE"}
+object INC_HL_16 extends OpCode(0x23) with HandleArithmetic16Bit with Arith16bInc with SourceDestHL with Size1 with Label {override val label:String="INC HL"}
+object INC_SP extends OpCode(0x33) with HandleArithmetic16Bit with Arith16bInc with SourceDestSP with Size1 with Label {override val label:String="INC SP"}
+object INC_IX extends OpCode(0xDD,0x23) with HandleArithmetic16Bit with Arith16bInc with SourceDestIX with Size2 with Label {override val label:String="INC IX"}
+object INC_IY extends OpCode(0xFD,0x23) with HandleArithmetic16Bit with Arith16bInc with SourceDestIY with Size2 with Label {override val label:String="INC IY"}
+object DEC_BC extends OpCode(0x0B) with HandleArithmetic16Bit with Arith16bDec with SourceDestBC with Size1 with Label {override val label:String="DEC BC"}
+object DEC_DE extends OpCode(0x1B) with HandleArithmetic16Bit with Arith16bDec with SourceDestDE with Size1 with Label {override val label:String="DEC DE"}
+object DEC_HL_16 extends OpCode(0x2B) with HandleArithmetic16Bit with Arith16bDec with SourceDestHL with Size1 with Label {override val label:String="DEC HL"}
+object DEC_SP extends OpCode(0x3B) with HandleArithmetic16Bit with Arith16bDec with SourceDestSP with Size1 with Label {override val label:String="DEC SP"}
+object DEC_IX extends OpCode(0xDD,0x2B) with HandleArithmetic16Bit with Arith16bDec with SourceDestIX with Size2 with Label {override val label:String="DEC IX"}
+object DEC_IY extends OpCode(0xFD,0x2B) with HandleArithmetic16Bit with Arith16bDec with SourceDestIY with Size2 with Label {override val label:String="DEC IY"}
 
 // Exchange
-object EX_DE_HL extends OpCode(0xEB) with ExchangeDEHL with Size1 with Label {override val label:String="EX DE,HL"}
-object EX_AF_AF1 extends OpCode(0x08) with ExchangeAF1 with Size1 with Label {override val label:String="EX AF,AF'"}
-object EXX extends OpCode(0xD9) with ExchangeAll1 with Size1 with Label {override val label:String="EXX"}
-object EX_SP_HL extends OpCode(0xE3) with ExchangeSPHL with Size1 with Label {override val label:String="EX (SP),HL"}
-object EX_SP_IX extends OpCode(0xDD,0xE3) with ExchangeSPIX with Size2 with Label {override val label:String="EX (SP),IX"}
-object EX_SP_IY extends OpCode(0xFD,0xE3) with ExchangeSPIY with Size2 with Label {override val label:String="EX (SP),IY"}
+object EX_DE_HL extends OpCode(0xEB) with HandleExchange with ExchangeDEHL with Size1 with Label {override val label:String="EX DE,HL"}
+object EX_AF_AF1 extends OpCode(0x08) with HandleExchange with ExchangeAF1 with Size1 with Label {override val label:String="EX AF,AF'"}
+object EXX extends OpCode(0xD9) with HandleExchange with ExchangeAll1 with Size1 with Label {override val label:String="EXX"}
+object EX_SP_HL extends OpCode(0xE3) with HandleExchange with ExchangeSPHL with Size1 with Label {override val label:String="EX (SP),HL"}
+object EX_SP_IX extends OpCode(0xDD,0xE3) with HandleExchange with ExchangeSPIX with Size2 with Label {override val label:String="EX (SP),IX"}
+object EX_SP_IY extends OpCode(0xFD,0xE3) with HandleExchange with ExchangeSPIY with Size2 with Label {override val label:String="EX (SP),IY"}
 
 //Bit manipulation
 // generator for BIT, RES, SET
 class BitManipulationDef(main:Int, supp:Int, supp2:Int, val source:Location, val bit:Int, val size:Int, val label:String)
-  extends OpCode(main,supp,supp2) with OpCodeSourceLocation with OpCodeSize with Label
+  extends OpCode(main,supp,supp2) with HandleBitManipulation with OpCodeSourceLocation with OpCodeSize with Label
 //BIT
 object BIT_b_reg {
   val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0x40)).map(op=>
@@ -140,7 +140,7 @@ object SET_b_reg {
 // Z80 manual page 42
 // generator for LD (8 bit)
 class Load8bitDef(main:Int, supp:Int, val source:Location, val destination:Location, val size:Int, val label:String)
-  extends OpCode(main,supp)  with Load8BitOp with OpCodeSize with Label
+  extends OpCode(main,supp) with HandleLoad8Bit with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with Label
 //LD A-L,A-L/(HL)/(IX+d)/(IY+d)
 object LD_reg_all {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType3(OpCode(0x40)).map(op=>

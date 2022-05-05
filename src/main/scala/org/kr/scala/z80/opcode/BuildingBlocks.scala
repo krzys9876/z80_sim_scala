@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpCondition, JumpOperation, JumpType, Load16Bit, Load16BitOpType, Load8Bit, Load8BitOpType, Neg8b, Nop, OpCodeHandler, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpCondition, JumpOperation, JumpType, Load16Bit, Load16BitOpType, Load8Bit, Load8BitOpType, Neg8b, Nop, OpCodeHandler, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
 import org.kr.scala.z80.system.Flag
 
 trait Label {
@@ -14,10 +14,12 @@ trait OpCodeHandledBy {
 trait HandleNop extends OpCodeHandledBy {override val handler:OpCodeHandler=Nop}
 trait HandleLoad8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Load8Bit}
 trait HandleLoad16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Load16Bit}
+trait HandleExchange extends OpCodeHandledBy {override val handler:OpCodeHandler=Exchange}
 trait HandleArithmetic8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic8Bit}
 trait HandleArithmetic16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic16Bit}
 trait HandleRotateShift extends OpCodeHandledBy {override val handler:OpCodeHandler=RotateShift}
 trait HandleRotateDigit extends OpCodeHandledBy {override val handler:OpCodeHandler=RotateDigit}
+trait HandleBitManipulation extends OpCodeHandledBy {override val handler:OpCodeHandler=BitManipulation}
 trait HandleJump extends OpCodeHandledBy {override val handler:OpCodeHandler=JumpCallReturn}
 trait HandleInOut extends OpCodeHandledBy {override val handler:OpCodeHandler=InputOutput}
 
@@ -93,38 +95,21 @@ trait SourceDestIY extends SourceIY with DestinationIY
 trait SourceDestIXd extends SourceIXd with DestinationIXd
 trait SourceDestIYd extends SourceIYd with DestinationIYd
 
-// copies source and destination from operand - useful for INC and DEC
-trait SourceDestFromOperand extends OpCodeSourceLocation with OpCodeDestLocation with OpCodeOperandLocation {
-  override val source:Location=operand
-  override val destination:Location=operand
+// copies destination to source - useful for INC and DEC
+trait SourceFromDestination extends OpCodeSourceLocation with OpCodeDestLocation {
+  override val source:Location=destination
 }
-
-trait OpCodeOperandLocation {
-  val operand:Location
-}
-
-trait OperandA extends OpCodeOperandLocation {override val operand:Location=Location.register("A")}
-trait OperandB extends OpCodeOperandLocation {override val operand:Location=Location.register("B")}
-trait OperandC extends OpCodeOperandLocation {override val operand:Location=Location.register("C")}
-trait OperandD extends OpCodeOperandLocation {override val operand:Location=Location.register("D")}
-trait OperandE extends OpCodeOperandLocation {override val operand:Location=Location.register("E")}
-trait OperandH extends OpCodeOperandLocation {override val operand:Location=Location.register("H")}
-trait OperandL extends OpCodeOperandLocation {override val operand:Location=Location.register("L")}
-trait OperandHL extends OpCodeOperandLocation {override val operand:Location=Location.registerAddr("HL")}
-trait OperandIXd extends OpCodeOperandLocation {override val operand:Location=Location.registerAddrIndirOffset("IX", 2)}
-trait OperandIYd extends OpCodeOperandLocation {override val operand:Location=Location.registerAddrIndirOffset("IY", 2)}
-trait OperandN extends OpCodeOperandLocation {override val operand:Location=Location.registerAddrDirOffset("PC", 1)}
 
 trait OpCodeArithmetic8b {
   val operation:ArithmeticOperation
 }
-trait Arith8bAdd extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=Add8b}
-trait Arith8bAddC extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=AddC8b}
-trait Arith8bSub extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=Sub8b}
-trait Arith8bSubC extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=SubC8b}
-trait Arith8bAnd extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=And8b}
-trait Arith8bXor extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=Xor8b}
-trait Arith8bOr extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=Or8b}
+trait Arith8bAdd extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Add8b}
+trait Arith8bAddC extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=AddC8b}
+trait Arith8bSub extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Sub8b}
+trait Arith8bSubC extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=SubC8b}
+trait Arith8bAnd extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=And8b}
+trait Arith8bXor extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Xor8b}
+trait Arith8bOr extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Or8b}
 trait Arith8bCp extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Comp8b}
 trait Arith8bInc extends OpCodeArithmetic8b {override val operation:ArithmeticOperation=Inc8b}
 trait Arith8bDec extends OpCodeArithmetic8b {override val operation:ArithmeticOperation=Dec8b}
@@ -133,7 +118,7 @@ trait Arith8bNeg extends OpCodeArithmetic8b with SourceDestA {override val opera
 trait Arith8bCcf extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Ccf8b}
 trait Arith8bScf extends OpCodeArithmetic8b with SourceA {override val operation:ArithmeticOperation=Scf8b}
 
-trait OpCodeRotateDigit extends SourceA with OperandHL {
+trait OpCodeRotateDigit extends SourceA with DestinationHLra {
   val operation:ArithmeticOperation
 }
 trait RotateDigitLeft extends OpCodeRotateDigit {override val operation:ArithmeticOperation=RotateDL}
@@ -174,11 +159,6 @@ trait OpCodeBitManipulation {
 trait BitTest extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Test}
 trait BitReset extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Reset}
 trait BitSet extends OpCodeBitManipulation {override val operation:BitOperation=BitOpType.Set}
-
-trait OpCodeLoad8Bit extends OpCodeSourceLocation with OpCodeDestLocation {
-  val operation:Load8BitOpType
-}
-trait Load8BitOp extends OpCodeLoad8Bit {override val operation:Load8BitOpType=Load8BitOpType.Load}
 
 trait OpStackChange  {
   val stackChange:Int

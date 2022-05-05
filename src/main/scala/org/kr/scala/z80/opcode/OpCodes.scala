@@ -40,13 +40,7 @@ object OpCodes {
         NOP
       )
 
-  //TODO: flatten list - refactor OpCodeMap
   //NOTE: cannot use generics in vals (only defs) - these maps are used in vals in other classes
-  val operandMap:Map[OpCode,Location]= //opCodeListToMap[OpCodeOperandLocation,LoadLocation](op=>op.operand)
-  //filterTo(op=>op.isInstanceOf[OpCodeOperandLocation]).map(op=> List(op)->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
-  list
-    .filter(_.isInstanceOf[OpCodeOperandLocation])
-    .map(op=> op->op.asInstanceOf[OpCodeOperandLocation].operand).toMap
   val sourceMap:Map[OpCode,Location]= list
     .filter(_.isInstanceOf[OpCodeSourceLocation])
     .map(op=> op->op.asInstanceOf[OpCodeSourceLocation].source).toMap
@@ -74,9 +68,6 @@ object OpCodes {
   val bitNumMap:Map[OpCode,Int]= list
     .filter(_.isInstanceOf[BitManipulationDef])
     .map(op=> op->op.asInstanceOf[BitManipulationDef].bit).toMap
-  val load8bMap:Map[OpCode,Load8BitOpType]= list
-    .filter(_.isInstanceOf[Load8BitOp])
-    .map(op=> op->op.asInstanceOf[Load8BitOp].operation).toMap
   val stackChangeMap:Map[OpCode,Int]= list
     .filter(_.isInstanceOf[OpStackChange])
     .map(op=> op->op.asInstanceOf[OpStackChange].stackChange).toMap

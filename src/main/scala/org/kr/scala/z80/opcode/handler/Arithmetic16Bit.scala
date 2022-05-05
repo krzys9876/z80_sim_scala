@@ -6,11 +6,10 @@ import org.kr.scala.z80.utils.Z80Utils
 
 object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   // Z80 manual page 52
-  val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation16bMap, None16b)
-  val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
-  val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  override lazy val isOper: OpCode => Boolean = opcode => operation.contains(opcode)
+  lazy val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation16bMap, None16b)
+  lazy val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  lazy val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
+  lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val oper = operation.find(code)
