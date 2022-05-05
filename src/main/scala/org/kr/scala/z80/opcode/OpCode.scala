@@ -1,6 +1,7 @@
 package org.kr.scala.z80.opcode
 
 import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.system.Flag
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   /* OpCode format:
@@ -11,9 +12,7 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   supp2 - second supplementary OpCode for 4-byte opcodes (some IX+d/IY+d) (4th byte)
    */
   override def toString: String =
-    f"OpCode(${num2hex(main)}${if(supp!=OpCode.ANY) ","+num2hex(supp) else ""}${if(supp2!=OpCode.ANY) ","+num2hex(supp2) else ""})"
-
-  private def num2hex(num:Int):String= f"0x$num%02X"
+    f"OpCode(${OpCode.num2hex(main)}${if(supp!=OpCode.ANY) ","+OpCode.num2hex(supp) else ""}${if(supp2!=OpCode.ANY) ","+OpCode.num2hex(supp2) else ""})"
 
   def replaceCode(codeNo:Int,value:Int):OpCode=
     codeNo match {
@@ -54,6 +53,8 @@ object OpCode {
     3->Location.register("E"),
     4->Location.register("H"),
     5->Location.register("L"))
+
+  def num2hex(num:Int):String= f"0x$num%02X"
 
   private def codeGenReg(base:Int,bit:Int):Map[Int,Location]={
     val baseOper=base & (~(0x07 << bit))
@@ -174,6 +175,22 @@ object OpCode {
       if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main) else OpCode(code.main,base.main,base.supp+code.supp))
     opCodes.zip(baseLocationsType6).zip(baseSizesType6).map(entry=>(entry._1._1,entry._1._2,entry._2))
   }
+
+  //TYPE6: decoding jump conditions by bits 3-5
+  val baseCodeOffsetType7:List[Int]=List.range(0,8).map(_ << 3)
+  val baseJumpConditions:List[JumpCondition]=List(
+    JumpCondition.flag(Flag.Z,value=false),
+    JumpCondition.flag(Flag.Z,value=true),
+    JumpCondition.flag(Flag.C,value=false),
+    JumpCondition.flag(Flag.C,value=true),
+    JumpCondition.flag(Flag.P,value=false),
+    JumpCondition.flag(Flag.P,value=true),
+    JumpCondition.flag(Flag.S,value=false),
+    JumpCondition.flag(Flag.S,value=true))
+  def generateOpCodesType7(base:OpCode,size:Int):List[(OpCode,JumpCondition,Int)]= {
+    val opCodes=baseCodeOffsetType7.map(offset=>OpCode(base.main+offset))
+    opCodes.zip(baseJumpConditions).map(entry=>(entry._1,entry._2,size))
+  }
 }
 
 class UnknownOperationException(message : String) extends Exception(message) {}
@@ -204,6 +221,16 @@ trait SourceIY extends OpCodeSourceLocation {override val source:Location=Locati
 trait SourceIXd extends OpCodeSourceLocation {override val source:Location=Location.registerAddrIndirOffset("IX", 2)}
 trait SourceIYd extends OpCodeSourceLocation {override val source:Location=Location.registerAddrIndirOffset("IY", 2)}
 trait SourceN extends OpCodeSourceLocation {override val source:Location=Location.registerAddrDirOffset("PC", 1)}
+trait SourceNw extends OpCodeSourceLocation {override val source:Location=Location.registerAddrDirOffset("PC", 1, isWord = true)}
+trait SourceStack extends OpCodeSourceLocation {override val source:Location=Location.registerAddr("SP",isWord = true)}
+trait Source00h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0000)}
+trait Source08h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0008)}
+trait Source10h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0010)}
+trait Source18h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0018)}
+trait Source20h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0020)}
+trait Source28h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0028)}
+trait Source30h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0030)}
+trait Source38h extends OpCodeSourceLocation {override val source:Location=Location.immediate(0x0038)}
 
 trait OpCodeDestLocation {
   val destination:Location
@@ -357,6 +384,26 @@ trait RotateShiftSla extends OpCodeRotateShift {override val operation:Arithmeti
 trait RotateShiftSra extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShSra}
 trait RotateShiftSrl extends OpCodeRotateShift {override val operation:ArithmeticOperation=RotShSrl}
 
+trait OpCodeJump {
+  val operation:JumpOperation
+}
+trait JumpOper extends OpCodeJump {override val operation:JumpOperation=JumpType.Jump}
+trait JumpRelativeOper extends OpCodeJump {override val operation:JumpOperation=JumpType.JumpR}
+trait JumpRelativeDecOper extends OpCodeJump {override val operation:JumpOperation=JumpType.DJumpR}
+trait DecrJumpRelativeOper extends OpCodeJump {override val operation:JumpOperation=JumpType.DJumpR}
+trait CallOper extends OpCodeJump {override val operation:JumpOperation=JumpType.Call}
+trait ReturnOper extends OpCodeJump {override val operation:JumpOperation=JumpType.Return}
+
+trait OpCodeJumpCondition {
+  val condition:JumpCondition
+}
+trait JumpUnconditional extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.empty}
+trait JumpC extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.C,value=true)}
+trait JumpNC extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.C,value=false)}
+trait JumpZ extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.Z,value=true)}
+trait JumpNZ extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.Z,value=false)}
+trait JumpB0 extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.register("B",0)}
+
 
 //TODO: all pointer to opcode handler in definition of every opcode - this will also simplify Z80System.handle method
 object OpCodes {
@@ -367,6 +414,7 @@ object OpCodes {
     BIT_b_reg.codes ++ RES_b_reg.codes ++ SET_b_reg.codes ++
     LD_reg_all.codes ++ LD_HL_reg.codes ++ LD_IXd_reg.codes ++ LD_IYd_reg.codes ++ LD_all_n.codes ++
     RLC_all.codes ++ RRC_all.codes ++ RL_all.codes ++ RR_all.codes ++ SLA_all.codes ++ SRA_all.codes ++ SRL_all.codes ++
+    JP_cond.codes ++ CALL_cond.codes ++ RET_cond.codes ++ RST_all.codes ++
       List(
     //Arithmetic8b
     ADD_A_n,ADC_A_n,SUB_n,SBC_A_n,AND_n,XOR_n,OR_n,CP_n,CPL,SCF,CCF,NEG,
@@ -386,7 +434,9 @@ object OpCodes {
     //Load 16 bit
     PUSH_AF,PUSH_BC,PUSH_DE,PUSH_HL,PUSH_IX,PUSH_IY,POP_AF,POP_BC,POP_DE,POP_HL,POP_IX,POP_IY,
     LD_SP_HL,LD_SP_IX,LD_SP_IY,LD_nn_BC,LD_nn_DE,LD_nn_HL,LD_nn_SP,LD_nn_IX,LD_nn_IY,
-    LD_BC_nn,LD_DE_nn,LD_HL_nn,LD_SP_nn,LD_IX_nn,LD_IY_nn,LD_BC_i,LD_DE_i,LD_HL_i,LD_SP_i,LD_IX_i,LD_IY_i
+    LD_BC_nn,LD_DE_nn,LD_HL_nn,LD_SP_nn,LD_IX_nn,LD_IY_nn,LD_BC_i,LD_DE_i,LD_HL_i,LD_SP_i,LD_IX_i,LD_IY_i,
+    //Jump
+    JP_nn,JP_HL,JP_IX,JP_IY,JR_n,JR_NZ_n,JR_Z_n,JR_NC_n,JR_C_n,CALL_nn,DJNZ,RET,RETI
   )
 
   //TODO: flatten list - refactor OpCodeMap
@@ -432,6 +482,13 @@ object OpCodes {
   val stackChangeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpStackChange])
     .map(op=> List(op)->op.asInstanceOf[OpStackChange].stackChange).toMap
+  val jumpConditionMap:Map[List[OpCode],JumpCondition]= list
+    .filter(_.isInstanceOf[OpCodeJumpCondition])
+    .map(op=> List(op)->op.asInstanceOf[OpCodeJumpCondition].condition).toMap
+  val jumpOperationMap:Map[List[OpCode],JumpOperation]= list
+    .filter(_.isInstanceOf[OpCodeJump])
+    .map(op=> List(op)->op.asInstanceOf[OpCodeJump].operation).toMap
+
 
   val sizeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
@@ -685,3 +742,45 @@ object RLCA extends OpCode(0x07) with RotateShiftRlca with SourceA with Size1 wi
 object RRCA extends OpCode(0x0F) with RotateShiftRrca with SourceA with Size1 with Label {override val label:String="RRCA"}
 object RLA extends OpCode(0x17) with RotateShiftRla with SourceA with Size1 with Label {override val label:String="RLA"}
 object RRA extends OpCode(0x1F) with RotateShiftRra with SourceA with Size1 with Label {override val label:String="RRA"}
+
+//Jump
+//Z80 manual p.59
+// generator for jump group
+class JumpDef(main:Int, val condition:JumpCondition, val size:Int, val label:String)
+  extends OpCode(main) with OpCodeJumpCondition with OpCodeSize with Label
+object JP_cond {
+  val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC2),3).map(op=>
+    new JumpDef(op._1.main,op._2,op._3,f"JP ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol},nn") with JumpOper with SourceNw )
+}
+object CALL_cond {
+  val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC4),3).map(op=>
+    new JumpDef(op._1.main,op._2,op._3,f"CALL ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol},nn") with CallOper with SourceNw)
+}
+object RET_cond {
+  val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC0),1).map(op=>
+    new JumpDef(op._1.main,op._2,op._3,f"RET ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol}") with ReturnOper with SourceStack)
+}
+object JP_nn extends OpCode(0xC3) with JumpUnconditional with JumpOper with SourceNw with Size3 with Label {override val label:String="JP nn"}
+object JR_n extends OpCode(0x18) with JumpUnconditional with JumpRelativeOper with SourceN with Size2 with Label {override val label:String="JR n"}
+object JR_NZ_n extends OpCode(0x20) with JumpNZ with JumpRelativeOper with SourceN with Size2 with Label {override val label:String="JR NZ,n"}
+object JR_Z_n extends OpCode(0x28) with JumpZ with JumpRelativeOper with SourceN with Size2 with Label {override val label:String="JR Z,n"}
+object JR_NC_n extends OpCode(0x30) with JumpNC with JumpRelativeOper with SourceN with Size2 with Label {override val label:String="JR NC,n"}
+object JR_C_n extends OpCode(0x38) with JumpC with JumpRelativeOper with SourceN with Size2 with Label {override val label:String="JR C,n"}
+object JP_HL extends OpCode(0xE9) with JumpUnconditional with JumpOper with SourceHL with Size1 with Label {override val label:String="JP (HL)"}
+object JP_IX extends OpCode(0xDD,0xE9) with JumpUnconditional with JumpOper with SourceIX with Size2 with Label {override val label:String="JP (IX)"}
+object JP_IY extends OpCode(0xFD,0xE9) with JumpUnconditional with JumpOper with SourceIY with Size2 with Label {override val label:String="JP (IY)"}
+object CALL_nn extends OpCode(0xCD) with JumpUnconditional with CallOper with SourceNw with Size3 with Label {override val label:String="CALL nn"}
+object DJNZ extends OpCode(0x10) with JumpB0 with DecrJumpRelativeOper with SourceN with Size2 with Label {override val label:String="DJNZ"}
+object RET extends OpCode(0xC9) with JumpUnconditional with ReturnOper with SourceStack with Size1 with Label {override val label:String="RET"}
+object RETI extends OpCode(0xED,0x4D) with JumpUnconditional with ReturnOper with SourceStack with Size2 with Label {override val label:String="RETI"}
+
+object RST_all {
+  val codes:List[JumpDef]={
+    for(
+      locCode<-List.range(0,8).map(_ << 3) // list of actual addresses to call
+    ) yield {
+      new JumpDef(0xC7+locCode,JumpCondition.empty,1,f"RST ${OpCode.num2hex(locCode)}") with CallOper with OpCodeSourceLocation {
+        override val source: Location = Location.immediate(locCode)}
+    }
+  }
+}

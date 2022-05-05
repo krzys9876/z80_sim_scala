@@ -38,6 +38,8 @@ object Register {
 
 sealed abstract class FlagSymbol(val symbol:String, val bit:Int) {
   val extract:Int=>Boolean= flagValue=>((flagValue >> bit) & 1)==1
+
+  override val toString:String=if(symbol.nonEmpty) symbol else "-"
 }
 
 class Flag(val value:Int) {

@@ -8,6 +8,8 @@ case class JumpCondition(flag:FlagSymbol,register:String,value:Int) {
   lazy val isFlag:Boolean = flag!=Flag.None
   lazy val isRegister:Boolean = register!=""
   lazy val isEmpty:Boolean = this.equals(JumpCondition.empty)
+
+  override def toString:String=if(isEmpty) "empty" else f"$flag/${if(register.nonEmpty) register else "-"}=$value"
 }
 
 object JumpCondition {
@@ -43,81 +45,11 @@ object JumpType {
 }
 
 object JumpCallReturn extends OperationSpec with OpCodeHandler {
-  //Z80 manual p.59
-  val conditionListMap: Map[List[OpCode],JumpCondition] = Map(
-    List(OpCode(0xC3),OpCode(0xE9),OpCode(0xDD,0xE9),OpCode(0xFD,0xE9),OpCode(0x18),OpCode(0xCD),
-      OpCode(0xC9),OpCode(0xED,0x4D),
-      OpCode(0xC7),OpCode(0xCF),OpCode(0xD7),OpCode(0xDF),OpCode(0xE7),OpCode(0xEF),
-      OpCode(0xF7),OpCode(0xFF))->JumpCondition.empty,
-    List(OpCode(0xDA),OpCode(0x38),OpCode(0xDC),OpCode(0xD8))->JumpCondition.flag(Flag.C,value=true),
-    List(OpCode(0xD2),OpCode(0x30),OpCode(0xD4),OpCode(0xD0))->JumpCondition.flag(Flag.C,value=false),
-    List(OpCode(0xCA),OpCode(0x28),OpCode(0xCC),OpCode(0xC8))->JumpCondition.flag(Flag.Z,value=true),
-    List(OpCode(0xC2),OpCode(0x20),OpCode(0xC4),OpCode(0xC0))->JumpCondition.flag(Flag.Z,value=false),
-    List(OpCode(0xEA),OpCode(0xEC),OpCode(0xE8))->JumpCondition.flag(Flag.P,value=true),
-    List(OpCode(0xE2),OpCode(0xE4),OpCode(0xE0))->JumpCondition.flag(Flag.P,value=false),
-    List(OpCode(0xFA),OpCode(0xFC),OpCode(0xF8))->JumpCondition.flag(Flag.S,value=true),
-    List(OpCode(0xF2),OpCode(0xF4),OpCode(0xF0))->JumpCondition.flag(Flag.S,value=false),
-    List(OpCode(0x10))->JumpCondition.register("B",0)
-  )
-
-  val condition: OpCodeMap[JumpCondition] = new OpCodeMap(conditionListMap, JumpCondition.empty)
-
-  val operationListMap: Map[List[OpCode],JumpOperation] = Map(
-    List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2),OpCode(0xE9),OpCode(0xDD,0xE9),OpCode(0xFD,0xE9))->JumpType.Jump,
-    List(OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20))->JumpType.JumpR,
-    List(OpCode(0x10))->JumpType.DJumpR,
-    List(OpCode(0xCD),OpCode(0xDC),OpCode(0xD4),OpCode(0xCC),OpCode(0xC4),OpCode(0xEC),OpCode(0xE4),
-      OpCode(0xFC),OpCode(0xF4),
-      OpCode(0xC7),OpCode(0xCF),OpCode(0xD7),OpCode(0xDF),OpCode(0xE7),OpCode(0xEF),
-      OpCode(0xF7),OpCode(0xFF))->JumpType.Call,
-    List(OpCode(0xC9),OpCode(0xD8),OpCode(0xD0),OpCode(0xC8),OpCode(0xC0),OpCode(0xE8),OpCode(0xE0),
-      OpCode(0xF8),OpCode(0xF0),
-      OpCode(0xED,0x4D))->JumpType.Return
-  )
-
-  val operation: OpCodeMap[JumpOperation] = new OpCodeMap(operationListMap, JumpType.None)
-
-  val locationListMap: Map[List[OpCode],Location] = Map(
-    List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2))->Location.registerAddrDirOffset("PC",1,isWord = true),
-    List(OpCode(0xE9))->Location.register("HL"),
-    List(OpCode(0xDD,0xE9))->Location.register("IX"),
-    List(OpCode(0xFD,0xE9))->Location.register("IY"),
-    List(OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20),
-      OpCode(0x10))->Location.registerAddrDirOffset("PC",1),
-    List(OpCode(0xCD),OpCode(0xDC),OpCode(0xD4),OpCode(0xCC),OpCode(0xC4),OpCode(0xEC),OpCode(0xE4),
-      OpCode(0xFC),OpCode(0xF4))->Location.registerAddrDirOffset("PC",1,isWord = true),
-    List(OpCode(0xC9),OpCode(0xD8),OpCode(0xD0),OpCode(0xC8),OpCode(0xC0),OpCode(0xE8),OpCode(0xE0),OpCode(0xF8),OpCode(0xF0),
-      OpCode(0xED,0x4D))->Location.registerAddr("SP",isWord = true),
-    List(OpCode(0xC7))->Location.immediate(0x0000),
-    List(OpCode(0xCF))->Location.immediate(0x0008),
-    List(OpCode(0xD7))->Location.immediate(0x0010),
-    List(OpCode(0xDF))->Location.immediate(0x0018),
-    List(OpCode(0xE7))->Location.immediate(0x0020),
-    List(OpCode(0xEF))->Location.immediate(0x0028),
-    List(OpCode(0xF7))->Location.immediate(0x0030),
-    List(OpCode(0xFF))->Location.immediate(0x0038)
-  )
-
-  val location: OpCodeMap[Location] = new OpCodeMap(locationListMap, Location.empty)
-
-  val instructionSizeListMap: Map[List[OpCode], Int] = Map(
-    List(OpCode(0xC3),OpCode(0xDA),OpCode(0xD2),OpCode(0xCA),OpCode(0xC2),OpCode(0xEA),OpCode(0xE2),
-      OpCode(0xFA),OpCode(0xF2),
-      OpCode(0xCD),OpCode(0xDC),OpCode(0xD4),OpCode(0xCC),OpCode(0xC4),OpCode(0xEC),OpCode(0xE4),
-      OpCode(0xFC),OpCode(0xF4))->3,
-    List(OpCode(0xE9),
-      OpCode(0xC9),OpCode(0xD8),OpCode(0xD0),OpCode(0xC8),OpCode(0xC0),OpCode(0xE8),OpCode(0xE0),
-      OpCode(0xF8),OpCode(0xF0),
-      OpCode(0xC7),OpCode(0xCF),OpCode(0xD7),OpCode(0xDF),OpCode(0xE7),OpCode(0xEF),
-      OpCode(0xF7),OpCode(0xFF))->1,
-    List(OpCode(0xDD,0xE9),OpCode(0xFD,0xE9),OpCode(0x18),OpCode(0x38),OpCode(0x30),OpCode(0x28),OpCode(0x20),
-      OpCode(0xED,0x4D),
-      OpCode(0x10))->2
-  )
-
-  override val instSize: OpCodeMap[Int] = new OpCodeMap(instructionSizeListMap, 0)
+  val condition: OpCodeMap[JumpCondition] = new OpCodeMap(OpCodes.jumpConditionMap, JumpCondition.empty)
+  val operation: OpCodeMap[JumpOperation] = new OpCodeMap(OpCodes.jumpOperationMap, JumpType.None)
+  val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
+  override val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
+  override lazy val isOper: OpCode => Boolean = opcode => operation.contains(opcode)
 
   override def handle(code:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int)={
     val oper = operation.find(code)
