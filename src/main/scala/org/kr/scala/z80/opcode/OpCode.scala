@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, JumpCondition, JumpOperation, JumpType, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
 import org.kr.scala.z80.system.Flag
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
