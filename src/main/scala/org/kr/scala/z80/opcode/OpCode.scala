@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, Inc16b, Inc8b, JumpCondition, JumpOperation, JumpType, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, JumpCondition, JumpOperation, JumpType, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
 import org.kr.scala.z80.system.Flag
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
@@ -404,6 +404,11 @@ trait JumpZ extends OpCodeJumpCondition {override val condition:JumpCondition=Ju
 trait JumpNZ extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.Z,value=false)}
 trait JumpB0 extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.register("B",0)}
 
+trait OpCodeInOut {
+  val operation:InOutOperation
+}
+trait InOper extends OpCodeInOut {override val operation:InOutOperation=InOutOpType.In}
+trait OutOper extends OpCodeInOut {override val operation:InOutOperation=InOutOpType.Out}
 
 //TODO: all pointer to opcode handler in definition of every opcode - this will also simplify Z80System.handle method
 object OpCodes {
@@ -436,7 +441,9 @@ object OpCodes {
     LD_SP_HL,LD_SP_IX,LD_SP_IY,LD_nn_BC,LD_nn_DE,LD_nn_HL,LD_nn_SP,LD_nn_IX,LD_nn_IY,
     LD_BC_nn,LD_DE_nn,LD_HL_nn,LD_SP_nn,LD_IX_nn,LD_IY_nn,LD_BC_i,LD_DE_i,LD_HL_i,LD_SP_i,LD_IX_i,LD_IY_i,
     //Jump
-    JP_nn,JP_HL,JP_IX,JP_IY,JR_n,JR_NZ_n,JR_Z_n,JR_NC_n,JR_C_n,CALL_nn,DJNZ,RET,RETI
+    JP_nn,JP_HL,JP_IX,JP_IY,JR_n,JR_NZ_n,JR_Z_n,JR_NC_n,JR_C_n,CALL_nn,DJNZ,RET,RETI,
+    //IO
+    IN_A_n,OUT_n_A,OUT_C_A,OUT_C_B,OUT_C_D,OUT_C_E,OUT_C_H,OUT_C_L
   )
 
   //TODO: flatten list - refactor OpCodeMap
@@ -488,7 +495,9 @@ object OpCodes {
   val jumpOperationMap:Map[List[OpCode],JumpOperation]= list
     .filter(_.isInstanceOf[OpCodeJump])
     .map(op=> List(op)->op.asInstanceOf[OpCodeJump].operation).toMap
-
+  val inOutOperationMap:Map[List[OpCode],InOutOperation]= list
+    .filter(_.isInstanceOf[OpCodeInOut])
+    .map(op=> List(op)->op.asInstanceOf[OpCodeInOut].operation).toMap
 
   val sizeMap:Map[List[OpCode],Int]= list
     .filter(_.isInstanceOf[OpCodeSize])
@@ -784,3 +793,14 @@ object RST_all {
     }
   }
 }
+
+//IN/OUT
+object IN_A_n extends OpCode(0xDB) with DestinationN with SourceA with InOper with Size2 with Label {override val label:String="IN A,(n)"}
+object OUT_n_A extends OpCode(0xD3) with DestinationN with SourceA with OutOper with Size2 with Label {override val label:String="OUT (n),A"}
+object OUT_C_A extends OpCode(0xED,0x79) with DestinationC with SourceA with OutOper with Size2 with Label {override val label:String="OUT (C),A"}
+object OUT_C_B extends OpCode(0xED,0x41) with DestinationC with SourceB with OutOper with Size2 with Label {override val label:String="OUT (C),B"}
+object OUT_C_C extends OpCode(0xED,0x49) with DestinationC with SourceC with OutOper with Size2 with Label {override val label:String="OUT (C),C"}
+object OUT_C_D extends OpCode(0xED,0x51) with DestinationC with SourceD with OutOper with Size2 with Label {override val label:String="OUT (C),D"}
+object OUT_C_E extends OpCode(0xED,0x59) with DestinationC with SourceE with OutOper with Size2 with Label {override val label:String="OUT (C),E"}
+object OUT_C_H extends OpCode(0xED,0x61) with DestinationC with SourceH with OutOper with Size2 with Label {override val label:String="OUT (C),H"}
+object OUT_C_L extends OpCode(0xED,0x69) with DestinationC with SourceL with OutOper with Size2 with Label {override val label:String="OUT (C),L"}

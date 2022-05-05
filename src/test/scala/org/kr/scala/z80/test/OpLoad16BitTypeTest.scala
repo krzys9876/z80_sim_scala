@@ -5,7 +5,7 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class OpLoad16BitTypeTest extends AnyFunSuite {
 
-  implicit val debugger:Debugger=ConsoleDebugger
+  implicit val debugger:Debugger=DummyDebugger
 
   test("run LD dd,nn") {
     //given

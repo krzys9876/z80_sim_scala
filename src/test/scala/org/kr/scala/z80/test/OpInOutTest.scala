@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger, InputFile, InputPort, InputPortConstant, Z80SystemController}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
