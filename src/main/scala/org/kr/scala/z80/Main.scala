@@ -2,11 +2,29 @@ package org.kr.scala.z80
 
 import org.kr.scala.z80.opcode.handler.Load16Bit
 import org.kr.scala.z80.opcode.{ADD_A_reg, Label, Location, OpCode, OpCodes}
+import org.kr.scala.z80.system.{ConsoleDebugger, ConsoleDetailedDebugger, Debugger, InputController, InputPortSingle, MemoryController, OutputController, RegisterController, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
+
+import scala.jdk.CollectionConverters.ListHasAsScala
+import java.nio.file.{Files, Path}
 
 object Main extends App {
 
-  println(ADD_A_reg.codes)
+  val CONTROL_PORT=0xB1
+  val DATA_PORT=0xB0
+  val CR=0x0D
+  val hexFile=Path.of("C:\\data\\data","basicall_KR_simpleIO_01.hex")
+  val hexLines=Files.readAllLines(hexFile).asScala.toList
+  // memory
+  val memory=MemoryController.blank(0x10000) >>= MemoryController.loadHexLines(hexLines) >>= MemoryController.lockTo(0x4000)
+  val input=InputController.blank >>= InputController.attachPort(CONTROL_PORT,new InputPortSingle(1)) >>= InputController.attachPort(DATA_PORT,new InputPortSingle(CR))
+  val initSystem=Z80SystemController(new Z80System(memory,RegisterController.blank,OutputController.blank,input))
+
+  implicit val debugger:Debugger=ConsoleDetailedDebugger
+  val after=initSystem >>= Z80SystemController.run(debugger)(2000)
+
+  println(after.get.outputController.get.print(DATA_PORT))
+
   //println(OpCodes.operation8bMap.keys)
   //println(OpCodes.operation8bMap.keys.flatten.toList)
   //println(OpCodes.operation8bMap.keys.flatten.toList.contains(ADD_A_H))
