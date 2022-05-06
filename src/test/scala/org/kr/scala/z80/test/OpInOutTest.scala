@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, Z80SystemController}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, InputPortSequential, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
@@ -87,5 +87,26 @@ class OpInOutTest extends AnyFunSuite {
     //then
     assert(systemC.get.registerController.get("PC")==2)
     assert(systemC.get.registerController.get("A")==0xAB)
+  }
+
+  test("run IN A,(C)") {
+    //given
+    //when
+    val systemC=prepareTestWithInput(List(("C",0x20)),
+      List(
+        (0x0000,0xED),(0x0001,0x50), // IN D,(C)
+        (0x0002,0xED),(0x0003,0x58), // IN E,(C)
+        (0x0004,0xED),(0x0005,0x60), // IN H,(C)
+        (0x0006,0xED),(0x0007,0x68), // IN L,(C)
+      ),0x20,
+      //new InputPortSequential(0xF0,3,0,0x0F),
+      new InputPortSequential(0xF0,2,0,0x0F),
+      4)
+    //then
+    assert(systemC.get.registerController.get("PC")==8)
+    assert(systemC.get.registerController.get("D")==0xF0)
+    assert(systemC.get.registerController.get("E")==0x0F)
+    assert(systemC.get.registerController.get("H")==0xF0)
+    assert(systemC.get.registerController.get("L")==0x0F)
   }
 }

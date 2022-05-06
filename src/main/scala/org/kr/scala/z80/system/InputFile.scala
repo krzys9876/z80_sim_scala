@@ -14,10 +14,10 @@ object InputPortConstant {
   val blank:InputPortConstant=new InputPortConstant(0)
 }
 
-/*class InputPortSequential(val value:Int, val every: Int) extends InputPort {
-  def read():Int=value
-}*/
-
+class InputPortSequential(val value:Int, val every: Int, val position:Int, defaultValue:Int=0) extends InputPort {
+  def read():Int=if(position==0) value else defaultValue
+  def refresh():InputPort=new InputPortSequential(value,every,(position+1) % every,defaultValue)
+}
 
 class InputFile(val ports:Map[Int,InputPort]=Map()) {
   def read(port:Int):Int=ports.getOrElse(port,InputPortConstant.blank).read()

@@ -35,7 +35,8 @@ object OpCodes {
         //Jump
         JP_nn,JP_HL,JP_IX,JP_IY,JR_n,JR_NZ_n,JR_Z_n,JR_NC_n,JR_C_n,CALL_nn,DJNZ,RET,RETI,
         //IO
-        IN_A_n,OUT_n_A,OUT_C_A,OUT_C_B,OUT_C_D,OUT_C_E,OUT_C_H,OUT_C_L,
+        IN_A_n,IN_A_C,IN_B_C,IN_D_C,IN_E_C,IN_H_C,IN_L_C,
+        OUT_n_A,OUT_C_A,OUT_C_B,OUT_C_D,OUT_C_E,OUT_C_H,OUT_C_L,
         //NOP
         NOP
       )
