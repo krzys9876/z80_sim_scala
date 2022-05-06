@@ -19,6 +19,11 @@ class InputPortSequential(val value:Int, val every: Int, val position:Int, defau
   def refresh():InputPort=new InputPortSequential(value,every,(position+1) % every,defaultValue)
 }
 
+class InputPortSingle(val value:Int, val defaultValue:Int=0, val isAtStart:Boolean=true) extends InputPort {
+  def read():Int=if(isAtStart) value else defaultValue
+  def refresh():InputPort=new InputPortSingle(value,defaultValue,false)
+}
+
 class InputFile(val ports:Map[Int,InputPort]=Map()) {
   def read(port:Int):Int=ports.getOrElse(port,InputPortConstant.blank).read()
   def addOrReplace(port:Int, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
