@@ -26,9 +26,9 @@ class MemoryChangeWord(val address: Int, override val value: Int) extends System
     systemC >>= Z80SystemController.changeMemoryWord(address,value)
 }
 
-class OutputChange(val port: Int, override val value: Int) extends SystemChangeBase(value) {
+class OutputChange(val port: Int, override val value: Int)(implicit debugger:Debugger) extends SystemChangeBase(value) {
   override def handle(systemC:Z80SystemController):Z80SystemController=
-    systemC >>= Z80SystemController.outputByte(port,value)
+    systemC >>= Z80SystemController.outputByte(debugger)(port,value)
 }
 
 class InputRefreshChange(val port: Int, override val value: Int= OpCode.ANY) extends SystemChangeBase(value) {

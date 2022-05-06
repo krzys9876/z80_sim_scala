@@ -25,7 +25,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       memoryController.get(pc,3))
   }
 
-  private def handle(opcode:OpCode):Z80System={
+  private def handle(opcode:OpCode)(implicit debugger:Debugger) :Z80System={
     val handler:OpCodeHandler = OpCodes.handlerMap.find(opcode)
     implicit val system:Z80System=this
     val (change,forwardPC)=handler.handle(opcode)
@@ -49,7 +49,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     (Z80SystemController(this) >>= Z80SystemController.changeList(chgListAfterPC)).get
   }
 
-  def readPort(port:Int):Int=inputController.read(port)
+  def readPort(port:Int)(implicit debugger:Debugger):Int=inputController.read(port)
 
   def getValueFromLocation(loc:Location):Int =
     loc match {

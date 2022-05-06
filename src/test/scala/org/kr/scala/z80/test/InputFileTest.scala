@@ -1,9 +1,12 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{InputController, InputPortConstant, InputPortMultiple, InputPortSequential, InputPortSingle}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, InputController, InputPortConstant, InputPortMultiple, InputPortSequential, InputPortSingle}
 import org.scalatest.funsuite.AnyFunSuite
 
 class InputFileTest extends AnyFunSuite{
+
+  implicit val debugger:Debugger=DummyDebugger
+
   test("input from blank input file") {
     //given
     val inC=InputController.blank

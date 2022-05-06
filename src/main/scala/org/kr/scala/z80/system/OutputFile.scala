@@ -1,20 +1,31 @@
 package org.kr.scala.z80.system
 
-class OutputFile(val files:Map[Int,Vector[Int]]) {
+class OutputPort(val data:Vector[Int]) {
+  def put(value:Int)= new OutputPort(data :+ value)
+  val size:Int=data.size
+  def apply(pos:Int):Int=data(pos)
+}
+
+object OutputPort {
+  val empty:OutputPort=new OutputPort(Vector())
+}
+
+class OutputFile(val files:Map[Int,OutputPort]) {
   def apply(port:Int,pos:Int):Int={
     val file=getFile(port)
     if(file.size>pos) file(pos)
     else 0
   }
-  def put(port:Int,value:Int):OutputFile={
-    val file=getFile(port) :+ value
+  def put(port:Int,value:Int)(implicit debugger: Debugger):OutputFile={
+    val file=getFile(port).put(value)
+    debugger.output(port,value)
     new OutputFile(files ++ Map(port->file))
   }
 
   def show(port:Int, limit:Int=9999)(implicit formatter:OutputFormatter, outputter:Outputter):Unit =
-    getFile(port).slice(0,limit).foreach(value=>outputter.out(formatter.format(value)))
+    getFile(port).data.slice(0,limit).foreach(value=>outputter.out(formatter.format(value)))
 
-  private def getFile(port:Int):Vector[Int]=files.getOrElse(port,Vector())
+  private def getFile(port:Int):OutputPort=files.getOrElse(port,OutputPort.empty)
 }
 
 object OutputFile {

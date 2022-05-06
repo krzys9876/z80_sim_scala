@@ -8,7 +8,7 @@ object OutputController {
   def apply(state: OutputFile):OutputController = new OutputController(state)
   def blank:OutputController = new OutputController(OutputFile.blank)
 
-  val out: (Int, Int) => OutputFile => OutputController = (port, value) => outputFile =>
+  def out(implicit debugger:Debugger): (Int, Int) => OutputFile => OutputController = (port, value) => outputFile =>
     OutputController(outputFile.put(port,value))
 
 }

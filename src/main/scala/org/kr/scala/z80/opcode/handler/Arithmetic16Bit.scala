@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
@@ -11,7 +11,7 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
   lazy val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
   lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
-  override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
     val oper = operation.find(code)
     val sourceLoc = source.find(code)
     val destLoc = destination.find(code)

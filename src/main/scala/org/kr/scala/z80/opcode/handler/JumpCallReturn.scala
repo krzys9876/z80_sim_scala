@@ -21,7 +21,7 @@ object JumpCallReturn extends OperationSpec with OpCodeHandler {
   lazy val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
   override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
-  override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
     val oper = operation.find(code)
     val instrSize = instSize.find(code)
     val checker = new JumpConditionChecker(condition.find(code))

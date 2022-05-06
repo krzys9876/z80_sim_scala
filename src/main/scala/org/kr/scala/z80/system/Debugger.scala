@@ -6,17 +6,15 @@ import org.kr.scala.z80.opcode.OpCode
 trait Debugger {
   def stepBefore(system:Z80System):Unit= {}
   def stepAfter(system:Z80System):Unit= {}
+  def output(port:Int,value:Int):Unit= {}
+  def input(port:Int,value:Int):Unit= {}
 }
 
 object DummyDebugger extends Debugger {
 }
 
 object ConsoleDebugger extends Debugger {
-  override def stepBefore(system: Z80System): Unit = {
-    val pc=system.registerController.get("PC")
-    val opCode=OpCode.getOpCodeObject(system.getCurrentOpCode)
-    println(f"PC:0x$pc%04X opcode: $opCode")
-  }
+  override def output(port:Int,value:Int):Unit= print(value.toChar)
 }
 
 object ConsoleDetailedDebugger extends Debugger {
@@ -30,4 +28,6 @@ object ConsoleDetailedDebugger extends Debugger {
     val regs=system.registerController.get.reg.mkString("|")
     println(f" after: $regs")
   }
+  override def output(port:Int,value:Int):Unit= print(f" | OUT port: 0x$port%02X value: 0x$value%02X |")
+  override def input(port:Int,value:Int):Unit= print(f" | IN port: 0x$port%02X value: 0x$value%02X |")
 }

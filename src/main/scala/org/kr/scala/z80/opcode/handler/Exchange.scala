@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{OpCode, OpCodeMap, OpCodes, OperationSpec, Location}
-import org.kr.scala.z80.system.{MemoryChangeWord, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeMap, OpCodes, OperationSpec}
+import org.kr.scala.z80.system.{Debugger, MemoryChangeWord, RegisterChange, SystemChangeBase, Z80System}
 
 class ExchangeLocationBase(val reg1: String, val reg2: String)
 
@@ -19,7 +19,7 @@ object Exchange extends OperationSpec with OpCodeHandler {
   lazy val exchangeLoc: OpCodeMap[List[ExchangeLocationBase]] = new OpCodeMap(OpCodes.exchangeMap, List(ExchangeLocationBase.empty))
   override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
 
-  override def handle(opcode:OpCode)(implicit system:Z80System):(List[SystemChangeBase],Int) = {
+  override def handle(opcode:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChangeBase],Int) = {
     val exchangeLocList=Exchange.exchangeLoc.find(opcode)
     val instrSize=Exchange.instSize.find(opcode)
 

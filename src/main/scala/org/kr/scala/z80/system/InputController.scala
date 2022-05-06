@@ -3,7 +3,7 @@ package org.kr.scala.z80.system
 class InputController(override val state:InputFile) extends BaseStateMonad[InputFile](state){
   def >>= (fChangeState: InputFile=>InputController):InputController=fChangeState(state)
 
-  def read(port:Int):Int=state.read(port)
+  def read(port:Int)(implicit debugger:Debugger):Int=state.read(port)
 }
 
 object InputController {

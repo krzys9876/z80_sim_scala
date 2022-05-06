@@ -1,10 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow,
-  FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet,
-  FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, None8b,
-  OpCode, OpCodeMap, OpCodes, OperationSpec}
-import org.kr.scala.z80.system.{Flag, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, None8b, OpCode, OpCodeMap, OpCodes, OperationSpec}
+import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
@@ -18,7 +15,7 @@ object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
       .filter(entry=>OpCodes.handlerMap.contains(entry._1)),
     0)
 
-  override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
     val oper = Arithmetic8Bit.operation.find(code)
     val instrSize = Arithmetic8Bit.instSize.find(code)
     val destLoc = Arithmetic8Bit.destination.find(code)

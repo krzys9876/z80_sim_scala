@@ -37,16 +37,22 @@ class InputPortMultiple(val valueList:List[Int], val defaultValue:Int=0) extends
 }
 
 class InputFile(val ports:Map[Int,InputPort]=Map()) {
-  def read(port:Int):Int=ports.getOrElse(port,InputPortConstant.blank).read()
+  def read(port:Int)(implicit debugger:Debugger):Int={
+    val value=ports.getOrElse(port,InputPortConstant.blank).read()
+    debugger.input(port, value)
+    value
+  }
   def addOrReplace(port:Int, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
 }
 
 object InputFile {
+  val CR:Int=0x0D
   def blank:InputFile=new InputFile(Map())
 
-  def keys2Ints(line:String):List[Int]=line.chars().toArray.toList ++ List(0x0D)
-  def keys2IntsCR(line:String,cr:Int):List[Int]=line.chars().toArray.toList ++ List(cr)
-  def lines2IntsCR(lines:String,cr:Int):List[Int]=lines.strip().split("\r\n").toList
-    .foldLeft(List[Int]())((list,line)=>list ++ keys2IntsCR(line.strip(),cr))
+  def keys2Ints(line:String,cr:Int=CR):List[Int]=line.chars().toArray.toList ++ List(cr)
+  def linesList2Ints(lines:List[String],cr:Int=CR):List[Int]=
+    lines
+    .foldLeft(List[Int]())((list,line)=>list ++ keys2Ints(line.strip(),cr))
+  def lines2Ints(lines:String,cr:Int=CR):List[Int]=linesList2Ints(lines.strip().split("\r\n").toList,cr)
 }
 

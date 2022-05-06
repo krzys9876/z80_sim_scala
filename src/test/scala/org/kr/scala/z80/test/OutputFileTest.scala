@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.OutputFile
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, OutputFile}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OutputFileTest extends AnyFunSuite{
@@ -18,6 +18,7 @@ class OutputFileTest extends AnyFunSuite{
   test("add elements to output file") {
     //given
     val outFile=OutputFile.blank
+    implicit val debugger:Debugger=DummyDebugger
     //when
     val outFileTest=outFile
       .put(10,0x41)
