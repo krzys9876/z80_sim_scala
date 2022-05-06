@@ -150,22 +150,22 @@ class OpArithmetic8BitTest extends AnyFunSuite {
 
   test("run CP r/(HL)/(IX+d)/(IY+d)/n") {
     // based on "real" Z80 emulator
-    testArithAccum(List(("A", 0x1D), ("B", 0x3E)), List((0x0000, 0xB8)), OpCode.ANY, "10_1_011")
-    testArithAccum(List(("A", 0xDF), ("IX", 0x0302)), List((0x0000, 0xDD), (0x0001, 0xBE), (0x0002, 0x01), (0x0303, 0x3E)), OpCode.ANY, "10_0_010", 3)
-    testArithAccum(List(("A", 0xA1), ("IY", 0x0405)), List((0x0000, 0xFD), (0x0001, 0xBE), (0x0002, 0xFD), (0x0402, 0x3E)), OpCode.ANY, "00_1_110", 3)
-    testArithAccum(List(("A", 0x63), ("HL", 0x0503)), List((0x0000, 0xBE), (0x0503, 0x3E)), OpCode.ANY, "00_1_010")
+    testArithAccum(List(("A", 0x1D), ("B", 0x3E)), List((0x0000, 0xB8)), 0x1D, "10_1_011")
+    testArithAccum(List(("A", 0xDF), ("IX", 0x0302)), List((0x0000, 0xDD), (0x0001, 0xBE), (0x0002, 0x01), (0x0303, 0x3E)), 0xDF, "10_0_010", 3)
+    testArithAccum(List(("A", 0xA1), ("IY", 0x0405)), List((0x0000, 0xFD), (0x0001, 0xBE), (0x0002, 0xFD), (0x0402, 0x3E)), 0xA1, "00_1_110", 3)
+    testArithAccum(List(("A", 0x63), ("HL", 0x0503)), List((0x0000, 0xBE), (0x0503, 0x3E)), 0x63, "00_1_010")
 
-    testArithAccum(List(("A", 0x00)), List((0x0000, 0xFE), (0x0001, 0x40)), OpCode.ANY, "10_0_011", 2)
-    testArithAccum(List(("A", 0xC0), ("E", 0x40)), List((0x0000, 0xBB)), OpCode.ANY, "10_0_010")
-    testArithAccum(List(("A", 0x80), ("B", 0x40)), List((0x0000, 0xB8)), OpCode.ANY, "00_0_110")
-    testArithAccum(List(("A", 0x40), ("C", 0x40)), List((0x0000, 0xB9)), OpCode.ANY, "01_0_010")
+    testArithAccum(List(("A", 0x00)), List((0x0000, 0xFE), (0x0001, 0x40)), 0x00, "10_0_011", 2)
+    testArithAccum(List(("A", 0xC0), ("E", 0x40)), List((0x0000, 0xBB)), 0xC0, "10_0_010")
+    testArithAccum(List(("A", 0x80), ("B", 0x40)), List((0x0000, 0xB8)), 0x80, "00_0_110")
+    testArithAccum(List(("A", 0x40), ("C", 0x40)), List((0x0000, 0xB9)), 0x40, "01_0_010")
 
-    testArithAccum(List(("A", 0xE0), ("D", 0xF0)), List((0x0000, 0xBA)), OpCode.ANY, "10_0_011")
-    testArithAccum(List(("A", 0xF0)), List((0x0000, 0xBF)), OpCode.ANY, "01_0_010")
-    testArithAccum(List(("A", 0x00), ("H", 0xF0)), List((0x0000, 0xBC)), OpCode.ANY, "00_0_011")
-    testArithAccum(List(("A", 0x10), ("L", 0xF0)), List((0x0000, 0xBD)), OpCode.ANY, "00_0_011")
+    testArithAccum(List(("A", 0xE0), ("D", 0xF0)), List((0x0000, 0xBA)), 0xE0, "10_0_011")
+    testArithAccum(List(("A", 0xF0)), List((0x0000, 0xBF)), 0xF0, "01_0_010")
+    testArithAccum(List(("A", 0x00), ("H", 0xF0)), List((0x0000, 0xBC)), 0x00, "00_0_011")
+    testArithAccum(List(("A", 0x10), ("L", 0xF0)), List((0x0000, 0xBD)), 0x10, "00_0_011")
 
-    testArithAccum(List(("A", 0x70), ("B", 0xF0)), List((0x0000, 0xB8)), OpCode.ANY, "10_0_111")
+    testArithAccum(List(("A", 0x70), ("B", 0xF0)), List((0x0000, 0xB8)), 0x70, "10_0_111")
   }
 
   test("run INC r/(HL)/(IX+d)/(IY+d)") {

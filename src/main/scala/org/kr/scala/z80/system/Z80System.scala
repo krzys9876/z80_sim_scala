@@ -9,12 +9,18 @@ class Z80System(val memoryController: MemoryController, val registerController: 
                 val inputController: InputController) {
   def step(implicit debugger:Debugger):Z80System= {
     val pc = registerController.get("PC")
-    val opCode=OpCode(
+    val opCode=getCurrentOpCode
+    //debugger.debug(pc,OpCode.getOpCodeObject(opCode))
+    debugger.debug(this)
+    handle(opCode)
+  }
+
+  def getCurrentOpCode:OpCode={
+    val pc=registerController.get("PC")
+    OpCode(
       memoryController.get(pc),
       memoryController.get(pc,1),
       memoryController.get(pc,3))
-    debugger.debug(pc,OpCode.getOpCodeObject(opCode))
-    handle(opCode)
   }
 
   private def handle(opcode:OpCode):Z80System={

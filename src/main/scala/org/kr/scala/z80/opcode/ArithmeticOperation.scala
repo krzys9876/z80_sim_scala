@@ -32,6 +32,8 @@ trait ArithmeticCalculatorBase {
   def calcAux(input:ArithmeticOpInput):Int=OpCode.ANY
 
   def calc(input:ArithmeticOpInput):ArithmeticOpResult
+
+  def getDestination(source:Location):Location=source
 }
 
 trait ArithmeticCalculatorByte extends ArithmeticCalculatorBase {
