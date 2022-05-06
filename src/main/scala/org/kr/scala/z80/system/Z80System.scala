@@ -11,8 +11,10 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val pc = registerController.get("PC")
     val opCode=getCurrentOpCode
     //debugger.debug(pc,OpCode.getOpCodeObject(opCode))
-    debugger.debug(this)
-    handle(opCode)
+    debugger.stepBefore(this)
+    val newSystem=handle(opCode)
+    debugger.stepAfter(this)
+    newSystem
   }
 
   def getCurrentOpCode:OpCode={

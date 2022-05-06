@@ -14,10 +14,11 @@ object Main extends App {
   val hexLines=Files.readAllLines(hexFile).asScala.toList
   // memory
   val memory=MemoryController.blank(0x10000) >>= MemoryController.loadHexLines(hexLines) >>= MemoryController.lockTo(0x4000)
+  //input file
   val keys="""
     |65536
     |10 FOR I=1 TO 10
-    |20 PRINT I
+    |20 PRINT I;" ";I^2;" ";I^3
     |30 NEXT I
     |LIST
     |RUN
@@ -28,11 +29,11 @@ object Main extends App {
   val input=InputController.blank >>=
     InputController.attachPort(CONTROL_PORT,inputPortControl) >>=
     InputController.attachPort(DATA_PORT,inputPortKeys)
+  //whole system
   val initSystem=Z80SystemController(new Z80System(memory,RegisterController.blank,OutputController.blank,input))
 
   //implicit val debugger:Debugger=ConsoleDetailedDebugger
-  implicit val debugger:Debugger=DummyDebugger
-  val after=initSystem >>= Z80SystemController.run(debugger)(100000)
+  val after=initSystem >>= Z80SystemController.run()(500000)
 
   implicit val outputFormatter:OutputFormatter=CharFormatter
   implicit val outputter:Outputter=PrintOutputter

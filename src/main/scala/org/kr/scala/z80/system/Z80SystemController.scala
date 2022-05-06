@@ -12,7 +12,7 @@ object Z80SystemController {
   def apply(state: Z80System):Z80SystemController = new Z80SystemController(state)
   def blank:Z80SystemController = new Z80SystemController(Z80System.blank)
 
-  def run(implicit debug:Debugger):Int=>Z80System=>Z80SystemController=
+  def run(implicit debug:Debugger=DummyDebugger):Int=>Z80System=>Z80SystemController=
     toGo=>system=>Z80SystemController(steps(Z80SystemController(system),toGo).state)
 
   @tailrec
