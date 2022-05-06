@@ -5,7 +5,7 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
 
-  implicit val debugger:Debugger=DummyDebugger
+  implicit val debugger:Debugger=ConsoleDebugger
 
   test("run OUT (n),A") {
     //given
@@ -98,9 +98,7 @@ class OpInOutTest extends AnyFunSuite {
         (0x0002,0xED),(0x0003,0x58), // IN E,(C)
         (0x0004,0xED),(0x0005,0x60), // IN H,(C)
         (0x0006,0xED),(0x0007,0x68), // IN L,(C)
-      ),0x20,
-      //new InputPortSequential(0xF0,3,0,0x0F),
-      new InputPortSequential(0xF0,2,0,0x0F),
+      ),0x20, new InputPortSequential(0xF0,2,0,0x0F),
       4)
     //then
     assert(systemC.get.registerController.get("PC")==8)
