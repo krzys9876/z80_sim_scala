@@ -31,6 +31,11 @@ class OutputChange(val port: Int, override val value: Int) extends SystemChangeB
     systemC >>= Z80SystemController.outputByte(port,value)
 }
 
+class InputRefreshChange(val port: Int, override val value: Int= OpCode.ANY) extends SystemChangeBase(value) {
+  override def handle(systemC:Z80SystemController):Z80SystemController=
+    systemC >>= Z80SystemController.refreshInput(port)
+}
+
 class DummyChange() extends SystemChangeBase(OpCode.ANY) {
   override def handle(systemC:Z80SystemController):Z80SystemController= systemC
 }

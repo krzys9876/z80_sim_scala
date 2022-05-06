@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.system.{DummyChange, OutputChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.system.{DummyChange, InputRefreshChange, OutputChange, SystemChangeBase, Z80System}
 
 object InputOutput extends OperationSpec with OpCodeHandler {
   // requires lazy initialization
@@ -13,26 +13,28 @@ object InputOutput extends OperationSpec with OpCodeHandler {
   override def handle(code: OpCode)(implicit system: Z80System): (List[SystemChangeBase], Int) = {
     val port = system.getValueFromLocation(portLocation.find(code))
     val chgList = operation.find(code).handle(system, port, valueLocation.find(code))
-    (List(chgList), instSize.find(code))
+    (chgList, instSize.find(code))
   }
 }
 
 sealed abstract class InOutOperation(val name:String) {
-  def handle(system:Z80System,port:Int,location:Location):SystemChangeBase
+  def handle(system:Z80System,port:Int,location:Location):List[SystemChangeBase]
 }
 
 object InOutOpType {
   case object In extends InOutOperation("IN") {
-    override def handle(system:Z80System,port:Int,location:Location):SystemChangeBase=
-      system.putValueToLocation(location,system.readPort(port))
+    override def handle(system:Z80System,port:Int,location:Location):List[SystemChangeBase]= {
+      List(system.putValueToLocation(location,system.readPort(port)),
+      new InputRefreshChange(port))
+    }
   }
   case object Out extends InOutOperation("OUT") {
-    override def handle(system:Z80System,port:Int,location:Location):SystemChangeBase=
-      new OutputChange(port,system.getValueFromLocation(location))
+    override def handle(system:Z80System,port:Int,location:Location):List[SystemChangeBase]=
+      List(new OutputChange(port,system.getValueFromLocation(location)))
   }
   case object None extends InOutOperation("NONE") {
-    override def handle(system:Z80System,port:Int,location:Location):SystemChangeBase=
-      new DummyChange()
+    override def handle(system:Z80System,port:Int,location:Location):List[SystemChangeBase]=
+      List(new DummyChange())
   }
 }
 

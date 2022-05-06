@@ -10,6 +10,13 @@ object InputController {
   def apply(state: InputFile):InputController = new InputController(state)
   def blank:InputController = new InputController(InputFile.blank)
 
-  val attachPort: (Int, InputPort) => InputFile => InputController = (port, inPort) => intputFile =>
-    InputController(intputFile.add(port,inPort))
+  val attachPort: (Int, InputPort) => InputFile => InputController = (port, inPort) => inputFile =>
+    InputController(inputFile.addOrReplace(port,inPort))
+
+  val refreshPort: Int => InputFile => InputController = port => inputFile => {
+    val inputPort:InputPort=inputFile.ports.getOrElse(port,InputPortConstant.blank)
+    val inputPortRefreshed:InputPort=inputPort.refresh()
+    InputController(inputFile.addOrReplace(port,inputPortRefreshed))
+  }
+
 }

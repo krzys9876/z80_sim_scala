@@ -57,6 +57,12 @@ object Z80SystemController {
       system.inputController))
   }
 
+  def refreshInput:Int => Z80System => Z80SystemController = port => system => {
+    val newIn=system.inputController >>= InputController.refreshPort(port)
+    Z80SystemController(new Z80System(system.memoryController,system.registerController,system.outputController,
+      newIn))
+  }
+
   def attachPort:(Int,InputPort) => Z80System => Z80SystemController = (port,inPort) => system => {
     val newIn=system.inputController >>= InputController.attachPort(port,inPort)
     Z80SystemController(new Z80System(system.memoryController,system.registerController,

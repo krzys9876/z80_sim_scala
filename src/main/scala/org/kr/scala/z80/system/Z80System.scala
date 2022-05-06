@@ -1,7 +1,7 @@
 package org.kr.scala.z80.system
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.opcode.handler.{Arithmetic16Bit, Arithmetic8Bit, BitManipulation, Exchange, InputOutput, JumpCallReturn, Load16Bit, Load8Bit, Nop, OpCodeHandler, RotateDigit, RotateShift, Unknown}
+import org.kr.scala.z80.opcode.handler.OpCodeHandler
 import org.kr.scala.z80.utils.Z80Utils
 
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
@@ -23,11 +23,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     val (change,forwardPC)=handler.handle(opcode)
     returnAfterChange(change,forwardPC)
   }
-
-  private val opcodeHandlers:List[OperationSpec with OpCodeHandler]=
-    List(Load8Bit,Load16Bit,Exchange,Arithmetic8Bit,Arithmetic16Bit,
-      RotateShift,RotateShift,RotateDigit,BitManipulation,JumpCallReturn,
-      InputOutput,Nop,Unknown)
 
   def getRegValue(symbol:String):Int=registerController.get(symbol)
   def getFlags:Flag=new Flag(registerController.get("F"))
