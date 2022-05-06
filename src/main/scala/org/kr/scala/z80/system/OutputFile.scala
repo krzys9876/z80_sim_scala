@@ -11,8 +11,8 @@ class OutputFile(val files:Map[Int,Vector[Int]]) {
     new OutputFile(files ++ Map(port->file))
   }
 
-  def print(port:Int,limit:Int=9999):Unit =
-    getFile(port).slice(0,limit).foreach(value=>println(f"0x$value%02X $value ${value.toChar}"))
+  def show(port:Int, limit:Int=9999)(implicit formatter:OutputFormatter, outputter:Outputter):Unit =
+    getFile(port).slice(0,limit).foreach(value=>outputter.out(formatter.format(value)))
 
   private def getFile(port:Int):Vector[Int]=files.getOrElse(port,Vector())
 }
@@ -20,3 +20,28 @@ class OutputFile(val files:Map[Int,Vector[Int]]) {
 object OutputFile {
   def blank:OutputFile= new OutputFile(Map())
 }
+
+trait OutputFormatter {
+  def format:Int=>String
+}
+
+object DetailedFormatter extends OutputFormatter {
+  override def format:Int=>String = value=>f"0x$value%02X $value ${value.toChar}"
+}
+
+object CharFormatter extends OutputFormatter {
+  override def format:Int=>String = value=>f"${value.toChar}"
+}
+
+trait Outputter {
+  def out:String=>Unit
+}
+
+object PrintOutputter extends Outputter {
+  override def out:String=>Unit=text=>print(text)
+}
+
+object PrintlnOutputter extends Outputter {
+  override def out:String=>Unit=text=>print(text)
+}
+

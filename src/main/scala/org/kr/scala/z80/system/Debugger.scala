@@ -4,7 +4,8 @@ import org.kr.scala.z80.opcode.OpCode
 
 trait Debugger {
   def debug(pc:Int,opCode:OpCode):Unit={}
-  def debug(system:Z80System):Unit={}
+  def debug(system:Z80System):Unit=
+    debug(system.registerController.get("PC"),OpCode.getOpCodeObject(system.getCurrentOpCode))
 }
 
 object DummyDebugger extends Debugger {
@@ -21,6 +22,6 @@ object ConsoleDetailedDebugger extends Debugger {
     val pc=system.registerController.get("PC")
     val opCode=OpCode.getOpCodeObject(system.getCurrentOpCode)
     val regs=system.registerController.get.reg.mkString("|")
-    println(f"PC:0x$pc%04X: $opCode $regs")
+    println(f"PC:0x$pc%04X | $opCode | $regs")
   }
 }

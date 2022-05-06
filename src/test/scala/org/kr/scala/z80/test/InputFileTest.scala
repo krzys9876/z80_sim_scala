@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{InputController, InputPortConstant, InputPortSequential, InputPortSingle}
+import org.kr.scala.z80.system.{InputController, InputPortConstant, InputPortMultiple, InputPortSequential, InputPortSingle}
 import org.scalatest.funsuite.AnyFunSuite
 
 class InputFileTest extends AnyFunSuite{
@@ -49,5 +49,19 @@ class InputFileTest extends AnyFunSuite{
     assert(inC.get.read(0x41)==0xCC)
     assert(inCAfter1.get.read(0x41)==0x22)
     assert(inCAfter2.get.read(0x41)==0x22)
+  }
+
+  test("input from multi-value input file") {
+    //given
+    val inC=InputController.blank >>= InputController.attachPort(0x52,new InputPortMultiple(List(0x01,0x02,0x03),0xFF))
+    //when
+    val inCAfter1=inC >>= InputController.refreshPort(0x52)
+    val inCAfter2=inCAfter1 >>= InputController.refreshPort(0x52)
+    val inCAfter3=inCAfter2 >>= InputController.refreshPort(0x52)
+    //then
+    assert(inC.get.read(0x52)==0x01)
+    assert(inCAfter1.get.read(0x52)==0x02)
+    assert(inCAfter2.get.read(0x52)==0x03)
+    assert(inCAfter3.get.read(0x52)==0xFF)
   }
 }
