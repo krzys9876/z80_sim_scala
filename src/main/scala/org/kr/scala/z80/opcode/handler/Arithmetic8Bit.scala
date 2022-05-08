@@ -1,27 +1,23 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, HandleArithmetic8Bit, Location, None8b, OpCode, OpCodeMap, OpCodes, OperationSpec}
+import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry,
+  FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet,
+  FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation,
+  OpCodeSize, OpCodeSourceLocation}
 import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
-object Arithmetic8Bit extends OperationSpec with OpCodeHandler {
+object Arithmetic8Bit extends OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
-
-  //TODO: evaluate if limiting map size improves speed
-  lazy val handledBy:List[OpCode]=OpCodes.handlerMap.m.filter({case(_,handler)=>handler.equals(this)}).keys.toList
-
-  lazy val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation8bMap.filter({case(op,_)=>handledBy.contains(op)}), None8b)
-  lazy val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
-  lazy val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
-  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap.filter({case(op,_)=>handledBy.contains(op)}),0)
-
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
-    val oper = Arithmetic8Bit.operation.find(code)
-    val instrSize = Arithmetic8Bit.instSize.find(code)
-    val destLoc = Arithmetic8Bit.destination.find(code)
+    val actualCode=castType[OpCode with OpCodeArithmetic8b with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize](code)
+
+    val oper = actualCode.operation
+    val instrSize = actualCode.size
+    val destLoc = actualCode.destination
     val dest = system.getValueFromLocation(destLoc)
     val prevFlags = system.getFlags
-    val sourceLocation = Arithmetic8Bit.source.find(code)
+    val sourceLocation = actualCode.source
     val prevValue = system.getValueFromLocation(sourceLocation)
 
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))

@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeMap, OpCodes, OperationSpec}
+import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeExchangeLocation, OpCodeSize}
 import org.kr.scala.z80.system.{Debugger, MemoryChangeWord, RegisterChange, SystemChangeBase, Z80System}
 
 class ExchangeLocationBase(val reg1: String, val reg2: String)
@@ -9,19 +9,14 @@ object ExchangeLocationBase {
   val empty: ExchangeLocationBase = new ExchangeLocationBase("", "")
 }
 
-
 class ExchangeLocation(override val reg1:String,override val reg2: String) extends ExchangeLocationBase(reg1,reg2)
 class ExchangeLocationIndirect(override val reg1:String,override val reg2: String) extends ExchangeLocationBase(reg1,reg2)
 
-
-
-object Exchange extends OperationSpec with OpCodeHandler {
-  lazy val exchangeLoc: OpCodeMap[List[ExchangeLocationBase]] = new OpCodeMap(OpCodes.exchangeMap, List(ExchangeLocationBase.empty))
-  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-
-  override def handle(opcode:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChangeBase],Int) = {
-    val exchangeLocList=Exchange.exchangeLoc.find(opcode)
-    val instrSize=Exchange.instSize.find(opcode)
+object Exchange extends OpCodeHandler {
+  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChangeBase],Int) = {
+    val actualCode=castType[OpCode with OpCodeExchangeLocation with OpCodeSize](code)
+    val exchangeLocList=actualCode.exchange
+    val instrSize=actualCode.size
 
     val chgList=exchangeLocList.flatMap(entry=>{
       entry match {

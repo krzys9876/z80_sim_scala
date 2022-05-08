@@ -1,14 +1,12 @@
 package org.kr.scala.z80.system
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.opcode.handler.OpCodeHandler
 import org.kr.scala.z80.utils.Z80Utils
 
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
                 val outputController: OutputController,
                 val inputController: InputController) {
   def step(implicit debugger:Debugger):Z80System= {
-    val pc = registerController.get("PC")
     val opCode=getCurrentOpCode
     debugger.stepBefore(this)
     val newSystem=handle(opCode)
@@ -26,8 +24,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   private def handle(opcode:OpCode)(implicit debugger:Debugger) :Z80System={
     val opCodeObject:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(opcode)
-    //val handler:OpCodeHandler = OpCodes.handlerMap.find(opcode)
-    //val handler=opCodeObject.asInstanceOf[OpCodeHandler]
     implicit val system:Z80System=this
     val (change,forwardPC)=opCodeObject.handler.handle(opCodeObject)
     returnAfterChange(change,forwardPC)

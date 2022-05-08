@@ -15,27 +15,20 @@ object JumpType {
   case object None extends JumpOperation("NONE")
 }
 
-object JumpCallReturn extends OperationSpec with OpCodeHandler {
-
-  //TODO: evaluate if limiting map size improves speed
-  lazy val handledBy:List[OpCode]=OpCodes.handlerMap.m.filter({case(_,handler)=>handler.equals(this)}).keys.toList
-
-  lazy val condition: OpCodeMap[JumpCondition] = new OpCodeMap(OpCodes.jumpConditionMap.filter({case(op,_)=>handledBy.contains(op)}), JumpCondition.empty)
-  lazy val operation: OpCodeMap[JumpOperation] = new OpCodeMap(OpCodes.jumpOperationMap.filter({case(op,_)=>handledBy.contains(op)}), JumpType.None)
-  lazy val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
-  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap.filter({case(op,_)=>handledBy.contains(op)}), 0)
-
+object JumpCallReturn extends OpCodeHandler {
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
-    val oper = operation.find(code)
-    val instrSize = instSize.find(code)
-    val checker = new JumpConditionChecker(condition.find(code))
+    val actualCode=castType[OpCode with OpCodeJump with OpCodeJumpCondition with OpCodeSourceLocation with OpCodeSize](code)
+
+    val oper = actualCode.operation
+    val instrSize = actualCode.size
+    val checker = new JumpConditionChecker(actualCode.condition)
 
     val changePC =
       handleJump(
         oper,
-        condition.find(code),
+        actualCode.condition,
         checker,
-        location.find(code),
+        actualCode.source,
         instrSize)
     val changeStack = handleStack(checker.isMet, oper, instrSize)
 

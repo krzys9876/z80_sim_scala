@@ -3,17 +3,12 @@ package org.kr.scala.z80.opcode.handler
 import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{Debugger, DummyChange, InputRefreshChange, OutputChange, SystemChangeBase, Z80System}
 
-object InputOutput extends OperationSpec with OpCodeHandler {
-  // requires lazy initialization
-  lazy val portLocation: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
-  lazy val valueLocation: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  lazy val operation: OpCodeMap[InOutOperation] = new OpCodeMap(OpCodes.inOutOperationMap, InOutOpType.None)
-  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-
+object InputOutput extends OpCodeHandler {
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
-    val port = system.getValueFromLocation(portLocation.find(code))
-    val chgList = operation.find(code).handle(system, port, valueLocation.find(code))
-    (chgList, instSize.find(code))
+    val actualCode=castType[OpCode with OpCodeInOut with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize](code)
+    val port = system.getValueFromLocation(actualCode.destination)
+    val chgList = actualCode.operation.handle(system, port, actualCode.source)
+    (chgList, actualCode.size)
   }
 }
 

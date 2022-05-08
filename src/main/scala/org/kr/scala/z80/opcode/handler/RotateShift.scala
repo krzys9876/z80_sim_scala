@@ -4,15 +4,13 @@ import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
-object RotateShift extends OperationSpec with OpCodeHandler {
-  lazy val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.rotateShiftMap, None8b)
-  lazy val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-
+object RotateShift extends OpCodeHandler {
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
-    val oper = operation.find(code)
-    val instrSize = instSize.find(code)
-    val loc = location.find(code)
+    val actualCode=castType[OpCode with OpCodeRotateShift with OpCodeSourceLocation with OpCodeSize](code)
+
+    val oper = actualCode.operation
+    val instrSize = actualCode.size
+    val loc = actualCode.source
     val prevValue = system.getValueFromLocation(loc)
     val prevFlags = system.getFlags
 

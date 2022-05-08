@@ -4,21 +4,13 @@ import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
-object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
+object Arithmetic16Bit extends OpCodeHandler {
   // Z80 manual page 52
-
-  //TODO: evaluate if limiting map size improves speed
-  lazy val handledBy:List[OpCode]=OpCodes.handlerMap.m.filter({case(_,handler)=>handler.equals(this)}).keys.toList
-
-  lazy val operation: OpCodeMap[ArithmeticOperation] = new OpCodeMap(OpCodes.operation16bMap.filter({case(op,_)=>handledBy.contains(op)}), None16b)
-  lazy val source: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
-  lazy val destination: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
-  lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap.filter({case(op,_)=>handledBy.contains(op)}), 0)
-
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
-    val oper = operation.find(code)
-    val sourceLoc = source.find(code)
-    val destLoc = destination.find(code)
+    val actualCode=castType[OpCode with OpCodeArithmetic16b with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize](code)
+    val oper = actualCode.operation
+    val sourceLoc = actualCode.source
+    val destLoc = actualCode.destination
 
     val calcInput = ArithmeticOpInput(
       system.getValueFromLocation(destLoc),
@@ -28,7 +20,7 @@ object Arithmetic16Bit extends OperationSpec with OpCodeHandler {
     val (result, flags) = oper.calcAll(calcInput)
     val chgList = List(system.putValueToLocation(destLoc, result.valueOut), new RegisterChange("F", flags()))
 
-    (chgList, instSize.find(code))
+    (chgList, actualCode.size)
   }
 }
 
