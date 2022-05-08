@@ -66,4 +66,11 @@ I was able to debug errors and run the most trivial Basic program, which was:
     30 NEXT I
 
 I remembered well that the ^ (power) operator was really slow so I deliberatelly used it to check for performance.
-The whole code needs ~40 seconds to complete and abount 0.5 million steps - without initial memory test, which I skip by entering "65536" at start of the Basic interpreter.
+
+## Performance ##
+
+The whole code initially needed ~40 seconds to complete and abount 0.5 million steps - without initial memory test, which I skip by entering "65536" at start of the Basic interpreter.
+
+
+Profiler showed that most of program time is spent looking up opcodes in various list (from OpCodes). 
+Some changes coupled with runtime class casting reduced this time to ~14 seconds. This needs more analysis but it already looks promising. 
