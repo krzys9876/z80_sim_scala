@@ -13,19 +13,9 @@ import java.util.{Calendar, Date}
 object Main extends App {
 
   if(args.length!=2) {
-    println("Incorrect input parameters: hex file and input file")
+    println("Incorrect input parameters: hex_file input_file")
     System.exit(1)
   }
-
-  println(OpCodes.list.length)
-  println(OpCodes.mapMainOnly.keys.toList.length)
-  println(OpCodes.mapMainOnly.mkString("|"))
-  println(OpCodes.mapMainSupp.keys.toList.length)
-  println(OpCodes.mapMainSupp.mkString("|"))
-  println(OpCodes.mapMainSupp2.keys.toList.length)
-  println(OpCodes.mapMainSupp2.mkString("|"))
-
-  println(OpCodes.mapMainOnly.getOrElse(OpCode(0xC3),OpCode(1,2,3)))
 
   println("START")
   val startTime=LocalDateTime.now()
@@ -33,8 +23,8 @@ object Main extends App {
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
   val MEMORY_TOP="65536"
-  val MAX_STEPS=450000
-  //val MAX_STEPS=Int.MaxValue
+  //val MAX_STEPS=450000
+  val MAX_STEPS=Int.MaxValue
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence
