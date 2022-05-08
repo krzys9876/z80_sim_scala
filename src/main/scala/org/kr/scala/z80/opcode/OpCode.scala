@@ -41,6 +41,9 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
       case 2 => supp
       case 3 => supp2
     }
+
+  def mainOnly:OpCode=OpCode(main)
+  def mainSupp:OpCode=OpCode(main,supp)
 }
 
 object OpCode {

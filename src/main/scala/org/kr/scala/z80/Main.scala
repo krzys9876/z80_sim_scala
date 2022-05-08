@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.opcode.{OpCode, OpCodes}
+import org.kr.scala.z80.opcode.{JP_nn, OpCode, OpCodes}
 import org.kr.scala.z80.opcode.handler.{Arithmetic8Bit, OpCodeHandler}
 import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, DummyDebugger, InputController, InputFile, InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
 
@@ -17,13 +17,24 @@ object Main extends App {
     System.exit(1)
   }
 
+  println(OpCodes.list.length)
+  println(OpCodes.mapMainOnly.keys.toList.length)
+  println(OpCodes.mapMainOnly.mkString("|"))
+  println(OpCodes.mapMainSupp.keys.toList.length)
+  println(OpCodes.mapMainSupp.mkString("|"))
+  println(OpCodes.mapMainSupp2.keys.toList.length)
+  println(OpCodes.mapMainSupp2.mkString("|"))
+
+  println(OpCodes.mapMainOnly.getOrElse(OpCode(0xC3),OpCode(1,2,3)))
+
   println("START")
   val startTime=LocalDateTime.now()
 
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
   val MEMORY_TOP="65536"
-  val MAX_STEPS=Int.MaxValue //450000
+  val MAX_STEPS=450000
+  //val MAX_STEPS=Int.MaxValue
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence

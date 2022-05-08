@@ -1,6 +1,7 @@
 package org.kr.scala.z80.opcode
 
 object OpCodes {
+  // All defined opcodes
   val list:List[OpCode with OpCodeHandledBy]=
     ADD_A_reg.codes ++ ADC_A_reg.codes ++ SUB_reg.codes ++ SBC_A_reg.codes ++
       AND_reg.codes ++ XOR_reg.codes ++ OR_reg.codes ++ CP_reg.codes ++
@@ -38,6 +39,36 @@ object OpCodes {
         NOP
       )
 
-  def getOpCodeObject(opCode:OpCode):OpCode with OpCodeHandledBy=
-    OpCodes.list.find(elem=>elem.matches(opCode)).getOrElse(new UNKNOWN_WITH_CODE(opCode))
+  // 1-byte opcodes
+  lazy val mapMainOnly:Map[OpCode,OpCode with OpCodeHandledBy]=
+    list
+      .filter(op=>op.numberOfCodes==1)
+      .foldLeft(Map[OpCode,OpCode with OpCodeHandledBy]())((m,op)=>
+        m ++ Map(OpCode(op.main)->op)
+      )
+
+  // 2-byte opcodes
+  lazy val mapMainSupp:Map[OpCode,OpCode with OpCodeHandledBy]=
+    list
+      .filter(op=>op.numberOfCodes==2)
+      .foldLeft(Map[OpCode,OpCode with OpCodeHandledBy]())((m,op)=>
+        m ++ Map(OpCode(op.main,op.supp)->op)
+      )
+
+  // 3-byte opcodes
+  lazy val mapMainSupp2:Map[OpCode,OpCode with OpCodeHandledBy]=
+    list
+      .filter(op=>op.numberOfCodes==3)
+      .foldLeft(Map[OpCode,OpCode with OpCodeHandledBy]())((m,op)=>
+        m ++ Map(OpCode(op.main,op.supp,op.supp2)->op)
+      )
+
+  def getOpCodeObject(code:OpCode):OpCode with OpCodeHandledBy= {
+    // search in 3 smaller maps instead of one larger list - ~20% faster (many most often used opcodes are 1-byte)
+    mapMainOnly.getOrElse(code.mainOnly,
+      mapMainSupp.getOrElse(code.mainSupp,
+        mapMainSupp2.getOrElse(code,
+          new UNKNOWN_WITH_CODE(code))))
+    //OpCodes.list.find(elem=>elem.matches(code)).getOrElse(new UNKNOWN_WITH_CODE(code))
+  }
 }
