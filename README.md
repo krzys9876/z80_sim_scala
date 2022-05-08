@@ -73,4 +73,4 @@ The whole code initially needed ~40 seconds to complete and abount 0.5 million s
 
 
 Profiler showed that most of program time is spent looking up opcodes in various list (from OpCodes). 
-Some changes coupled with runtime class casting reduced this time to ~14 seconds. This needs more analysis but it already looks promising. 
+After removing most of lookup operations the reference program takes ~5 seconds to complete - this is 8x improvement. 

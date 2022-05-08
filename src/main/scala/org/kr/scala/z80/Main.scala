@@ -17,12 +17,6 @@ object Main extends App {
     System.exit(1)
   }
 
-  val tstOpCode=OpCode(0x01)
-  val handler=OpCodes.handlerMap.find(tstOpCode)
-  println(handler)
-  println(handler.isInstanceOf[OpCodeHandler])
-  //println(handler.asInstanceOf[OpCodeHandler].handle
-
   println("START")
   val startTime=LocalDateTime.now()
 
