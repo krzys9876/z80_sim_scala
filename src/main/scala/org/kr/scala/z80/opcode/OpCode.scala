@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, JumpCondition, JumpOperation, JumpType, Load16BitOpType, Load8BitOpType, Neg8b, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, Scf8b, Sub8b, SubC16b, SubC8b, Xor8b}
+import org.kr.scala.z80.opcode.handler.JumpCondition
 import org.kr.scala.z80.system.Flag
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
@@ -30,10 +30,10 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
     }
   }
 
-
-  def mainSupp1Only:OpCode= replaceCode(3,OpCode.ANY)
-  def mainOnly:OpCode= mainSupp1Only.replaceCode(2,OpCode.ANY)
-  def equalsAny(opCode:OpCode):Boolean= this.equals(opCode) || this.equals(opCode.mainSupp1Only) || this.equals(opCode.mainOnly)
+  def matches(code:OpCode):Boolean=
+    main==code.main &&
+    (supp==code.supp || supp==OpCode.ANY || code.supp==OpCode.ANY) &&
+    (supp2==code.supp2 || supp2==OpCode.ANY || code.supp2==OpCode.ANY)
 
   def getCode(codeNo:Int):Int=
     codeNo match {

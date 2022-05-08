@@ -39,5 +39,5 @@ object OpCodes {
       )
 
   def getOpCodeObject(opCode:OpCode):OpCode with OpCodeHandledBy=
-    OpCodes.list.find(elem=>elem.equalsAny(opCode)).getOrElse(new UNKNOWN_WITH_CODE(opCode))
+    OpCodes.list.find(elem=>elem.matches(opCode)).getOrElse(new UNKNOWN_WITH_CODE(opCode))
 }
