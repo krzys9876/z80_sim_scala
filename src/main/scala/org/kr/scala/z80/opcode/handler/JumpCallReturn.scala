@@ -16,10 +16,14 @@ object JumpType {
 }
 
 object JumpCallReturn extends OperationSpec with OpCodeHandler {
-  lazy val condition: OpCodeMap[JumpCondition] = new OpCodeMap(OpCodes.jumpConditionMap, JumpCondition.empty)
-  lazy val operation: OpCodeMap[JumpOperation] = new OpCodeMap(OpCodes.jumpOperationMap, JumpType.None)
-  lazy val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
+
+  //TODO: evaluate if limiting map size improves speed
+  lazy val handledBy:List[OpCode]=OpCodes.handlerMap.m.filter({case(_,handler)=>handler.equals(this)}).keys.toList
+
+  lazy val condition: OpCodeMap[JumpCondition] = new OpCodeMap(OpCodes.jumpConditionMap.filter({case(op,_)=>handledBy.contains(op)}), JumpCondition.empty)
+  lazy val operation: OpCodeMap[JumpOperation] = new OpCodeMap(OpCodes.jumpOperationMap.filter({case(op,_)=>handledBy.contains(op)}), JumpType.None)
+  lazy val location: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap.filter({case(op,_)=>handledBy.contains(op)}), 0)
 
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
     val oper = operation.find(code)

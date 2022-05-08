@@ -10,7 +10,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   def step(implicit debugger:Debugger):Z80System= {
     val pc = registerController.get("PC")
     val opCode=getCurrentOpCode
-    //debugger.debug(pc,OpCode.getOpCodeObject(opCode))
     debugger.stepBefore(this)
     val newSystem=handle(opCode)
     debugger.stepAfter(this)
@@ -26,9 +25,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   private def handle(opcode:OpCode)(implicit debugger:Debugger) :Z80System={
-    val handler:OpCodeHandler = OpCodes.handlerMap.find(opcode)
+    val opCodeObject:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(opcode)
+    //val handler:OpCodeHandler = OpCodes.handlerMap.find(opcode)
+    //val handler=opCodeObject.asInstanceOf[OpCodeHandler]
     implicit val system:Z80System=this
-    val (change,forwardPC)=handler.handle(opcode)
+    val (change,forwardPC)=opCodeObject.handler.handle(opCodeObject)
     returnAfterChange(change,forwardPC)
   }
 

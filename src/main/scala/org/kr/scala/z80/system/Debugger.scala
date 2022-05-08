@@ -1,6 +1,6 @@
 package org.kr.scala.z80.system
 
-import org.kr.scala.z80.opcode.OpCode
+import org.kr.scala.z80.opcode.OpCodes
 
 //TODO: add debugging functions for IN/OUT
 trait Debugger {
@@ -20,7 +20,7 @@ object ConsoleDebugger extends Debugger {
 object ConsoleDetailedDebugger extends Debugger {
   override def stepBefore(system: Z80System): Unit = {
     val pc=system.registerController.get("PC")
-    val opCode=OpCode.getOpCodeObject(system.getCurrentOpCode)
+    val opCode=OpCodes.getOpCodeObject(system.getCurrentOpCode)
     val regs=system.registerController.get.reg.mkString("|")
     print(f"PC:0x$pc%04X | $opCode | before: $regs")
   }

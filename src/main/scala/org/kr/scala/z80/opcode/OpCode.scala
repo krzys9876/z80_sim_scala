@@ -85,9 +85,6 @@ object OpCode {
   def generateListByBit(base:OpCode, codeNo:Int, bit:Int):List[OpCode]=
     generateMapByBit(base, codeNo, bit).keys.flatten.toList
 
-  def getOpCodeObject(opCode:OpCode):OpCode=
-    OpCodes.list.find(elem=>elem.equalsAny(opCode)).getOrElse(opCode)
-
   def generateFromLists(opcodes:List[OpCode],locations:List[Location],sizes:List[Int]):List[(OpCode,Location,Int)]=
     opcodes.zip(locations).zip(sizes).map(entry=>(entry._1._1,entry._1._2,entry._2))
 

@@ -1,10 +1,10 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{BitOperation, ExchangeLocationBase, InOutOperation, JumpCondition, JumpOperation, Load16BitOpType, Load8BitOpType, OpCodeHandler, Unknown}
+import org.kr.scala.z80.opcode.handler.{BitOperation, ExchangeLocationBase, InOutOperation, JumpCondition, JumpOperation, OpCodeHandler, Unknown}
 
 //TODO: all pointer to opcode handler in definition of every opcode - this will also simplify Z80System.handle method
 object OpCodes {
-  val list:List[OpCode]=
+  val list:List[OpCode with OpCodeHandledBy]=
     ADD_A_reg.codes ++ ADC_A_reg.codes ++ SUB_reg.codes ++ SBC_A_reg.codes ++
       AND_reg.codes ++ XOR_reg.codes ++ OR_reg.codes ++ CP_reg.codes ++
       INC_reg.codes ++ DEC_reg.codes ++
@@ -90,4 +90,7 @@ object OpCodes {
     .filter(_.isInstanceOf[OpCodeHandledBy])
     .map(op=>op->op.asInstanceOf[OpCodeHandledBy].handler).toMap
   lazy val handlerMap:OpCodeMap[OpCodeHandler]=new OpCodeMap(handlerMapInput,Unknown)
+
+  def getOpCodeObject(opCode:OpCode):OpCode with OpCodeHandledBy=
+    OpCodes.list.find(elem=>elem.equalsAny(opCode)).getOrElse(new UNKNOWN_WITH_CODE(opCode))
 }

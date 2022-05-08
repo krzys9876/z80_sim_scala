@@ -1,9 +1,14 @@
 package org.kr.scala.z80
 
+import org.kr.scala.z80.opcode.{OpCode, OpCodes}
+import org.kr.scala.z80.opcode.handler.{Arithmetic8Bit, OpCodeHandler}
 import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, DummyDebugger, InputController, InputFile, InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
+import java.time.temporal.ChronoUnit
+import java.time.{LocalDate, LocalDateTime}
+import java.util.{Calendar, Date}
 
 object Main extends App {
 
@@ -12,11 +17,19 @@ object Main extends App {
     System.exit(1)
   }
 
+  val tstOpCode=OpCode(0x01)
+  val handler=OpCodes.handlerMap.find(tstOpCode)
+  println(handler)
+  println(handler.isInstanceOf[OpCodeHandler])
+  //println(handler.asInstanceOf[OpCodeHandler].handle
+
   println("START")
+  val startTime=LocalDateTime.now()
 
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
   val MEMORY_TOP="65536"
+  val MAX_STEPS=450000
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence
@@ -25,11 +38,23 @@ object Main extends App {
   val initSystem=Z80SystemController(new Z80System(memory,RegisterController.blank,OutputController.blank,input))
 
   implicit val debugger:Debugger=ConsoleDebugger
-  val after=initSystem >>= Z80SystemController.run(debugger)(500000)
+  val after=initSystem >>= Z80SystemController.run(debugger)(MAX_STEPS)
 
   //printOutput()
 
+  val endTime=LocalDateTime.now()
+  val mseconds=ChronoUnit.MILLIS.between(startTime,endTime)
+  println(f"elapsed miliseconds: $mseconds")
   println("END")
+
+  //1. initial version: ~29 seconds
+  //2. limit opcode lists in handlers only to those handled by handler: ~16-20 seconds
+  // pros: lists as shorter, maintains compile time type checking
+  // cons: still uses list lookup
+  //3. runtime type conversion from OpCodes.list to type required by handler - same or little slower than limiting lists
+  // pros: simpifies code
+  // cons: users runtime type casting which may resuly in runtime exception, not compile time exception
+  //4. as 3. but simplify Z80System.handle (do not lookup twice) ~ 14 sec. - bes option so far
 
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList

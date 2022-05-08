@@ -313,3 +313,7 @@ object OUT_C_L extends OpCode(0xED,0x69) with DestinationC with SourceL with Out
 
 //NOP
 object NOP extends  OpCode(0x00) with Size1 with HandleNop with Label {override val label:String="NOP"}
+
+//UNKNOWN
+object UNKNOWN extends OpCode(OpCode.ANY) with HandleUnknown
+class UNKNOWN_WITH_CODE(opcode:OpCode) extends OpCode(opcode.main,opcode.supp,opcode.supp2) with HandleUnknown

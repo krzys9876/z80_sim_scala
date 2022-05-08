@@ -11,17 +11,43 @@ object Load16BitOpType {
 }
 
 object Load16Bit extends LoadSpec with OpCodeHandler {
-  override lazy val sourceLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap, Location.empty)
-  override lazy val destLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap, Location.empty)
-  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap, 0)
-  lazy val stackChange: OpCodeMap[Int] = new OpCodeMap(OpCodes.stackChangeMap, 0)
+
+  //TODO: evaluate if limiting map size improves speed
+  lazy val handledBy:List[OpCode]=OpCodes.handlerMap.m.filter({case(_,handler)=>handler.equals(this)}).keys.toList
+
+  override lazy val sourceLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.sourceMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
+  override lazy val destLoc: OpCodeMap[Location] = new OpCodeMap(OpCodes.destinationMap.filter({case(op,_)=>handledBy.contains(op)}), Location.empty)
+  override lazy val instSize: OpCodeMap[Int] = new OpCodeMap(OpCodes.sizeMap.filter({case(op,_)=>handledBy.contains(op)}), 0)
+  lazy val stackChange: OpCodeMap[Int] = new OpCodeMap(OpCodes.stackChangeMap.filter({case(op,_)=>handledBy.contains(op)}), 0)
 
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
-    val sourceLoc = Load16Bit.sourceLoc.find(code)
+    doHandle(code.asInstanceOf[OpCode with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize])
+
+    /*val sourceLoc = Load16Bit.sourceLoc.find(code)
     val value = system.getValueFromLocation(sourceLoc)
     val destLoc = Load16Bit.destLoc.find(code)
     val instrSize = Load16Bit.instSize.find(code)
     val stackChange = Load16Bit.stackChange.find(code)
+
+    val chgList = List(system.putValueToLocation(destLoc, value, isWord = true))
+    val stackChgList = destLoc match {
+      case Location(r, _, _, rd, dirO, _, _) if r != "" || (rd != "" && dirO != OpCode.ANY) =>
+        List(new RegisterChangeRelative("SP", stackChange))
+      case _ => List()
+    }
+    (chgList ++ stackChgList, instrSize)*/
+  }
+
+  def doHandle(code: OpCode with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize)
+              (implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
+    val sourceLoc = code.source
+    val value = system.getValueFromLocation(sourceLoc)
+    val destLoc = code.destination
+    val instrSize = code.size
+    val stackChange = code match {
+      case change: OpStackChange => change.stackChange
+      case _ => 0
+    }
 
     val chgList = List(system.putValueToLocation(destLoc, value, isWord = true))
     val stackChgList = destLoc match {
