@@ -16,7 +16,7 @@ class OpBasicTest extends AnyFunSuite {
     //given
     val sys1=Z80SystemController.blank
     //when
-    val sys2=sys1 >>= Z80SystemController.run(debugger)(1000)
+    val sys2=sys1 >>= Z80SystemController.run(debugger)(1000L)
     //then
     assert(sys2.get.registerController.get("PC")==1000)
   }
@@ -25,7 +25,7 @@ class OpBasicTest extends AnyFunSuite {
     //given
     val sys1=Z80SystemController.blank >>= Z80SystemController.changeRegister("PC",65534)
     //when
-    val sys2=sys1 >>= Z80SystemController.run(debugger)(3)
+    val sys2=sys1 >>= Z80SystemController.run(debugger)(3L)
     //then
     assert(sys2.get.registerController.get("PC")==1)
   }

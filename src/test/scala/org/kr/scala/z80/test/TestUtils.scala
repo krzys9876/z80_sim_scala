@@ -31,7 +31,7 @@ object TestUtils {
     )
     //when
     val sysInit = Z80SystemController(new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController))
-    val sysTest = sysInit >>= Z80SystemController.run(debugger)(steps)
+    val sysTest = sysInit >>= Z80SystemController.run(debugger)(steps.toLong)
     Z80SystemController(sysTest.get)
   }
 

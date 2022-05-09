@@ -24,7 +24,7 @@ object Main extends App {
   val DATA_PORT=0xB0
   val MEMORY_TOP="65536"
   //val MAX_STEPS=450000
-  val MAX_STEPS=Int.MaxValue
+  val MAX_STEPS=Long.MaxValue
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence
