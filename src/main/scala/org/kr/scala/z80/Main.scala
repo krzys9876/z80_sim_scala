@@ -1,6 +1,7 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, DummyDebugger, InputController, InputFile, InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile, InputPortMultiple,
+  MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -9,8 +10,8 @@ import java.time.LocalDateTime
 
 object Main extends App {
 
-  if(args.length!=2) {
-    println("Incorrect input parameters: hex_file input_file")
+  if(args.length<2 || args.length>3) {
+    println("Incorrect input parameters: hex_file input_file [steps]")
     System.exit(1)
   }
 
@@ -20,19 +21,16 @@ object Main extends App {
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
   val MEMORY_TOP="65536"
-  val MAX_STEPS=450000L
-  //val MAX_STEPS=Long.MaxValue
+  val MAX_STEPS=if(args.length==3) args(2).toLong else Long.MaxValue
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence
   val input=prepareInput(args(1))
   //whole system
-  val initSystem=Z80SystemController(new Z80System(memory,RegisterController.blank,OutputController.blank,input))
+  val initSystem=new Z80System(memory,RegisterController.blank,OutputController.blank,input)
 
   implicit val debugger:Debugger=ConsoleDebugger
-  val after=initSystem >>= Z80SystemController.run(debugger)(MAX_STEPS)
-
-  //printOutput()
+  val after=Z80SystemController(initSystem) >>= Z80SystemController.run(debugger)(MAX_STEPS)
 
   val endTime=LocalDateTime.now()
   val mseconds=ChronoUnit.MILLIS.between(startTime,endTime)
@@ -46,7 +44,10 @@ object Main extends App {
   //3. runtime type conversion from OpCodes.list to type required by handler - same or little slower than limiting lists
   // pros: simpifies code
   // cons: users runtime type casting which may resuly in runtime exception, not compile time exception
-  //4. as 3. but simplify Z80System.handle (do not lookup twice) ~ 14 sec. - bes option so far
+  //4. as 3. but simplify Z80System.handle (do not lookup twice) ~ 14 sec. - best option so far
+  //5. reduce all list lookups to one per step ~4-5 seconds
+  //6. replace register map with vals ~3-4 seconds
+
 
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList
