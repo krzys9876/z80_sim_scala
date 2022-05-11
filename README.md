@@ -70,8 +70,12 @@ I remember well that the power operator (^) in Basic was really slow, therefore 
 
 ## Performance ##
 
-The whole code initially needed ~40 seconds to complete and ~0.5 million steps - without initial memory test, which I skip by entering "65536" at start of the Basic interpreter.
+The whole code initially needed ~40 seconds to complete and ~0.5 million steps (11th gen i5) - without initial memory test, 
+which I skip by entering "65536" at start of the Basic interpreter.
 
 
 Profiler showed that most of the program time is spent looking up opcodes in various list (from OpCodes). 
 After removing most of the lookup operations the reference program takes ~4 seconds to complete - this is 10x improvement. 
+
+Another optimization was to replace costly map handling in register file. After replacing it with simple vals 
+the reference program finishes in ~3 seconds.
