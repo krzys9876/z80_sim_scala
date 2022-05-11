@@ -1,14 +1,11 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.opcode.{JP_nn, OpCode, OpCodes}
-import org.kr.scala.z80.opcode.handler.{Arithmetic8Bit, OpCodeHandler}
 import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, DummyDebugger, InputController, InputFile, InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
 import java.time.temporal.ChronoUnit
-import java.time.{LocalDate, LocalDateTime}
-import java.util.{Calendar, Date}
+import java.time.LocalDateTime
 
 object Main extends App {
 
@@ -23,8 +20,8 @@ object Main extends App {
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
   val MEMORY_TOP="65536"
-  //val MAX_STEPS=450000
-  val MAX_STEPS=Long.MaxValue
+  val MAX_STEPS=450000L
+  //val MAX_STEPS=Long.MaxValue
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence

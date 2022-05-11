@@ -21,11 +21,11 @@ object ConsoleDetailedDebugger extends Debugger {
   override def stepBefore(system: Z80System): Unit = {
     val pc=system.registerController.get("PC")
     val opCode=OpCodes.getOpCodeObject(system.getCurrentOpCode)
-    val regs=system.registerController.get.reg.mkString("|")
+    val regs=system.registerController.get.toString
     print(f"PC:0x$pc%04X | $opCode | before: $regs")
   }
   override def stepAfter(system: Z80System): Unit = {
-    val regs=system.registerController.get.reg.mkString("|")
+    val regs=system.registerController.get.toString
     println(f" after: $regs")
   }
   override def output(port:Int,value:Int):Unit= print(f" | OUT port: 0x$port%02X value: 0x$value%02X |")
