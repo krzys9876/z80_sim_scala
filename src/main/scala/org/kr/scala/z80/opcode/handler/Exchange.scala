@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeExchangeLocation, OpCodeSize}
+import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeExchangeLocation, OpCodeSize, OpCodeTCycles}
 import org.kr.scala.z80.system.{Debugger, MemoryChangeWord, RegSymbol, RegisterChange, Regs, SystemChangeBase, Z80System}
 
 class ExchangeLocationBase(val reg1: RegSymbol, val reg2: RegSymbol)
@@ -13,10 +13,9 @@ class ExchangeLocation(override val reg1:RegSymbol,override val reg2: RegSymbol)
 class ExchangeLocationIndirect(override val reg1:RegSymbol,override val reg2: RegSymbol) extends ExchangeLocationBase(reg1,reg2)
 
 object Exchange extends OpCodeHandler {
-  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChangeBase],Int) = {
-    val actualCode=castType[OpCode with OpCodeExchangeLocation with OpCodeSize](code)
+  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChangeBase],Int, Int) = {
+    val actualCode=castType[OpCode with OpCodeExchangeLocation with OpCodeSize with OpCodeTCycles](code)
     val exchangeLocList=actualCode.exchange
-    val instrSize=actualCode.size
 
     val chgList=exchangeLocList.flatMap(entry=>{
       entry match {
@@ -30,6 +29,6 @@ object Exchange extends OpCodeHandler {
             new RegisterChange(loc.reg2,memLoc1))
       }
     })
-    (chgList,instrSize)
+    (chgList,actualCode.size,actualCode.t)
   }
 }

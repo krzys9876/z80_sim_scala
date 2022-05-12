@@ -5,7 +5,8 @@ import org.kr.scala.z80.utils.Z80Utils
 
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
                 val outputController: OutputController,
-                val inputController: InputController) {
+                val inputController: InputController,
+                val elapsedTCycles:Int) {
   def step(implicit debugger:Debugger):Z80System= {
     val opCode=getCurrentOpCode
     debugger.stepBefore(this)
@@ -25,8 +26,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def handle(opcode:OpCode)(implicit debugger:Debugger) :Z80System={
     val opCodeObject:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(opcode)
     implicit val system:Z80System=this
-    val (change,forwardPC)=opCodeObject.handler.handle(opCodeObject)
-    returnAfterChange(change,forwardPC)
+    val (change,forwardPC,forwardCycles)=opCodeObject.handler.handle(opCodeObject)
+    returnAfterChange(change,forwardPC,forwardCycles)
   }
 
   def getRegValue(symbol:RegSymbol):Int=registerController.get(symbol)
@@ -41,8 +42,8 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   private def getByte(address:Int):Int = memoryController.get(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memoryController.get(address+1),memoryController.get(address))
 
-  private def returnAfterChange(chgList:List[SystemChangeBase],forwardPC:Int=0):Z80System = {
-    val chgListAfterPC=chgList ++ (if(forwardPC!=0) List(new RegisterChangeRelative(Regs.PC,forwardPC)) else List())
+  private def returnAfterChange(chgList:List[SystemChangeBase],forwardPC:Int=0,forwardTCycles:Int=0):Z80System = {
+    val chgListAfterPC=chgList ++ (if(forwardPC!=0 || forwardTCycles!=0) List(new PCChange(forwardPC,forwardTCycles)) else List())
     (Z80SystemController(this) >>= Z80SystemController.changeList(chgListAfterPC)).get
   }
 
@@ -84,5 +85,5 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
 object Z80System {
   val blank:Z80System=new Z80System(MemoryController.blank(0x10000),RegisterController.blank,
-    OutputController.blank, InputController.blank)
+    OutputController.blank, InputController.blank,0)
 }

@@ -30,7 +30,7 @@ object TestUtils {
       (memC, entry) => memC >>= MemoryController.poke(entry._1, entry._2)
     )
     //when
-    val sysInit = Z80SystemController(new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController))
+    val sysInit = Z80SystemController(new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController,0))
     val sysTest = sysInit >>= Z80SystemController.run(debugger)(steps.toLong)
     Z80SystemController(sysTest.get)
   }

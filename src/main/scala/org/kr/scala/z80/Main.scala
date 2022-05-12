@@ -29,7 +29,7 @@ object Main extends App {
   // input keys sequence
   val input=prepareInput(args(1))
   //whole system
-  val initSystem=new Z80System(memory,RegisterController.blank,OutputController.blank,input)
+  val initSystem=new Z80System(memory,RegisterController.blank,OutputController.blank,input,0)
 
   implicit val debugger:Debugger=ConsoleDebugger
   val after=Z80SystemController(initSystem) >>= Z80SystemController.run(debugger)(MAX_STEPS)

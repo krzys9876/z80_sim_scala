@@ -2,13 +2,18 @@ package org.kr.scala.z80.system
 
 import org.kr.scala.z80.opcode.OpCode
 
-abstract class SystemChangeBase(val value: Int) {
+abstract class SystemChangeBase(val value: Int, val valueSupp:Int=0) {
   def handle(systemC:Z80SystemController):Z80SystemController
 }
 
 class RegisterChange(val regSymbol: RegSymbol, override val value: Int) extends SystemChangeBase(value) {
   override def handle(systemC:Z80SystemController):Z80SystemController=
     systemC >>= Z80SystemController.changeRegister(regSymbol,value)
+}
+
+class PCChange(override val value: Int, override val valueSupp: Int) extends SystemChangeBase(value) {
+  override def handle(systemC:Z80SystemController):Z80SystemController=
+    systemC >>= Z80SystemController.changePCAndCycles(value,valueSupp)
 }
 
 class RegisterChangeRelative(val regSymbol: RegSymbol, override val value: Int) extends SystemChangeBase(value) {

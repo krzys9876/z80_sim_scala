@@ -29,44 +29,50 @@ object Z80SystemController {
   def changeRegister:(RegSymbol,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.set(regSymbol,value)
     Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),
-      system.outputController,system.inputController))
+      system.outputController,system.inputController,system.elapsedTCycles))
     }
+
+  def changePCAndCycles:(Int,Int) => Z80System => Z80SystemController = (pc,cycles) => system => {
+    val newReg=system.registerController >>= RegisterController.setRelative(Regs.PC,pc)
+    Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),
+      system.outputController,system.inputController,system.elapsedTCycles+cycles))
+  }
 
   def changeRegisterRelative:(RegSymbol,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.setRelative(regSymbol,value)
     Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),
-      system.outputController,system.inputController))
+      system.outputController,system.inputController,system.elapsedTCycles))
   }
 
   def changeMemoryByte:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
     val newMem=system.memoryController >>= MemoryController.poke(address,value)
     Z80SystemController(new Z80System(newMem,system.registerController,
-      system.outputController,system.inputController))
+      system.outputController,system.inputController,system.elapsedTCycles))
   }
 
   def changeMemoryWord:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
     val newMem=system.memoryController >>= MemoryController.poke(address,Z80Utils.getL(value)) >>=
        MemoryController.poke(address+1,Z80Utils.getH(value))
     Z80SystemController(new Z80System(newMem,system.registerController,
-      system.outputController,system.inputController))
+      system.outputController,system.inputController,system.elapsedTCycles))
   }
 
   def outputByte(implicit debugger:Debugger):(Int,Int) => Z80System => Z80SystemController = (port, value) => system => {
     val newOut=system.outputController >>= OutputController.out(debugger)(port,value)
     Z80SystemController(new Z80System(system.memoryController,system.registerController,newOut,
-      system.inputController))
+      system.inputController,system.elapsedTCycles))
   }
 
   def refreshInput:Int => Z80System => Z80SystemController = port => system => {
     val newIn=system.inputController >>= InputController.refreshPort(port)
     Z80SystemController(new Z80System(system.memoryController,system.registerController,system.outputController,
-      newIn))
+      newIn,system.elapsedTCycles))
   }
 
   def attachPort:(Int,InputPort) => Z80System => Z80SystemController = (port,inPort) => system => {
     val newIn=system.inputController >>= InputController.attachPort(port,inPort)
     Z80SystemController(new Z80System(system.memoryController,system.registerController,
-      system.outputController,newIn))
+      system.outputController,newIn,system.elapsedTCycles))
   }
 
   def change:SystemChangeBase => Z80System => Z80SystemController = change => system =>

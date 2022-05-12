@@ -1,16 +1,15 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation}
+import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
 import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Arithmetic8Bit extends OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
-    val actualCode=castType[OpCode with OpCodeArithmetic8b with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize](code)
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int, Int) = {
+    val actualCode=castType[OpCode with OpCodeArithmetic8b with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with OpCodeTCycles](code)
 
     val oper = actualCode.operation
-    val instrSize = actualCode.size
     val destLoc = actualCode.destination
     val dest = system.getValueFromLocation(destLoc)
     val prevFlags = system.getFlags
@@ -19,7 +18,7 @@ object Arithmetic8Bit extends OpCodeHandler {
 
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))
     val chgList = List(system.putValueToLocation(oper.getDestination(sourceLocation), result.valueOut))
-    (chgList ++ List(new RegisterChange(Regs.F, flags())), instrSize)
+    (chgList ++ List(new RegisterChange(Regs.F, flags())), actualCode.size, actualCode.t)
   }
 }
 
