@@ -6,7 +6,7 @@ import org.kr.scala.z80.system.Regs
 //Arithmetic 8b
 // generator for ADD A,x - TBC if this is an efficient and readable way of defining opcodes
 class Arithmetic8bDef(main:Int, supp:Int, val destination:Location, val size:Int, val t:Int, val label:String)
-  extends OpCode(main,supp) with HandleArithmetic8Bit with OpCodeDestLocation with OpCodeSize with Label
+  extends OpCode(main,supp) with HandleArithmetic8Bit with OpCodeDestLocation with OpCodeSize with OpCodeTCycles with Label
 
 //ADD
 object ADD_A_reg {
@@ -118,69 +118,69 @@ object DEC_IX extends OpCode(0xDD,0x2B) with HandleArithmetic16Bit with Arith16b
 object DEC_IY extends OpCode(0xFD,0x2B) with HandleArithmetic16Bit with Arith16bDec with SourceDestIY with Size2 with T10 with Label {override val label:String="DEC IY"}
 
 // Exchange
-object EX_DE_HL extends OpCode(0xEB) with HandleExchange with ExchangeDEHL with Size1 with Label {override val label:String="EX DE,HL"}
-object EX_AF_AF1 extends OpCode(0x08) with HandleExchange with ExchangeAF1 with Size1 with Label {override val label:String="EX AF,AF'"}
-object EXX extends OpCode(0xD9) with HandleExchange with ExchangeAll1 with Size1 with Label {override val label:String="EXX"}
-object EX_SP_HL extends OpCode(0xE3) with HandleExchange with ExchangeSPHL with Size1 with Label {override val label:String="EX (SP),HL"}
-object EX_SP_IX extends OpCode(0xDD,0xE3) with HandleExchange with ExchangeSPIX with Size2 with Label {override val label:String="EX (SP),IX"}
-object EX_SP_IY extends OpCode(0xFD,0xE3) with HandleExchange with ExchangeSPIY with Size2 with Label {override val label:String="EX (SP),IY"}
+object EX_DE_HL extends OpCode(0xEB) with HandleExchange with ExchangeDEHL with Size1 with T4 with Label {override val label:String="EX DE,HL"}
+object EX_AF_AF1 extends OpCode(0x08) with HandleExchange with ExchangeAF1 with Size1 with T4 with Label {override val label:String="EX AF,AF'"}
+object EXX extends OpCode(0xD9) with HandleExchange with ExchangeAll1 with Size1 with T4 with Label {override val label:String="EXX"}
+object EX_SP_HL extends OpCode(0xE3) with HandleExchange with ExchangeSPHL with Size1 with T19 with Label {override val label:String="EX (SP),HL"}
+object EX_SP_IX extends OpCode(0xDD,0xE3) with HandleExchange with ExchangeSPIX with Size2 with T23 with Label {override val label:String="EX (SP),IX"}
+object EX_SP_IY extends OpCode(0xFD,0xE3) with HandleExchange with ExchangeSPIY with Size2 with T23 with Label {override val label:String="EX (SP),IY"}
 
 //Bit manipulation
 // generator for BIT, RES, SET
-class BitManipulationDef(main:Int, supp:Int, supp2:Int, val source:Location, val bit:Int, val size:Int, val label:String)
-  extends OpCode(main,supp,supp2) with HandleBitManipulation with OpCodeSourceLocation with OpCodeSize with Label
+class BitManipulationDef(main:Int, supp:Int, supp2:Int, val source:Location, val bit:Int, val size:Int, val t:Int, val label:String)
+  extends OpCode(main,supp,supp2) with HandleBitManipulation with OpCodeSourceLocation with OpCodeSize with OpCodeTCycles with Label
 //BIT
 object BIT_b_reg {
-  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0x40)).map(op=>
-    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,f"BIT ${op._3},${op._2.label}") with BitTest)
+  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0x40),setOrRes = false).map(op=>
+    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,op._5,f"BIT ${op._3},${op._2.label}") with BitTest)
 }
 //RESET
 object RES_b_reg {
-  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0x80)).map(op=>
-    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,f"RES ${op._3},${op._2.label}") with BitReset)
+  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0x80),setOrRes = true).map(op=>
+    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,op._5,f"RES ${op._3},${op._2.label}") with BitReset)
 }
 //SET
 object SET_b_reg {
-  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0xC0)).map(op=>
-    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,f"SET ${op._3},${op._2.label}") with BitSet)
+  val codes: List[BitManipulationDef] = OpCode.generateOpCodesType2(OpCode(0xCB,0xC0),setOrRes = true).map(op=>
+    new BitManipulationDef(op._1.main,op._1.supp,op._1.supp2,op._2,op._3,op._4,op._5,f"SET ${op._3},${op._2.label}") with BitSet)
 }
 
 //Load 8 bit
 // Z80 manual page 42
 // generator for LD (8 bit)
-class Load8bitDef(main:Int, supp:Int, val source:Location, val destination:Location, val size:Int, val label:String)
-  extends OpCode(main,supp) with HandleLoad8Bit with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with Label
+class Load8bitDef(main:Int, supp:Int, val source:Location, val destination:Location, val size:Int, val t:Int, val label:String)
+  extends OpCode(main,supp) with HandleLoad8Bit with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with OpCodeTCycles with Label
 //LD A-L,A-L/(HL)/(IX+d)/(IY+d)
 object LD_reg_all {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType3(OpCode(0x40)).map(op=>
-    new Load8bitDef(op._1.main,op._1.supp,op._2,op._3,op._4,f"LD ${op._3},${op._2.label}"))
+    new Load8bitDef(op._1.main,op._1.supp,op._2,op._3,op._4,op._5,f"LD ${op._3},${op._2.label}"))
 }
 object LD_HL_reg {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0x70),1).map(op=>
-    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddr(Regs.HL),op._3,f"LD (HL),${op._2.label}"))
+    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddr(Regs.HL),op._3,7,f"LD (HL),${op._2.label}"))
 }
 object LD_IXd_reg {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0xDD,0x70),3).map(op=>
-    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddrIndirOffset(Regs.IX,2),op._3,f"LD (IX+d),${op._2.label}"))
+    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddrIndirOffset(Regs.IX,2),op._3,19,f"LD (IX+d),${op._2.label}"))
 }
 object LD_IYd_reg {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0xFD,0x70),3).map(op=>
-    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddrIndirOffset(Regs.IY,2),op._3,f"LD (IY+d),${op._2.label}"))
+    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddrIndirOffset(Regs.IY,2),op._3,19,f"LD (IY+d),${op._2.label}"))
 }
 object LD_all_n {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType5(OpCode(0x06)).map(op=>
-    new Load8bitDef(op._1.main,op._1.supp,Location.registerAddrDirOffset(Regs.PC,op._3-1),op._2,op._3,f"LD ${op._2.label},n"))
+    new Load8bitDef(op._1.main,op._1.supp,Location.registerAddrDirOffset(Regs.PC,op._3-1),op._2,op._3,op._4,f"LD ${op._2.label},n"))
 }
-object LD_A_I extends Load8bitDef(0xED,0x57,Location.register(Regs.I),Location.register(Regs.A),2,"LD A,I")
-object LD_A_R extends Load8bitDef(0xED,0x5F,Location.register(Regs.R),Location.register(Regs.A),2,"LD A,R")
-object LD_I_A extends Load8bitDef(0xED,0x47,Location.register(Regs.A),Location.register(Regs.I),2,"LD I,A")
-object LD_R_A extends Load8bitDef(0xED,0x4F,Location.register(Regs.A),Location.register(Regs.R),2,"LD R,A")
-object LD_A_BC extends Load8bitDef(0x0A,OpCode.ANY,Location.registerAddr(Regs.BC),Location.register(Regs.A),1,"LD A,(BC)")
-object LD_A_DE extends Load8bitDef(0x1A,OpCode.ANY,Location.registerAddr(Regs.DE),Location.register(Regs.A),1,"LD A,(DE)")
-object LD_BC_A extends Load8bitDef(0x02,OpCode.ANY,Location.register(Regs.A),Location.registerAddr(Regs.BC),1,"LD (BC),A")
-object LD_DE_A extends Load8bitDef(0x12,OpCode.ANY,Location.register(Regs.A),Location.registerAddr(Regs.DE),1,"LD (DE),A")
-object LD_A_nn extends Load8bitDef(0x3A,OpCode.ANY,Location.indirAddress(1),Location.register(Regs.A),3,"LD A,(nn)")
-object LD_nn_A extends Load8bitDef(0x32,OpCode.ANY,Location.register(Regs.A),Location.indirAddress(1),3,"LD (nn),A")
+object LD_A_I extends Load8bitDef(0xED,0x57,Location.register(Regs.I),Location.register(Regs.A),2,9,"LD A,I")
+object LD_A_R extends Load8bitDef(0xED,0x5F,Location.register(Regs.R),Location.register(Regs.A),2,9,"LD A,R")
+object LD_I_A extends Load8bitDef(0xED,0x47,Location.register(Regs.A),Location.register(Regs.I),2,9,"LD I,A")
+object LD_R_A extends Load8bitDef(0xED,0x4F,Location.register(Regs.A),Location.register(Regs.R),2,9,"LD R,A")
+object LD_A_BC extends Load8bitDef(0x0A,OpCode.ANY,Location.registerAddr(Regs.BC),Location.register(Regs.A),1,7,"LD A,(BC)")
+object LD_A_DE extends Load8bitDef(0x1A,OpCode.ANY,Location.registerAddr(Regs.DE),Location.register(Regs.A),1,7,"LD A,(DE)")
+object LD_BC_A extends Load8bitDef(0x02,OpCode.ANY,Location.register(Regs.A),Location.registerAddr(Regs.BC),1,7,"LD (BC),A")
+object LD_DE_A extends Load8bitDef(0x12,OpCode.ANY,Location.register(Regs.A),Location.registerAddr(Regs.DE),1,7,"LD (DE),A")
+object LD_A_nn extends Load8bitDef(0x3A,OpCode.ANY,Location.indirAddress(1),Location.register(Regs.A),3,13,"LD A,(nn)")
+object LD_nn_A extends Load8bitDef(0x32,OpCode.ANY,Location.register(Regs.A),Location.indirAddress(1),3,13,"LD (nn),A")
 
 //Load 16 bit
 // Z80 manual page 45 (NOTE: PUSH qq are X5, not X6!)

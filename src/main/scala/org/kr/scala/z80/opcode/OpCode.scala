@@ -112,16 +112,19 @@ object OpCode {
   // opcodes multiplied by bits 0-7
   // Z80 manual, pages 55-57
   val baseSizesType2:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
-  def generateOpCodesType2(base:OpCode):List[(OpCode,Location,Int,Int)]= {
-    val codeLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType2)
-      .map({case((code,loc),size)=>(code,loc,size)})
+  val baseTCyclesType21:List[Int]=List(8,8,8,8,8,8,8,12,20,20) // bit test
+  val baseTCyclesType22:List[Int]=List(8,8,8,8,8,8,8,15,23,23) // bit set or reset
+  def generateOpCodesType2(base:OpCode,setOrRes:Boolean):List[(OpCode,Location,Int,Int,Int)]= {
+    val cyclesList=if(setOrRes) baseTCyclesType22 else baseTCyclesType21
+    val codeLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType2).zip(cyclesList)
+      .map({case(((code,loc),size),cycles)=>(code,loc,size,cycles)})
     for {
       bit<-List.range(0,8) //bits (rows in Z80 manual)
-      (code,loc,size)<-codeLocSize //codes+locations+size (columns in Z80 manual)
+      (code,loc,size,cycles)<-codeLocSize //codes+locations+size (columns in Z80 manual)
     } yield (
       if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main+(bit << 3))
       else OpCode(code.main,base.main,base.supp+code.supp+(bit << 3)),
-      loc,bit,size
+      loc,bit,size,cycles
     )
   }
 
@@ -131,17 +134,17 @@ object OpCode {
     Location.register(Regs.D),Location.register(Regs.E),Location.register(Regs.H),Location.register(Regs.L))
   val baseCodesType3:List[OpCode]=List(OpCode(0x38),OpCode(0x00),OpCode(0x08),
     OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28))
-  def generateOpCodesType3(base:OpCode):List[(OpCode,Location,Location,Int)]= {
-    val codeSrcLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType1)
-      .map({case((code,loc),size)=>(code,loc,size)})
+  def generateOpCodesType3(base:OpCode):List[(OpCode,Location,Location,Int,Int)]= {
+    val codeSrcLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType1).zip(baseTCyclesType1)
+      .map({case(((code,loc),size),cycles)=>(code,loc,size,cycles)})
     val codeDestLoc=baseCodesType3.zip(baseLocationsType3)
     for {
       (destCode,destLoc)<-codeDestLoc //codes+dest locations (main registers only)
-      (code,srcLoc,size)<-codeSrcLocSize //codes+source locations+size (columns in Z80 manual)
+      (code,srcLoc,size,cycles)<-codeSrcLocSize //codes+source locations+size (columns in Z80 manual)
     } yield (
       if(code.numberOfCodes==1) OpCode(base.main+code.main+destCode.main)
       else OpCode(code.main,base.main+code.supp+destCode.main),
-      srcLoc,destLoc,size
+      srcLoc,destLoc,size,cycles
     )
   }
 
@@ -162,10 +165,12 @@ object OpCode {
     OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28),OpCode(0x30),OpCode(0xDD,0x30),OpCode(0xFD,0x30))
   val baseLocationsType5:List[Location]=baseLocationsType1
   val baseSizesType5:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
-  def generateOpCodesType5(base:OpCode):List[(OpCode,Location,Int)]= {
+  val baseTCyclesType5:List[Int]=List(7,7,7,7,7,7,7,10,19,19)
+  def generateOpCodesType5(base:OpCode):List[(OpCode,Location,Int,Int)]= {
     val opCodes=baseCodesType5.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main+code.main) else OpCode(code.main,base.main+code.supp))
-    opCodes.zip(baseLocationsType5).zip(baseSizesType5).map({case((code,loc),size)=>(code,loc,size)})
+    opCodes.zip(baseLocationsType5).zip(baseSizesType5).zip(baseTCyclesType5)
+      .map({case(((code,loc),size),cycles)=>(code,loc,size,cycles)})
   }
 
   //TYPE6: registers decoded by bits 0-2, used for rotate and shift

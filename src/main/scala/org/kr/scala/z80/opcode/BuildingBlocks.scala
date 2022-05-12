@@ -146,6 +146,8 @@ trait T10 extends OpCodeSize {override val size:Int=10}
 trait T11 extends OpCodeSize {override val size:Int=11}
 trait T15 extends OpCodeSize {override val size:Int=15}
 trait T18 extends OpCodeSize {override val size:Int=18}
+trait T19 extends OpCodeSize {override val size:Int=19}
+trait T23 extends OpCodeSize {override val size:Int=23}
 
 
 trait OpCodeArithmetic16b {
