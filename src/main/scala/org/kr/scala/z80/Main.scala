@@ -35,12 +35,16 @@ object Main extends App {
   val after=Z80SystemController(initSystem) >>= Z80SystemController.run(debugger)(MAX_STEPS)
 
   val endTime=LocalDateTime.now()
-  val mseconds=ChronoUnit.MILLIS.between(startTime,endTime)
+  val seconds=ChronoUnit.MILLIS.between(startTime,endTime).toDouble/1000
   val cycles=after.get.elapsedTCycles
-  val speed=3646800/cycles.toDouble/mseconds.toDouble*1000*100 // assuming CPU @ 3.6468MHZ
-  println(f"elapsed miliseconds: $mseconds")
+  val refmhz=3686400
+  val refseconds=cycles.toDouble/refmhz.toDouble
+  val speed=refseconds/seconds // assuming CPU @ 3.6468MHZ
+  println(f"elapsed seconds: $seconds%1.2f")
   println(f"elapsed T cycles: $cycles")
-  println(f"relative speed (3.6468MHz): $speed%2.2f %%")
+  println(f"reference clock ${refmhz.toDouble/1000000}%1.4f MHz")
+  println(f"reference miliseconds: $refseconds%1.2f")
+  println(f"relative speed: ${speed*100}%2.2f %%")
   println("END")
 
   //1. initial version: ~29 seconds
