@@ -15,10 +15,7 @@ object Main extends App {
     System.exit(1)
   }
 
-  println("START")
-  val startTime=LocalDateTime.now()
-
-  println(ADD_A_reg)
+  println("INIT")
 
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
@@ -31,12 +28,19 @@ object Main extends App {
   //whole system
   val initSystem=new Z80System(memory,RegisterController.blank,OutputController.blank,input,0)
 
+  println("START")
+  val startTime=LocalDateTime.now()
+
   implicit val debugger:Debugger=ConsoleDebugger
   val after=Z80SystemController(initSystem) >>= Z80SystemController.run(debugger)(MAX_STEPS)
 
   val endTime=LocalDateTime.now()
   val mseconds=ChronoUnit.MILLIS.between(startTime,endTime)
+  val cycles=after.get.elapsedTCycles
+  val speed=3646800/cycles.toDouble/mseconds.toDouble*1000*100 // assuming CPU @ 3.6468MHZ
   println(f"elapsed miliseconds: $mseconds")
+  println(f"elapsed T cycles: $cycles")
+  println(f"relative speed (3.6468MHz): $speed%2.2f %%")
   println("END")
 
   //1. initial version: ~29 seconds

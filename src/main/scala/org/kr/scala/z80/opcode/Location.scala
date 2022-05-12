@@ -52,3 +52,5 @@ object Location {
 
   def empty:Location=Location(Regs.NONE,OpCode.ANY,OpCode.ANY,Regs.NONE,OpCode.ANY,OpCode.ANY)
 }
+
+class IncorrectLocation(message : String) extends Exception(message) {}

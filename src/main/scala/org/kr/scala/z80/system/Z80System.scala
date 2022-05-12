@@ -61,7 +61,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
           case (OpCode.ANY,OpCode.ANY,_) => if(isWord) getWordFromMemoryAtReg(r,0) else getByteFromMemoryAtReg(r,0)
           case (o,OpCode.ANY,isWord) => if(isWord) getWordFromMemoryAtReg(r,o) else getByteFromMemoryAtReg(r,o)
           case (OpCode.ANY,off2Compl,_) => getByteFromMemoryAtReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(off2Compl)))
+          case (_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
         }
+      case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
 
   private def putValueToMemory(address:Int, value:Int, isWord:Boolean):SystemChangeBase =
@@ -80,6 +82,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
             putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl))),value,isWord)
         }
       case l if l==Location.empty => new DummyChange
+      case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${location.toString}")
     }
 }
 

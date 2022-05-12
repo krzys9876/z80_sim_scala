@@ -270,23 +270,23 @@ object JP_cond {
 }
 object CALL_cond {
   val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC4),3).map(op=>
-    new JumpDef(op._1.main,op._2,op._3,f"CALL ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol},nn") with T10 with CallOper with SourceNw)
+    new JumpDef(op._1.main,op._2,op._3,f"CALL ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol},nn") with T10T17 with CallOper with SourceNw)
 }
 object RET_cond {
   val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC0),1).map(op=>
-    new JumpDef(op._1.main,op._2,op._3,f"RET ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol}") with T5 with ReturnOper with SourceStack)
+    new JumpDef(op._1.main,op._2,op._3,f"RET ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol}") with T5T11 with ReturnOper with SourceStack)
 }
 object JP_nn extends OpCode(0xC3) with JumpUnconditional with JumpOper with SourceNw with HandleJump with Size3 with T10 with Label {override val label:String="JP nn"}
 object JR_n extends OpCode(0x18) with JumpUnconditional with JumpRelativeOper with SourceN with HandleJump with Size2 with T12 with Label {override val label:String="JR n"}
-object JR_NZ_n extends OpCode(0x20) with JumpNZ with JumpRelativeOper with SourceN with HandleJump with Size2 with T7 with Label {override val label:String="JR NZ,n"}
-object JR_Z_n extends OpCode(0x28) with JumpZ with JumpRelativeOper with SourceN with HandleJump with Size2 with T7 with Label {override val label:String="JR Z,n"}
-object JR_NC_n extends OpCode(0x30) with JumpNC with JumpRelativeOper with SourceN with HandleJump with Size2 with T7 with Label {override val label:String="JR NC,n"}
-object JR_C_n extends OpCode(0x38) with JumpC with JumpRelativeOper with SourceN with HandleJump with Size2 with T7 with Label {override val label:String="JR C,n"}
+object JR_NZ_n extends OpCode(0x20) with JumpNZ with JumpRelativeOper with SourceN with HandleJump with Size2 with T7T12 with Label {override val label:String="JR NZ,n"}
+object JR_Z_n extends OpCode(0x28) with JumpZ with JumpRelativeOper with SourceN with HandleJump with Size2 with T7T12 with Label {override val label:String="JR Z,n"}
+object JR_NC_n extends OpCode(0x30) with JumpNC with JumpRelativeOper with SourceN with HandleJump with Size2 with T7T12 with Label {override val label:String="JR NC,n"}
+object JR_C_n extends OpCode(0x38) with JumpC with JumpRelativeOper with SourceN with HandleJump with Size2 with T7T12 with Label {override val label:String="JR C,n"}
 object JP_HL extends OpCode(0xE9) with JumpUnconditional with JumpOper with SourceHL with HandleJump with Size1 with T4 with Label {override val label:String="JP (HL)"}
 object JP_IX extends OpCode(0xDD,0xE9) with JumpUnconditional with JumpOper with SourceIX with HandleJump with Size2 with T8 with Label {override val label:String="JP (IX)"}
 object JP_IY extends OpCode(0xFD,0xE9) with JumpUnconditional with JumpOper with SourceIY with HandleJump with Size2 with T8 with Label {override val label:String="JP (IY)"}
 object CALL_nn extends OpCode(0xCD) with JumpUnconditional with CallOper with SourceNw with HandleJump with Size3 with T17 with Label {override val label:String="CALL nn"}
-object DJNZ extends OpCode(0x10) with JumpB0 with DecrJumpRelativeOper with SourceN with HandleJump with Size2 with T8 with Label {override val label:String="DJNZ"}
+object DJNZ extends OpCode(0x10) with JumpB0 with DecrJumpRelativeOper with SourceN with HandleJump with Size2 with T13T8 with Label {override val label:String="DJNZ"}
 object RET extends OpCode(0xC9) with JumpUnconditional with ReturnOper with SourceStack with HandleJump with Size1 with T10 with Label {override val label:String="RET"}
 object RETI extends OpCode(0xED,0x4D) with JumpUnconditional with ReturnOper with HandleJump with SourceStack with Size2 with T14 with Label {override val label:String="RETI"}
 

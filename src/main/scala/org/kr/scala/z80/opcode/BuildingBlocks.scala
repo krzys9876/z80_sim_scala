@@ -136,16 +136,33 @@ trait Size4 extends OpCodeSize {override val size:Int=4}
 
 trait OpCodeTCycles {
   val t:Int
+  val tConditional:Int=0
 }
 
 trait T4 extends OpCodeTCycles {override val t:Int=4}
 trait T5 extends OpCodeTCycles {override val t:Int=5}
+trait T5T11 extends OpCodeTCycles {
+  override val t:Int=5
+  override val tConditional:Int=6
+}
 trait T6 extends OpCodeTCycles {override val t:Int=6}
 trait T7 extends OpCodeTCycles {override val t:Int=7}
+trait T7T12 extends OpCodeTCycles {
+  override val t:Int=7
+  override val tConditional:Int=5
+}
 trait T8 extends OpCodeTCycles {override val t:Int=8}
 trait T10 extends OpCodeTCycles {override val t:Int=10}
+trait T10T17 extends OpCodeTCycles {
+  override val t:Int=10
+  override val tConditional:Int=7
+}
 trait T11 extends OpCodeTCycles {override val t:Int=11}
 trait T12 extends OpCodeTCycles {override val t:Int=12}
+trait T13T8 extends OpCodeTCycles {
+  override val t:Int=13
+  override val tConditional:Int= -5
+}
 trait T14 extends OpCodeTCycles {override val t:Int=14}
 trait T15 extends OpCodeTCycles {override val t:Int=15}
 trait T17 extends OpCodeTCycles {override val t:Int=17}

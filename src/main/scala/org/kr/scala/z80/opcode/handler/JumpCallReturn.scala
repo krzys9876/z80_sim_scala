@@ -32,7 +32,7 @@ object JumpCallReturn extends OpCodeHandler {
         instrSize)
     val changeStack = handleStack(checker.isMet, oper, instrSize)
 
-    (changePC ++ changeStack, 0, actualCode.t)
+    (changePC ++ changeStack, 0, if(checker.isMet) actualCode.t+actualCode.tConditional else actualCode.t)
   }
 
   private def calcAddress(oper: JumpOperation, value: Int, prevPC: Int): Int =
@@ -89,6 +89,8 @@ object JumpCondition {
   val empty:JumpCondition=JumpCondition(Flag.None,Regs.NONE,OpCode.ANY)
 }
 
+class IncorrectJumpCondition(message : String) extends Exception(message) {}
+
 class JumpConditionChecker(val condition: JumpCondition)(implicit system: Z80System) {
   lazy val decRegValue:Int =
     condition match {
@@ -101,5 +103,6 @@ class JumpConditionChecker(val condition: JumpCondition)(implicit system: Z80Sys
       case c if c.isEmpty => true
       case c if c.isFlag => system.getFlags.flagValue(condition.flag) == condition.value
       case c if c.isRegister => decRegValue != c.value
+      case _ => throw new IncorrectJumpCondition(f"unknown condition state: ${condition.toString}")
     }
 }
