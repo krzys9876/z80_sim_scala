@@ -57,7 +57,7 @@ so it is not a great loss anyway.
 I thought that to be able to run **1978 Microsoft Basic** would be a good target for this fun project.
 (If you've never used old Basic you should try it and for a moment feel like a kid in 70's and 80's!)
 
-It seemed difficult since assembler programs leave no room errors in handling operations. 
+It seemed difficult since assembler programs leave no room for errors in handling operations. 
 
 After extensive refactoring effort and (hopefully) necessary simplifications 
 I was able to debug errors and run the most trivial Basic program, which was:
@@ -79,3 +79,9 @@ After removing most of the lookup operations the reference program takes ~4 seco
 
 Another optimization was to replace costly map handling in register file. After replacing it with simple vals 
 the reference program finishes in ~3 seconds.
+
+I've added tracking of T cycles throughout the program so it is possible to compare timings to actual Z80 performance @ 3.6864MHz. 
+That's the clock speed I use in my Z80 projects as it allows serial communication @ 57600 / 115200.
+
+The best I could get for a reference program was ~75%, for other programs not using console (which degrades performance because of scrolling)
+I got even above 100%.

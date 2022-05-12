@@ -6,7 +6,7 @@ import org.kr.scala.z80.utils.Z80Utils
 class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
                 val outputController: OutputController,
                 val inputController: InputController,
-                val elapsedTCycles:Int) {
+                val elapsedTCycles:Long) {
   def step(implicit debugger:Debugger):Z80System= {
     val opCode=getCurrentOpCode
     debugger.stepBefore(this)
