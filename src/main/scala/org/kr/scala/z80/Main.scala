@@ -1,7 +1,7 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile, InputPortMultiple,
-  MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.opcode.ADD_A_reg
+import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile, InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -17,6 +17,8 @@ object Main extends App {
 
   println("START")
   val startTime=LocalDateTime.now()
+
+  println(ADD_A_reg)
 
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0

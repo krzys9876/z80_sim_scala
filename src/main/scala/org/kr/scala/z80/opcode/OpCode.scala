@@ -179,10 +179,12 @@ object OpCode {
     OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05),OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
   val baseLocationsType6:List[Location]=baseLocationsType1
   val baseSizesType6:List[Int]=baseSizesType5
-  def generateOpCodesType6(base:OpCode):List[(OpCode,Location,Int)]= {
+  val baseTCyclesType6:List[Int]=List(8,8,8,8,8,8,8,15,23,23)
+  def generateOpCodesType6(base:OpCode):List[(OpCode,Location,Int,Int)]= {
     val opCodes=baseCodesType6.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main) else OpCode(code.main,base.main,base.supp+code.supp))
-    opCodes.zip(baseLocationsType6).zip(baseSizesType6).map({case((code,loc),size)=>(code,loc,size)})
+    opCodes.zip(baseLocationsType6).zip(baseSizesType6).zip(baseTCyclesType6)
+      .map({case(((code,loc),size),cyles)=>(code,loc,size,cyles)})
   }
 
   //TYPE6: decoding jump conditions by bits 3-5
