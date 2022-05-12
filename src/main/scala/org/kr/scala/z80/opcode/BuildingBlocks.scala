@@ -129,6 +129,21 @@ trait OpCodeSize {
   val size:Int
 }
 
+trait Size1 extends OpCodeSize {override val size:Int=1}
+trait Size2 extends OpCodeSize {override val size:Int=2}
+trait Size3 extends OpCodeSize {override val size:Int=3}
+trait Size4 extends OpCodeSize {override val size:Int=4}
+
+trait OpCodeTCycles {
+  val t:Int
+}
+
+trait T4 extends OpCodeSize {override val size:Int=4}
+trait T7 extends OpCodeSize {override val size:Int=7}
+trait T10 extends OpCodeSize {override val size:Int=10}
+trait T19 extends OpCodeSize {override val size:Int=19}
+
+
 trait OpCodeArithmetic16b {
   val operation:ArithmeticOperation
 }
@@ -137,11 +152,6 @@ trait Arith16bAddC extends OpCodeArithmetic16b {override val operation:Arithmeti
 trait Arith16bSubC extends OpCodeArithmetic16b {override val operation:ArithmeticOperation=SubC16b}
 trait Arith16bInc extends OpCodeArithmetic16b {override val operation:ArithmeticOperation=Inc16b}
 trait Arith16bDec extends OpCodeArithmetic16b {override val operation:ArithmeticOperation=Dec16b}
-
-trait Size1 extends OpCodeSize {override val size:Int=1}
-trait Size2 extends OpCodeSize {override val size:Int=2}
-trait Size3 extends OpCodeSize {override val size:Int=3}
-trait Size4 extends OpCodeSize {override val size:Int=4}
 
 trait OpCodeExchangeLocation {
   val exchange:List[ExchangeLocationBase]

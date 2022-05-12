@@ -13,7 +13,8 @@ object ADD_A_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x80)).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,f"ADD A,${op._2.label}") with Arith8bAdd)
 }
-object ADD_A_n extends OpCode(0xC6) with HandleArithmetic8Bit with Arith8bAdd with DestinationN with Size2 with Label {override val label:String="ADD A,n"}
+object ADD_A_n extends OpCode(0xC6) with HandleArithmetic8Bit with Arith8bAdd with DestinationN
+  with Size2 with Label {override val label:String="ADD A,n"}
 //ADC
 object ADC_A_reg {
   val codes: List[Arithmetic8bDef] =

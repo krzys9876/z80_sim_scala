@@ -100,10 +100,11 @@ object OpCode {
     Location.register(Regs.D),Location.register(Regs.E),Location.register(Regs.H),Location.register(Regs.L),
     Location.registerAddr(Regs.HL),Location.registerAddrIndirOffset(Regs.IX, 2),Location.registerAddrIndirOffset(Regs.IY, 2))
   val baseSizesType1:List[Int]=List(1,1,1,1,1,1,1,1,3,3)
+  val baseTCyclesType1:List[Int]=List(4,4,4,4,4,4,4,7,19,19)
   def generateOpCodesType1(base:OpCode,bit:Int=0):List[(OpCode,Location,Int)]= {
     val opCodes=baseCodesType1.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main+(code.main << bit)) else OpCode(code.main,base.main+(code.supp << bit)))
-    opCodes.zip(baseLocationsType1).zip(baseSizesType1).map(entry=>(entry._1._1,entry._1._2,entry._2))
+    opCodes.zip(baseLocationsType1).zip(baseSizesType1).map({case((code,loc),size)=>(code,loc,size)})
   }
 
   //TYPE2: registers decoded as in TYPE1 - used only for bit manipulation
@@ -111,7 +112,8 @@ object OpCode {
   // Z80 manual, pages 55-57
   val baseSizesType2:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
   def generateOpCodesType2(base:OpCode):List[(OpCode,Location,Int,Int)]= {
-    val codeLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType2).map(entry=>(entry._1._1,entry._1._2,entry._2))
+    val codeLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType2)
+      .map({case((code,loc),size)=>(code,loc,size)})
     for {
       bit<-List.range(0,8) //bits (rows in Z80 manual)
       (code,loc,size)<-codeLocSize //codes+locations+size (columns in Z80 manual)
@@ -129,7 +131,8 @@ object OpCode {
   val baseCodesType3:List[OpCode]=List(OpCode(0x38),OpCode(0x00),OpCode(0x08),
     OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28))
   def generateOpCodesType3(base:OpCode):List[(OpCode,Location,Location,Int)]= {
-    val codeSrcLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType1).map(entry=>(entry._1._1,entry._1._2,entry._2))
+    val codeSrcLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType1)
+      .map({case((code,loc),size)=>(code,loc,size)})
     val codeDestLoc=baseCodesType3.zip(baseLocationsType3)
     for {
       (destCode,destLoc)<-codeDestLoc //codes+dest locations (main registers only)
@@ -149,7 +152,7 @@ object OpCode {
   def generateOpCodesType4(base:OpCode,size:Int):List[(OpCode,Location,Int)]= {
     val opCodes=baseCodesType4.map(code=>
       if(base.numberOfCodes==1) OpCode(base.main+code.main) else OpCode(base.main,base.supp+code.main))
-    opCodes.zip(baseLocationsType4).map(entry=>(entry._1,entry._2,size))
+    opCodes.zip(baseLocationsType4).map({case(code,loc)=>(code,loc,size)})
   }
 
   //TYPE5: registers decoded by bits 3-5, used for selected load operations
@@ -161,7 +164,7 @@ object OpCode {
   def generateOpCodesType5(base:OpCode):List[(OpCode,Location,Int)]= {
     val opCodes=baseCodesType5.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main+code.main) else OpCode(code.main,base.main+code.supp))
-    opCodes.zip(baseLocationsType5).zip(baseSizesType5).map(entry=>(entry._1._1,entry._1._2,entry._2))
+    opCodes.zip(baseLocationsType5).zip(baseSizesType5).map({case((code,loc),size)=>(code,loc,size)})
   }
 
   //TYPE6: registers decoded by bits 0-2, used for rotate and shift
@@ -173,7 +176,7 @@ object OpCode {
   def generateOpCodesType6(base:OpCode):List[(OpCode,Location,Int)]= {
     val opCodes=baseCodesType6.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main) else OpCode(code.main,base.main,base.supp+code.supp))
-    opCodes.zip(baseLocationsType6).zip(baseSizesType6).map(entry=>(entry._1._1,entry._1._2,entry._2))
+    opCodes.zip(baseLocationsType6).zip(baseSizesType6).map({case((code,loc),size)=>(code,loc,size)})
   }
 
   //TYPE6: decoding jump conditions by bits 3-5
@@ -189,7 +192,7 @@ object OpCode {
     JumpCondition.flag(Flag.S,value=true))
   def generateOpCodesType7(base:OpCode,size:Int):List[(OpCode,JumpCondition,Int)]= {
     val opCodes=baseCodeOffsetType7.map(offset=>OpCode(base.main+offset))
-    opCodes.zip(baseJumpConditions).map(entry=>(entry._1,entry._2,size))
+    opCodes.zip(baseJumpConditions).map({case(code,loc)=>(code,loc,size)})
   }
 }
 
