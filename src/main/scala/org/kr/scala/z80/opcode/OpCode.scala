@@ -101,10 +101,11 @@ object OpCode {
     Location.registerAddr(Regs.HL),Location.registerAddrIndirOffset(Regs.IX, 2),Location.registerAddrIndirOffset(Regs.IY, 2))
   val baseSizesType1:List[Int]=List(1,1,1,1,1,1,1,1,3,3)
   val baseTCyclesType1:List[Int]=List(4,4,4,4,4,4,4,7,19,19)
-  def generateOpCodesType1(base:OpCode,bit:Int=0):List[(OpCode,Location,Int)]= {
+  def generateOpCodesType1(base:OpCode,bit:Int=0):List[(OpCode,Location,Int,Int)]= {
     val opCodes=baseCodesType1.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main+(code.main << bit)) else OpCode(code.main,base.main+(code.supp << bit)))
-    opCodes.zip(baseLocationsType1).zip(baseSizesType1).map({case((code,loc),size)=>(code,loc,size)})
+    opCodes.zip(baseLocationsType1).zip(baseSizesType1).zip(baseTCyclesType1)
+      .map({case(((code,loc),size),cycles)=>(code,loc,size,cycles)})
   }
 
   //TYPE2: registers decoded as in TYPE1 - used only for bit manipulation

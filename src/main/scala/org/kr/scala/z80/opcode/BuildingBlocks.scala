@@ -139,9 +139,13 @@ trait OpCodeTCycles {
 }
 
 trait T4 extends OpCodeSize {override val size:Int=4}
+trait T6 extends OpCodeSize {override val size:Int=6}
 trait T7 extends OpCodeSize {override val size:Int=7}
+trait T8 extends OpCodeSize {override val size:Int=8}
 trait T10 extends OpCodeSize {override val size:Int=10}
-trait T19 extends OpCodeSize {override val size:Int=19}
+trait T11 extends OpCodeSize {override val size:Int=11}
+trait T15 extends OpCodeSize {override val size:Int=15}
+trait T18 extends OpCodeSize {override val size:Int=18}
 
 
 trait OpCodeArithmetic16b {
