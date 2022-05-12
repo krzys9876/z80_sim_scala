@@ -8,8 +8,8 @@ object RegisterController {
   def apply(state: Register):RegisterController = new RegisterController(state)
   def blank:RegisterController = new RegisterController(Register.blank)
 
-  val set: (String, Int) => Register => RegisterController = (regSymbol, value) => register =>
+  val set: (RegSymbol, Int) => Register => RegisterController = (regSymbol, value) => register =>
     RegisterController(register.set(regSymbol, value))
-  val setRelative: (String, Int) => Register => RegisterController = (regSymbol, value) => register =>
+  val setRelative: (RegSymbol, Int) => Register => RegisterController = (regSymbol, value) => register =>
     RegisterController(register.setRelative(regSymbol, value))
 }

@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, InputPortSequential, Z80SystemController}
+import org.kr.scala.z80.system.{ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, InputPortSequential, RegSymbol, Regs, Z80SystemController}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
@@ -10,9 +10,9 @@ class OpInOutTest extends AnyFunSuite {
   test("run OUT (n),A") {
     //given
     //when
-    val systemC=TestUtils.prepareTest(List(("A",0x41)),List((0x0000,0xD3),(0x0001,0x01)))
+    val systemC=TestUtils.prepareTest(List((Regs.A,0x41)),List((0x0000,0xD3),(0x0001,0x01)))
     //then
-    assert(systemC.get.registerController.get("PC")==2)
+    assert(systemC.get.registerController.get(Regs.PC)==2)
     assert(systemC.get.outputController.get(1,0)==0x41)
     assert(systemC.get.outputController.get(111,112)==0)
     //systemC.get.outputController.get.print(1)
@@ -31,7 +31,7 @@ class OpInOutTest extends AnyFunSuite {
         (0x000A,0xD3),(0x000B,0xFF)  // OUT (0xFF),A
       ),6)
     //then
-    assert(systemC.get.registerController.get("PC")==0x000C)
+    assert(systemC.get.registerController.get(Regs.PC)==0x000C)
     assert(systemC.get.outputController.get(0xFF,0)==0x41)
     assert(systemC.get.outputController.get(0xFF,1)==0x42)
     assert(systemC.get.outputController.get(0xFF,2)==0x43)
@@ -60,7 +60,7 @@ class OpInOutTest extends AnyFunSuite {
         (0x0018,0xED),(0x0019,0x69)  // OUT (C),L
       ),13)
     //then
-    assert(systemC.get.registerController.get("PC")==0x001A)
+    assert(systemC.get.registerController.get(Regs.PC)==0x001A)
     assert(systemC.get.outputController.get(0x80,0)==0x41)
     assert(systemC.get.outputController.get(0x80,1)==0x42)
     assert(systemC.get.outputController.get(0x80,2)==0x43)
@@ -71,7 +71,7 @@ class OpInOutTest extends AnyFunSuite {
     //systemC.get.outputController.get.print(0xFF)
   }
 
-  def prepareTestWithInput(regList: List[(String, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,
+  def prepareTestWithInput(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,
                            steps:Int=1): Z80SystemController = {
     val blank=Z80SystemController.blank >>= Z80SystemController.attachPort(port,inputPort)
     TestUtils.prepareTestWith(blank,regList,memList,steps)
@@ -85,14 +85,14 @@ class OpInOutTest extends AnyFunSuite {
         (0x0000,0xDB),(0x0001,0x40), // IN A,(0x40)
       ), 0x40,new InputPortConstant(0xAB))
     //then
-    assert(systemC.get.registerController.get("PC")==2)
-    assert(systemC.get.registerController.get("A")==0xAB)
+    assert(systemC.get.registerController.get(Regs.PC)==2)
+    assert(systemC.get.registerController.get(Regs.A)==0xAB)
   }
 
   test("run IN A,(C)") {
     //given
     //when
-    val systemC=prepareTestWithInput(List(("C",0x20)),
+    val systemC=prepareTestWithInput(List((Regs.C,0x20)),
       List(
         (0x0000,0xED),(0x0001,0x50), // IN D,(C)
         (0x0002,0xED),(0x0003,0x58), // IN E,(C)
@@ -101,10 +101,10 @@ class OpInOutTest extends AnyFunSuite {
       ),0x20, new InputPortSequential(0xF0,2,0,0x0F),
       4)
     //then
-    assert(systemC.get.registerController.get("PC")==8)
-    assert(systemC.get.registerController.get("D")==0xF0)
-    assert(systemC.get.registerController.get("E")==0x0F)
-    assert(systemC.get.registerController.get("H")==0xF0)
-    assert(systemC.get.registerController.get("L")==0x0F)
+    assert(systemC.get.registerController.get(Regs.PC)==8)
+    assert(systemC.get.registerController.get(Regs.D)==0xF0)
+    assert(systemC.get.registerController.get(Regs.E)==0x0F)
+    assert(systemC.get.registerController.get(Regs.H)==0xF0)
+    assert(systemC.get.registerController.get(Regs.L)==0x0F)
   }
 }

@@ -15,7 +15,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   }
 
   def getCurrentOpCode:OpCode={
-    val pc=registerController.get("PC")
+    val pc=registerController.get(Regs.PC)
     OpCode(
       memoryController.get(pc),
       memoryController.get(pc,1),
@@ -29,20 +29,20 @@ class Z80System(val memoryController: MemoryController, val registerController: 
     returnAfterChange(change,forwardPC)
   }
 
-  def getRegValue(symbol:String):Int=registerController.get(symbol)
-  def getFlags:Flag=new Flag(registerController.get("F"))
+  def getRegValue(symbol:RegSymbol):Int=registerController.get(symbol)
+  def getFlags:Flag=new Flag(registerController.get(Regs.F))
 
-  private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg("PC",offset)
-  private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg("PC",offset)
-  private def getAddressFromReg(symbol:String,offset:Int):Int= getRegValue(symbol)+offset
-  private def getByteFromMemoryAtReg(symbol:String,offset:Int):Int = getByte(getAddressFromReg(symbol,offset))
-  private def getWordFromMemoryAtReg(symbol:String,offset:Int):Int =
+  private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg(Regs.PC,offset)
+  private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg(Regs.PC,offset)
+  private def getAddressFromReg(symbol:RegSymbol,offset:Int):Int= getRegValue(symbol)+offset
+  private def getByteFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int = getByte(getAddressFromReg(symbol,offset))
+  private def getWordFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int =
     Z80Utils.makeWord(getByte(getAddressFromReg(symbol,offset)+1),getByte(getAddressFromReg(symbol,offset)))
   private def getByte(address:Int):Int = memoryController.get(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memoryController.get(address+1),memoryController.get(address))
 
   private def returnAfterChange(chgList:List[SystemChangeBase],forwardPC:Int=0):Z80System = {
-    val chgListAfterPC=chgList ++ (if(forwardPC!=0) List(new RegisterChangeRelative("PC",forwardPC)) else List())
+    val chgListAfterPC=chgList ++ (if(forwardPC!=0) List(new RegisterChangeRelative(Regs.PC,forwardPC)) else List())
     (Z80SystemController(this) >>= Z80SystemController.changeList(chgListAfterPC)).get
   }
 
@@ -51,11 +51,11 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   def getValueFromLocation(loc:Location):Int =
     loc match {
       case l if l==Location.empty => OpCode.ANY
-      case Location(r,_,_,_,_,_,_) if r!="" => getRegValue(r)
+      case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => getRegValue(r)
       case Location(_,i,_,_,_,_,_) if i!=OpCode.ANY => i
       case Location(_,_,pco,_,_,_,isWord) if pco!=OpCode.ANY =>
         if(isWord) getWord(getWordFromMemoryAtPC(pco)) else getByte(getWordFromMemoryAtPC(pco))
-      case Location(_,_,_,r,dirO,indirO,isWord) if r!="" =>
+      case Location(_,_,_,r,dirO,indirO,isWord) if r!=Regs.NONE =>
         (dirO,indirO,isWord) match {
           case (OpCode.ANY,OpCode.ANY,_) => if(isWord) getWordFromMemoryAtReg(r,0) else getByteFromMemoryAtReg(r,0)
           case (o,OpCode.ANY,isWord) => if(isWord) getWordFromMemoryAtReg(r,o) else getByteFromMemoryAtReg(r,o)
@@ -69,9 +69,9 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 
   def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChangeBase =
     location match {
-      case Location(r,_,_,_,_,_,_) if r!="" => new RegisterChange(r,value)
+      case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => new RegisterChange(r,value)
       case Location(_,_,pco,_,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromMemoryAtPC(pco),value,isWord)
-      case Location(_,_,_,r,dirO,indirO,_) if r!="" =>
+      case Location(_,_,_,r,dirO,indirO,_) if r!=Regs.NONE =>
         (dirO,indirO) match {
           case (dirO,OpCode.ANY) if dirO!=OpCode.ANY => putValueToMemory(getAddressFromReg(r,dirO),value,isWord)
           case (OpCode.ANY,OpCode.ANY) => putValueToMemory(getAddressFromReg(r,0),value,isWord)

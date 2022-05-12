@@ -1,7 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{Debugger, Flag, MemoryController, Register, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{Debugger, Flag, MemoryController, RegSymbol, Register, RegisterController, Regs, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
 
 object TestUtils {
@@ -14,12 +14,12 @@ object TestUtils {
     assert(reg(Flag.C) == Z80Utils.getBitFromString(flagsAsString, Flag.C.bit))
   }
 
-  def prepareTest(regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int=1)
+  def prepareTest(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int=1)
                  (implicit debugger:Debugger): Z80SystemController = {
     prepareTestWith(Z80SystemController.blank,regList,memList,steps)
   }
 
-  def prepareTestWith(sysBlank:Z80SystemController, regList: List[(String, Int)], memList: List[(Int, Int)], steps:Int)
+  def prepareTestWith(sysBlank:Z80SystemController, regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int)
                      (implicit debugger:Debugger): Z80SystemController = {
     //given
     val reg = regList.foldLeft(sysBlank.get.registerController)(
@@ -35,15 +35,15 @@ object TestUtils {
     Z80SystemController(sysTest.get)
   }
 
-  def testRegOrAddrWithFlags(regList: List[(String, Int)], memList: List[(Int, Int)], resultReg: String, resultAddr: Int,
+  def testRegOrAddrWithFlags(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], resultReg: RegSymbol, resultAddr: Int,
                                result: Int, flagsAsString: String, pcAfter: Int = 1)
                             (implicit debugger: Debugger): Unit = {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
-    assert(sysTest.get.registerController.get("PC") == pcAfter)
+    assert(sysTest.get.registerController.get(Regs.PC) == pcAfter)
     (resultReg,resultAddr) match {
-      case (reg,_) if reg!="" => assert(sysTest.get.registerController.get(resultReg) == result)
+      case (reg,_) if reg!=Regs.NONE => assert(sysTest.get.registerController.get(resultReg) == result)
       case (_,addr) if addr!=OpCode.ANY => assert(sysTest.get.memoryController.get(resultAddr) == result)
       case _ =>
     }
@@ -52,14 +52,14 @@ object TestUtils {
     //println(sysTest.get.registerController.get.reg)
   }
 
-  def testRegAndAddrWordWithFlags(regList: List[(String, Int)], memList: List[(Int, Int)],
-                                  resultReg: String, resultValReg: Int, resultAddr: Int, resultValMem: Int,
+  def testRegAndAddrWordWithFlags(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)],
+                                  resultReg: RegSymbol, resultValReg: Int, resultAddr: Int, resultValMem: Int,
                                   flagsAsString: String, pcAfter: Int = 1)
                                  (implicit debugger: Debugger): Unit = {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
-    assert(sysTest.get.registerController.get("PC") == pcAfter)
+    assert(sysTest.get.registerController.get(Regs.PC) == pcAfter)
     assert(sysTest.get.registerController.get(resultReg) == resultValReg)
     assert(sysTest.get.memoryController.get(resultAddr) == (resultValMem & 0x00FF))
     assert(sysTest.get.memoryController.get(resultAddr+1) == ((resultValMem & 0xFF00) >> 8))

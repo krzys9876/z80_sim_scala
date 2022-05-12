@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.system.{Debugger, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.system.{Debugger, RegisterChange, Regs, SystemChangeBase, Z80System}
 
 object RotateDigit extends OpCodeHandler {
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int) = {
@@ -14,13 +14,13 @@ object RotateDigit extends OpCodeHandler {
     // input: value -> accumulator, operand -> location
     // output: valueOut -> accumulator, valueAux -> location
     val (result, newF) = oper.calcAll(
-      ArithmeticOpInput(system.getRegValue("A"),
+      ArithmeticOpInput(system.getRegValue(Regs.A),
         system.getValueFromLocation(loc),
         system.getFlags))
     val change = List(
-      new RegisterChange("A", result.valueOut),
+      new RegisterChange(Regs.A, result.valueOut),
       system.putValueToLocation(loc, result.valueAux),
-      new RegisterChange("F", newF()))
+      new RegisterChange(Regs.F, newF()))
 
     (change, actualCode.size)
   }

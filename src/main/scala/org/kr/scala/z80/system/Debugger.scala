@@ -19,7 +19,7 @@ object ConsoleDebugger extends Debugger {
 
 object ConsoleDetailedDebugger extends Debugger {
   override def stepBefore(system: Z80System): Unit = {
-    val pc=system.registerController.get("PC")
+    val pc=system.registerController.get(Regs.PC)
     val opCode=OpCodes.getOpCodeObject(system.getCurrentOpCode)
     val regs=system.registerController.get.toString
     print(f"PC:0x$pc%04X | $opCode | before: $regs")

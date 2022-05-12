@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode
 
 import org.kr.scala.z80.opcode.handler.JumpCondition
-import org.kr.scala.z80.system.Flag
+import org.kr.scala.z80.system.{Flag, Regs}
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
   /* OpCode format:
@@ -49,13 +49,13 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
 object OpCode {
   val ANY:Int = Int.MinValue
   val registerMap:Map[Int,Location]=Map(
-    7->Location.register("A"),
-    0->Location.register("B"),
-    1->Location.register("C"),
-    2->Location.register("D"),
-    3->Location.register("E"),
-    4->Location.register("H"),
-    5->Location.register("L"))
+    7->Location.register(Regs.A),
+    0->Location.register(Regs.B),
+    1->Location.register(Regs.C),
+    2->Location.register(Regs.D),
+    3->Location.register(Regs.E),
+    4->Location.register(Regs.H),
+    5->Location.register(Regs.L))
 
   def num2hex(num:Int):String= f"0x$num%02X"
 
@@ -96,9 +96,9 @@ object OpCode {
   val baseCodesType1:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
     OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05),
     OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
-  val baseLocationsType1:List[Location]=List(Location.register("A"),Location.register("B"),Location.register("C"),
-    Location.register("D"),Location.register("E"),Location.register("H"),Location.register("L"),
-    Location.registerAddr("HL"),Location.registerAddrIndirOffset("IX", 2),Location.registerAddrIndirOffset("IY", 2))
+  val baseLocationsType1:List[Location]=List(Location.register(Regs.A),Location.register(Regs.B),Location.register(Regs.C),
+    Location.register(Regs.D),Location.register(Regs.E),Location.register(Regs.H),Location.register(Regs.L),
+    Location.registerAddr(Regs.HL),Location.registerAddrIndirOffset(Regs.IX, 2),Location.registerAddrIndirOffset(Regs.IY, 2))
   val baseSizesType1:List[Int]=List(1,1,1,1,1,1,1,1,3,3)
   def generateOpCodesType1(base:OpCode,bit:Int=0):List[(OpCode,Location,Int)]= {
     val opCodes=baseCodesType1.map(code=>
@@ -124,8 +124,8 @@ object OpCode {
 
   //TYPE3: registers decoded by bits 3-5 - used only for load
   // opcodes multiplied by list of registers
-  val baseLocationsType3:List[Location]=List(Location.register("A"),Location.register("B"),Location.register("C"),
-    Location.register("D"),Location.register("E"),Location.register("H"),Location.register("L"))
+  val baseLocationsType3:List[Location]=List(Location.register(Regs.A),Location.register(Regs.B),Location.register(Regs.C),
+    Location.register(Regs.D),Location.register(Regs.E),Location.register(Regs.H),Location.register(Regs.L))
   val baseCodesType3:List[OpCode]=List(OpCode(0x38),OpCode(0x00),OpCode(0x08),
     OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28))
   def generateOpCodesType3(base:OpCode):List[(OpCode,Location,Location,Int)]= {

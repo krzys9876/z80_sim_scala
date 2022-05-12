@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 object RotateShift extends OpCodeHandler {
@@ -18,7 +18,7 @@ object RotateShift extends OpCodeHandler {
 
     (List(
       system.putValueToLocation(loc, result.valueOut),
-      new RegisterChange("F", flags())
+      new RegisterChange(Regs.F, flags())
     ),
       instrSize)
   }

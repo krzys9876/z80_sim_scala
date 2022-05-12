@@ -1,10 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry,
-  FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet,
-  FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation,
-  OpCodeSize, OpCodeSourceLocation}
-import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, SystemChangeBase, Z80System}
+import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation}
+import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChangeBase, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 object Arithmetic8Bit extends OpCodeHandler {
@@ -22,7 +19,7 @@ object Arithmetic8Bit extends OpCodeHandler {
 
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))
     val chgList = List(system.putValueToLocation(oper.getDestination(sourceLocation), result.valueOut))
-    (chgList ++ List(new RegisterChange("F", flags())), instrSize)
+    (chgList ++ List(new RegisterChange(Regs.F, flags())), instrSize)
   }
 }
 

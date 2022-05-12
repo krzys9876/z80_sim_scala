@@ -6,8 +6,8 @@ import org.kr.scala.z80.utils.Z80Utils
 class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h:Int,val l:Int,
                val pc:Int,val sp:Int,val r:Int,val i:Int,val ix:Int,val iy:Int,
                val af1:Int,val bc1:Int,val de1:Int,val hl1:Int) {
-  def apply(regSymbolStr:String):Int= {
-    val regSymbolObj = Regs.fromString(regSymbolStr)
+  def apply(regSymbolObj:RegSymbol):Int= {
+    //val regSymbolObj = Regs.fromString(regSymbolStr)
     regSymbolObj match {
       case Regs.A => a
       case Regs.F => f
@@ -36,8 +36,8 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
 
   def apply(flag:FlagSymbol):Boolean=flag.extract(f)
 
-  def set(regSymbolStr:String,value:Int): Register= {
-    val regSymbolObj=Regs.fromString(regSymbolStr)
+  def set(regSymbolObj:RegSymbol,value:Int): Register= {
+    //val regSymbolObj=Regs.fromString(regSymbolStr)
     regSymbolObj match {
       case Regs.A => new Register(value,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
       case Regs.F => new Register(a,value,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
@@ -64,10 +64,10 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
     }
   }
 
-  def setRelative(regSymbol:String,relativeValue:Int): Register=
+  def setRelative(regSymbol:RegSymbol,relativeValue:Int): Register=
     set(regSymbol,Z80Utils.add16bit(apply(regSymbol),relativeValue))
   def movePC(forward:Int): Register=
-    setRelative("PC",forward)
+    setRelative(Regs.PC,forward)
 
   override def toString:String=
     f"A:$a%02X|F:$f%02X|B:$b%02X|C:$c%02X|D:$d%02X|E:$e%02X|H:$h%02X|L:$l%02X|"+
@@ -109,6 +109,7 @@ object Regs {
   case object BC1 extends RegSymbol("BC1")
   case object DE1 extends RegSymbol("DE1")
   case object HL1 extends RegSymbol("HL1")
+  case object NONE extends RegSymbol("NONE")
 
   val fromString:String=>RegSymbol={
     case "A" => A

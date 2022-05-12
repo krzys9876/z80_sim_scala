@@ -6,12 +6,12 @@ abstract class SystemChangeBase(val value: Int) {
   def handle(systemC:Z80SystemController):Z80SystemController
 }
 
-class RegisterChange(val regSymbol: String, override val value: Int) extends SystemChangeBase(value) {
+class RegisterChange(val regSymbol: RegSymbol, override val value: Int) extends SystemChangeBase(value) {
   override def handle(systemC:Z80SystemController):Z80SystemController=
     systemC >>= Z80SystemController.changeRegister(regSymbol,value)
 }
 
-class RegisterChangeRelative(val regSymbol: String, override val value: Int) extends SystemChangeBase(value) {
+class RegisterChangeRelative(val regSymbol: RegSymbol, override val value: Int) extends SystemChangeBase(value) {
   override def handle(systemC:Z80SystemController):Z80SystemController=
     systemC >>= Z80SystemController.changeRegisterRelative(regSymbol,value)
 }

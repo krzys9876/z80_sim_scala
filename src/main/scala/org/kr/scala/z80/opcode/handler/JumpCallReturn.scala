@@ -46,11 +46,11 @@ object JumpCallReturn extends OpCodeHandler {
 
   private def handleJump(oper: JumpOperation, cond: JumpCondition, checker: JumpConditionChecker, location: Location, instrSize: Int)
                         (implicit system: Z80System): List[SystemChangeBase] = {
-    val prevPC = system.getRegValue("PC")
+    val prevPC = system.getRegValue(Regs.PC)
     val address = calcAddress(oper, system.getValueFromLocation(location), prevPC)
     val registerDecrValue = checker.decRegValue
     val newPC = chooseAddress(prevPC, address, checker)
-    val changePC = List(new RegisterChange("PC", newPC + (if (!checker.isMet) instrSize else 0)))
+    val changePC = List(new RegisterChange(Regs.PC, newPC + (if (!checker.isMet) instrSize else 0)))
     val changeReg = (oper, cond) match {
       case (JumpType.DJumpR, c) if c.isRegister => List(new RegisterChange(c.register, registerDecrValue))
       case _ => List()
@@ -64,29 +64,29 @@ object JumpCallReturn extends OpCodeHandler {
   private def handleStack(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(implicit system: Z80System): List[SystemChangeBase] =
     (shouldJump, oper) match {
       case (true, JumpType.Call) => List(
-        new MemoryChangeWord(system.getRegValue("SP") - 2, system.getRegValue("PC") + instrSize),
-        new RegisterChangeRelative("SP", -2)
+        new MemoryChangeWord(system.getRegValue(Regs.SP) - 2, system.getRegValue(Regs.PC) + instrSize),
+        new RegisterChangeRelative(Regs.SP, -2)
       )
       case (true, JumpType.Return) => List(
-        new RegisterChangeRelative("SP", 2)
+        new RegisterChangeRelative(Regs.SP, 2)
       )
       case _ => List()
     }
 }
 
-case class JumpCondition(flag:FlagSymbol,register:String,value:Int) {
+case class JumpCondition(flag:FlagSymbol,register:RegSymbol,value:Int) {
   lazy val flagValue:Boolean = value!=0
   lazy val isFlag:Boolean = flag!=Flag.None
-  lazy val isRegister:Boolean = register!=""
+  lazy val isRegister:Boolean = register!=Regs.NONE
   lazy val isEmpty:Boolean = this.equals(JumpCondition.empty)
 
-  override def toString:String=if(isEmpty) "empty" else f"$flag/${if(register.nonEmpty) register else "-"}=$value"
+  override def toString:String=if(isEmpty) "empty" else f"$flag/${if(register!=Regs.NONE) register else "-"}=$value"
 }
 
 object JumpCondition {
-  def flag(flag:FlagSymbol,value:Boolean):JumpCondition=JumpCondition(flag,"",if(value) 1 else 0)
-  def register(register:String,value:Int):JumpCondition=JumpCondition(Flag.None,register,value)
-  val empty:JumpCondition=JumpCondition(Flag.None,"",OpCode.ANY)
+  def flag(flag:FlagSymbol,value:Boolean):JumpCondition=JumpCondition(flag,Regs.NONE,if(value) 1 else 0)
+  def register(register:RegSymbol,value:Int):JumpCondition=JumpCondition(Flag.None,register,value)
+  val empty:JumpCondition=JumpCondition(Flag.None,Regs.NONE,OpCode.ANY)
 }
 
 class JumpConditionChecker(val condition: JumpCondition)(implicit system: Z80System) {

@@ -26,13 +26,13 @@ object Z80SystemController {
   private def step(implicit debugger:Debugger): () => Z80System => Z80SystemController = () => system =>
     Z80SystemController(system.step)
 
-  def changeRegister:(String,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
+  def changeRegister:(RegSymbol,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.set(regSymbol,value)
     Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),
       system.outputController,system.inputController))
     }
 
-  def changeRegisterRelative:(String,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
+  def changeRegisterRelative:(RegSymbol,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
     val newReg=system.registerController >>= RegisterController.setRelative(regSymbol,value)
     Z80SystemController(new Z80System(system.memoryController,RegisterController(newReg.get),
       system.outputController,system.inputController))
