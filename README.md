@@ -83,5 +83,5 @@ the reference program finishes in ~3 seconds.
 I've added tracking of T cycles throughout the program so it is possible to compare timings to actual Z80 performance @ 3.6864MHz. 
 That's the clock speed I use in my Z80 projects as it allows serial communication @ 57600 / 115200.
 
-The best I could get for a reference program was ~75%, for other programs not using console (which degrades performance because of scrolling)
-I got even above 100%.
+The best I could get for a reference program (and others) was ~50-75%. 
+Note that extensive use of console degrades performance because of scrolling.
