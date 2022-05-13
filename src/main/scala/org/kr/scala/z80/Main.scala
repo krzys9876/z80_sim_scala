@@ -1,7 +1,8 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.opcode.ADD_A_reg
-import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile, InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile,
+  InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter,
+  RegisterController, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -43,7 +44,7 @@ object Main extends App {
   println(f"elapsed seconds: $seconds%1.2f")
   println(f"elapsed T cycles: $cycles")
   println(f"reference clock ${refmhz.toDouble/1000000}%1.4f MHz")
-  println(f"reference miliseconds: $refseconds%1.2f")
+  println(f"reference seconds: $refseconds%1.2f")
   println(f"relative speed: ${speed*100}%2.2f %%")
   println("END")
 

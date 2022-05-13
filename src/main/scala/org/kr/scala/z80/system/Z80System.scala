@@ -84,6 +84,22 @@ class Z80System(val memoryController: MemoryController, val registerController: 
       case l if l==Location.empty => new DummyChange
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${location.toString}")
     }
+
+  def replaceRegister(newReg:RegisterController):Z80System=
+    new Z80System(memoryController,newReg,outputController,inputController,elapsedTCycles)
+
+  def replaceRegisterAndCycles(newReg:RegisterController, newTCycles:Long):Z80System=
+    new Z80System(memoryController,newReg,outputController,inputController,newTCycles)
+
+  def replaceMemory(newMem:MemoryController):Z80System=
+    new Z80System(newMem,registerController,outputController,inputController,elapsedTCycles)
+
+  def replaceOutput(newOut:OutputController):Z80System=
+    new Z80System(memoryController,registerController,newOut,inputController,elapsedTCycles)
+
+  def replaceInput(newIn:InputController):Z80System=
+    new Z80System(memoryController,registerController,outputController,newIn,elapsedTCycles)
+
 }
 
 object Z80System {
