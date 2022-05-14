@@ -3,7 +3,7 @@ package org.kr.scala.z80.system
 import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.utils.Z80Utils
 
-class Z80System(val memoryController: MemoryController, val registerController: RegisterController,
+class Z80System(val memoryController: BaseStateMonad[Memory], val registerController: RegisterController,
                 val outputController: OutputController,
                 val inputController: InputController,
                 val elapsedTCycles:Long) {
@@ -91,7 +91,7 @@ class Z80System(val memoryController: MemoryController, val registerController: 
   def replaceRegisterAndCycles(newReg:RegisterController, newTCycles:Long):Z80System=
     new Z80System(memoryController,newReg,outputController,inputController,newTCycles)
 
-  def replaceMemory(newMem:MemoryController):Z80System=
+  def replaceMemory(newMem:BaseStateMonad[Memory]):Z80System=
     new Z80System(newMem,registerController,outputController,inputController,elapsedTCycles)
 
   def replaceOutput(newOut:OutputController):Z80System=
@@ -103,6 +103,6 @@ class Z80System(val memoryController: MemoryController, val registerController: 
 }
 
 object Z80System {
-  val blank:Z80System=new Z80System(MemoryController.blank(0x10000),RegisterController.blank,
+  val blank:Z80System=new Z80System(BaseStateMonad[Memory](Memory.blank(0x10000)),RegisterController.blank,
     OutputController.blank, InputController.blank,0)
 }

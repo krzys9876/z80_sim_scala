@@ -1,8 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile,
-  InputPortMultiple, MemoryController, OutputController, OutputFormatter, Outputter, PrintOutputter,
-  RegisterController, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile, InputPortMultiple, Memory, OutputController, OutputFormatter, Outputter, PrintOutputter, RegisterController, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -63,9 +61,9 @@ object Main extends App {
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList
 
-  private def prepareMemory(hexFile:String):MemoryController={
+  private def prepareMemory(hexFile:String):BaseStateMonad[Memory]={
     val hexLines=readFile(hexFile)
-    MemoryController.blank(0x10000) >>= MemoryController.loadHexLines(hexLines) >>= MemoryController.lockTo(0x4000)
+    BaseStateMonad[Memory](Memory.blank(0x10000)) >>== Memory.loadHexLines(hexLines) >>== Memory.lockTo(0x4000)
   }
 
   private def prepareInput(inputFile:String):InputController={

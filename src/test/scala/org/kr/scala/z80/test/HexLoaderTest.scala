@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.MemoryController
+import org.kr.scala.z80.system.{BaseStateMonad, Memory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -21,9 +21,9 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load single line") {
     //given
-    val mem=MemoryController.blank(0x100)
+    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
     //when
-    val memLoaded=mem >>= MemoryController.loadHexLine(":10004000282DDB81F53A4320FE3F2003F118202ABA")
+    val memLoaded=mem >>== Memory.loadHexLine(":10004000282DDB81F53A4320FE3F2003F118202ABA")
     //then
     assert(memLoaded.get(0x0040)==0x28)
     assert(memLoaded.get(0x0041)==0x2D)
@@ -33,9 +33,9 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load multiple lines") {
     //given
-    val mem=MemoryController.blank(0x100)
+    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
     //when
-    val memLoaded=mem >>= MemoryController.loadHexLines(
+    val memLoaded=mem >>== Memory.loadHexLines(
       List(
         ":10000000F3C3B80000000000C39F00000000000020",
         ":10001000C374000000000000C3AA0000000000003C",
@@ -56,9 +56,9 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load ending line") {
     //given
-    val mem=MemoryController.blank(0x100)
+    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
     //when
-    val memLoaded=mem >>= MemoryController.loadHexLine(":00000001FF")
+    val memLoaded=mem >>== Memory.loadHexLine(":00000001FF")
     //then
     assert(memLoaded.get(0x0000)==0x00)
     assert(memLoaded.get(0x0001)==0x00)
@@ -87,10 +87,10 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
     if(Files.exists(tmpFilePath)) Files.delete(tmpFilePath)
 
     saveToFile(tmpFilePath,lines)
-    val mem=MemoryController.blank(0x100)
+    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
     //when
     val linesFromFile=Files.readAllLines(tmpFilePath).asScala.toList
-    val memLoaded=mem >>= MemoryController.loadHexLines(linesFromFile)
+    val memLoaded=mem >>== Memory.loadHexLines(linesFromFile)
     //then
     assert(memLoaded.get(0x0000)==0xF3)
     assert(memLoaded.get(0x0001)==0xC3)

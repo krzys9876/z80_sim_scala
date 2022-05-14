@@ -42,13 +42,13 @@ object Z80SystemController {
   }
 
   def changeMemoryByte:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
-    val newMem=system.memoryController >>= MemoryController.poke(address,value)
+    val newMem=system.memoryController >>== Memory.poke(address,value)
     Z80SystemController(system.replaceMemory(newMem))
   }
 
   def changeMemoryWord:(Int,Int) => Z80System => Z80SystemController = (address, value) => system => {
-    val newMem=system.memoryController >>= MemoryController.poke(address,Z80Utils.getL(value)) >>=
-       MemoryController.poke(address+1,Z80Utils.getH(value))
+    val newMem=system.memoryController >>== Memory.poke(address,Z80Utils.getL(value)) >>==
+       Memory.poke(address+1,Z80Utils.getH(value))
     Z80SystemController(system.replaceMemory(newMem))
   }
 

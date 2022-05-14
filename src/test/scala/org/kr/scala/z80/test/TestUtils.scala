@@ -1,7 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{Debugger, Flag, MemoryController, RegSymbol, Register, RegisterController, Regs, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{Debugger, Flag, Memory, RegSymbol, Register, RegisterController, Regs, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
 
 object TestUtils {
@@ -27,7 +27,7 @@ object TestUtils {
     )
 
     val mem = memList.foldLeft(sysBlank.get.memoryController)(
-      (memC, entry) => memC >>= MemoryController.poke(entry._1, entry._2)
+      (memC, entry) => memC >>== Memory.poke(entry._1, entry._2)
     )
     //when
     val sysInit = Z80SystemController(new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController,0))
