@@ -2,9 +2,9 @@ package org.kr.scala.z80.system
 
 class BaseStateMonad[StateType](val state:StateType) {
   // equivalent to map
-  def >>= (fChangeState: StateType=>BaseStateMonad[StateType]):BaseStateMonad[StateType]=fChangeState(state)
-  // equivalent to flatMap
   def >>== (fChangeState: StateType=>StateType):BaseStateMonad[StateType]=BaseStateMonad(fChangeState(state))
+  // equivalent to flatMap
+  def >>= (fChangeState: StateType=>BaseStateMonad[StateType]):BaseStateMonad[StateType]=fChangeState(state)
   def get:StateType = state
 }
 
