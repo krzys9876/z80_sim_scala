@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{BaseStateMonad, ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, InputPortSequential, RegSymbol, Regs, Z80System}
+import org.kr.scala.z80.system.{StateWatcher, ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, InputPortSequential, RegSymbol, Regs, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
@@ -72,8 +72,8 @@ class OpInOutTest extends AnyFunSuite {
   }
 
   def prepareTestWithInput(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,
-                           steps:Int=1): BaseStateMonad[Z80System] = {
-    val blank=BaseStateMonad[Z80System](Z80System.blank) >>== Z80System.attachPort(port,inputPort)
+                           steps:Int=1): StateWatcher[Z80System] = {
+    val blank=StateWatcher[Z80System](Z80System.blank) >>== Z80System.attachPort(port,inputPort)
     TestUtils.prepareTestWith(blank,regList,memList,steps)
   }
 

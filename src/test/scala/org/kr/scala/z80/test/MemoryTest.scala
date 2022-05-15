@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{BaseStateMonad, Memory}
+import org.kr.scala.z80.system.{StateWatcher, Memory}
 import org.scalatest.funsuite.AnyFunSuite
 
 class MemoryTest extends AnyFunSuite {
@@ -10,7 +10,7 @@ class MemoryTest extends AnyFunSuite {
 
   test("init blank memory") {
     //given
-    val memoryController=BaseStateMonad[Memory](Memory.blank(5))
+    val memoryController=StateWatcher[Memory](Memory.blank(5))
     //when
     //then
     assert(memoryController.get.mem.equals(Vector[Int](0,0,0,0,0)))
@@ -18,7 +18,7 @@ class MemoryTest extends AnyFunSuite {
 
   test("init preloaded memory") {
     //given
-    val memoryController=BaseStateMonad[Memory](Memory.preloaded(Vector[Int](1,2,3),4))
+    val memoryController=StateWatcher[Memory](Memory.preloaded(Vector[Int](1,2,3),4))
     //when
     //then
     assert(memoryController.get.mem.equals(Vector[Int](1,2,3,0)))
@@ -26,7 +26,7 @@ class MemoryTest extends AnyFunSuite {
 
   test("poke memory") {
     //given
-    val memoryController=BaseStateMonad[Memory](Memory.blank(5))
+    val memoryController=StateWatcher[Memory](Memory.blank(5))
     //when
     val afterState=memoryController >>== Memory.poke(1,34) >>== Memory.poke(4,56) >>== Memory.poke(0,12)
     //then
@@ -35,7 +35,7 @@ class MemoryTest extends AnyFunSuite {
 
   test("poke multiple values") {
     //given
-    val memoryController=BaseStateMonad[Memory](Memory.blank(5))
+    val memoryController=StateWatcher[Memory](Memory.blank(5))
     //when
     val afterState=memoryController >>== Memory.pokeMulti(1,Vector(34,56,78))
     //then
@@ -44,16 +44,16 @@ class MemoryTest extends AnyFunSuite {
 
   test("poke memory direct function declaration") {
     //given
-    val memoryController=BaseStateMonad[Memory](Memory.blank(5))
+    val memoryController=StateWatcher[Memory](Memory.blank(5))
     //when
-    val afterState=memoryController >>= (mem=>BaseStateMonad[Memory](mem.poke(2,67)))
+    val afterState=memoryController >>= (mem=>StateWatcher[Memory](mem.poke(2,67)))
     //then
     assert(afterState.get.mem.equals(Vector[Int](0,0,67,0,0)))
   }
 
   test("lock lower memory") {
     //given
-    val memoryController=BaseStateMonad[Memory](Memory.blank(10))
+    val memoryController=StateWatcher[Memory](Memory.blank(10))
     val memoryAfter1=memoryController >>== Memory.pokeMulti(0,Vector(100,101,102,103,104,105,106,107,108,109))
     //when
     val memoryAfter2=

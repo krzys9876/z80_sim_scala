@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{BaseStateMonad, Debugger, DummyDebugger, Regs, Z80System}
+import org.kr.scala.z80.system.{StateWatcher, Debugger, DummyDebugger, Regs, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpBasicTest extends AnyFunSuite {
@@ -14,7 +14,7 @@ class OpBasicTest extends AnyFunSuite {
 
   test("run NOP and move PC") {
     //given
-    val sys1=BaseStateMonad[Z80System](Z80System.blank)
+    val sys1=StateWatcher[Z80System](Z80System.blank)
     //when
     val sys2=sys1 >>== Z80System.run(debugger)(1000L)
     //then
@@ -23,7 +23,7 @@ class OpBasicTest extends AnyFunSuite {
 
   test("run NOP with memory overflow") {
     //given
-    val sys1=BaseStateMonad[Z80System](Z80System.blank) >>== Z80System.changeRegister(Regs.PC,65534)
+    val sys1=StateWatcher[Z80System](Z80System.blank) >>== Z80System.changeRegister(Regs.PC,65534)
     //when
     val sys2=sys1 >>== Z80System.run(debugger)(3L)
     //then

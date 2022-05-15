@@ -1,13 +1,13 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{BaseStateMonad, MemoryChangeByte, MemoryChangeWord, RegisterChange, RegisterChangeRelative, Regs, Z80System}
+import org.kr.scala.z80.system.{StateWatcher, MemoryChangeByte, MemoryChangeWord, RegisterChange, RegisterChangeRelative, Regs, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class SystemTest extends AnyFunSuite {
 
   test("change memory (byte)") {
     //given
-    val systemController=BaseStateMonad[Z80System](Z80System.blank)
+    val systemController=StateWatcher[Z80System](Z80System.blank)
     //when
     val afterState=(systemController >>== Z80System.change(new MemoryChangeByte(0x1234,0xFE))).get
     //then
@@ -16,7 +16,7 @@ class SystemTest extends AnyFunSuite {
 
   test("change memory (word)") {
     //given
-    val systemController=BaseStateMonad[Z80System](Z80System.blank)
+    val systemController=StateWatcher[Z80System](Z80System.blank)
     //when
     val afterState=(systemController >>== Z80System.change(new MemoryChangeWord(0x1234,0xFEFD))).get
     //then
@@ -28,7 +28,7 @@ class SystemTest extends AnyFunSuite {
     //given
     val system=Z80System.blank
     //when
-    val afterState=(BaseStateMonad[Z80System](system) >>==
+    val afterState=(StateWatcher[Z80System](system) >>==
       Z80System.change(new RegisterChange(Regs.AF,0xFEFD)) >>==
       Z80System.change(new RegisterChange(Regs.SP,0xA1B2))).get
     //then
@@ -40,7 +40,7 @@ class SystemTest extends AnyFunSuite {
   test("change register relative") {
     //given
     val initSystem=Z80System.blank
-    val systemC=BaseStateMonad[Z80System](initSystem) >>== Z80System.change(new RegisterChange(Regs.SP,0x1002))
+    val systemC=StateWatcher[Z80System](initSystem) >>== Z80System.change(new RegisterChange(Regs.SP,0x1002))
     //when
     val afterState=(systemC >>== Z80System.change(new RegisterChangeRelative(Regs.SP,0xF0))).get
     //then
@@ -55,7 +55,7 @@ class SystemTest extends AnyFunSuite {
       new MemoryChangeByte(0xABCD,0xA1),
       new MemoryChangeWord(0x3210,0xB1C2),
       new RegisterChange(Regs.HL,0xFEDC))
-    val afterState=(BaseStateMonad[Z80System](system) >>== Z80System.changeList(chgList)).get
+    val afterState=(StateWatcher[Z80System](system) >>== Z80System.changeList(chgList)).get
     //then
     assert(afterState.registerController.get(Regs.HL)==0xFEDC)
     assert(afterState.memoryController.get(0xABCD)==0xA1)

@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, OutputFormatter, Outputter, PrintOutputter, Register, Z80System}
+import org.kr.scala.z80.system.{StateWatcher, CharFormatter, ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, OutputFormatter, Outputter, PrintOutputter, Register, Z80System}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -25,13 +25,13 @@ object Main extends App {
   // input keys sequence
   val input=prepareInput(args(1))
   //whole system
-  val initSystem=new Z80System(memory,BaseStateMonad[Register](Register.blank),BaseStateMonad[OutputFile](OutputFile.blank),input,0)
+  val initSystem=new Z80System(memory,StateWatcher[Register](Register.blank),StateWatcher[OutputFile](OutputFile.blank),input,0)
 
   println("START")
   val startTime=LocalDateTime.now()
 
   implicit val debugger:Debugger=ConsoleDebugger
-  val after=BaseStateMonad[Z80System](initSystem) >>== Z80System.run(debugger)(MAX_STEPS)
+  val after=StateWatcher[Z80System](initSystem) >>== Z80System.run(debugger)(MAX_STEPS)
 
   val endTime=LocalDateTime.now()
   val seconds=ChronoUnit.MILLIS.between(startTime,endTime).toDouble/1000
@@ -61,18 +61,18 @@ object Main extends App {
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList
 
-  private def prepareMemory(hexFile:String):BaseStateMonad[Memory]={
+  private def prepareMemory(hexFile:String):StateWatcher[Memory]={
     val hexLines=readFile(hexFile)
-    BaseStateMonad[Memory](Memory.blank(0x10000)) >>== Memory.loadHexLines(hexLines) >>== Memory.lockTo(0x4000)
+    StateWatcher[Memory](Memory.blank(0x10000)) >>== Memory.loadHexLines(hexLines) >>== Memory.lockTo(0x4000)
   }
 
-  private def prepareInput(inputFile:String):BaseStateMonad[InputFile]={
+  private def prepareInput(inputFile:String):StateWatcher[InputFile]={
     // add initial "memory top" answer to skip long-lasting memory test
     val inputLines=List(MEMORY_TOP) ++ readFile(inputFile)
     val inputList:List[Int]=InputFile.linesList2Ints(inputLines)
     val inputPortKeys=new InputPortMultiple(inputList)
     val inputPortControl=new InputPortMultiple(List.fill(inputList.length)(1))
-    BaseStateMonad[InputFile](InputFile.blank) >>==
+    StateWatcher[InputFile](InputFile.blank) >>==
       InputFile.attachPort(CONTROL_PORT,inputPortControl) >>==
       InputFile.attachPort(DATA_PORT,inputPortKeys)
   }

@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{BaseStateMonad, Flag, Register, Regs}
+import org.kr.scala.z80.system.{StateWatcher, Flag, Register, Regs}
 import org.scalatest.funsuite.AnyFunSuite
 
 class RegisterTest extends AnyFunSuite {
@@ -10,7 +10,7 @@ class RegisterTest extends AnyFunSuite {
 
   test("init blank register") {
     //given
-    val registerController=BaseStateMonad[Register](Register.blank)
+    val registerController=StateWatcher[Register](Register.blank)
     //when
     //then
     assert(registerController.get(Regs.A).equals(0))
@@ -20,7 +20,7 @@ class RegisterTest extends AnyFunSuite {
 
   test("set register") {
     //given
-    val registerController=BaseStateMonad[Register](Register.blank)
+    val registerController=StateWatcher[Register](Register.blank)
     //when
     val afterState=registerController >>== Register.set(Regs.IX,255) >>== Register.set(Regs.IY,56)
     //then
@@ -31,9 +31,9 @@ class RegisterTest extends AnyFunSuite {
 
   test("set register direct function declaration") {
     //given
-    val registerController=BaseStateMonad[Register](Register.blank)
+    val registerController=StateWatcher[Register](Register.blank)
     //when
-    val afterState=registerController >>= (reg=>BaseStateMonad[Register](reg.set(Regs.B,36)))
+    val afterState=registerController >>= (reg=>StateWatcher[Register](reg.set(Regs.B,36)))
     //then
     assert(afterState.get(Regs.B).equals(36))
     assert(afterState.get(Regs.A).equals(0))
@@ -41,7 +41,7 @@ class RegisterTest extends AnyFunSuite {
 
   test("set register pairs") {
     //given
-    val registerController=BaseStateMonad[Register](Register.blank)
+    val registerController=StateWatcher[Register](Register.blank)
     //when
     val afterState=registerController >>==
       Register.set(Regs.AF,0x0102) >>== Register.set(Regs.BC,0x0304) >>==
@@ -65,7 +65,7 @@ class RegisterTest extends AnyFunSuite {
 
   test("get register pairs") {
     //given
-    val registerController=BaseStateMonad[Register](Register.blank)
+    val registerController=StateWatcher[Register](Register.blank)
     //when
     val afterState=registerController >>==
       Register.set(Regs.A,1) >>== Register.set(Regs.F,2) >>==
@@ -81,7 +81,7 @@ class RegisterTest extends AnyFunSuite {
 
   test("check flags 1") {
     //given
-    val registerController=BaseStateMonad[Register](Register.blank)
+    val registerController=StateWatcher[Register](Register.blank)
     //when
     val afterState=registerController >>== Register.set(Regs.F,0xAA)
     //then
@@ -96,7 +96,7 @@ class RegisterTest extends AnyFunSuite {
 
   test("check flags 2") {
     //given
-    val registerController=BaseStateMonad[Register](Register.blank)
+    val registerController=StateWatcher[Register](Register.blank)
     //when
     val afterState=registerController >>== Register.set(Regs.F,0x55)
     //then

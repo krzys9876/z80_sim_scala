@@ -5,9 +5,9 @@ import org.kr.scala.z80.utils.Z80Utils
 
 import scala.annotation.tailrec
 
-class Z80System(val memoryController: BaseStateMonad[Memory], val registerController: BaseStateMonad[Register],
-                val outputController: BaseStateMonad[OutputFile],
-                val inputController: BaseStateMonad[InputFile],
+class Z80System(val memoryController: StateWatcher[Memory], val registerController: StateWatcher[Register],
+                val outputController: StateWatcher[OutputFile],
+                val inputController: StateWatcher[InputFile],
                 val elapsedTCycles:Long) {
   def step(implicit debugger:Debugger):Z80System= {
     val opCode=getCurrentOpCode
@@ -46,7 +46,7 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
 
   private def returnAfterChange(chgList:List[SystemChangeBase],forwardPC:Int=0,forwardTCycles:Int=0):Z80System = {
     val chgListAfterPC=chgList ++ (if(forwardPC!=0 || forwardTCycles!=0) List(new PCChange(forwardPC,forwardTCycles)) else List())
-    (BaseStateMonad[Z80System](this) >>== Z80System.changeList(chgListAfterPC)).get
+    (StateWatcher[Z80System](this) >>== Z80System.changeList(chgListAfterPC)).get
   }
 
   def readPort(port:Int)(implicit debugger:Debugger):Int=inputController.get.read(port)
@@ -87,25 +87,25 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${location.toString}")
     }
 
-  def replaceRegister(newReg:BaseStateMonad[Register]):Z80System=
+  def replaceRegister(newReg:StateWatcher[Register]):Z80System=
     new Z80System(memoryController,newReg,outputController,inputController,elapsedTCycles)
 
-  def replaceRegisterAndCycles(newReg:BaseStateMonad[Register], newTCycles:Long):Z80System=
+  def replaceRegisterAndCycles(newReg:StateWatcher[Register], newTCycles:Long):Z80System=
     new Z80System(memoryController,newReg,outputController,inputController,newTCycles)
 
-  def replaceMemory(newMem:BaseStateMonad[Memory]):Z80System=
+  def replaceMemory(newMem:StateWatcher[Memory]):Z80System=
     new Z80System(newMem,registerController,outputController,inputController,elapsedTCycles)
 
-  def replaceOutput(newOut:BaseStateMonad[OutputFile]):Z80System=
+  def replaceOutput(newOut:StateWatcher[OutputFile]):Z80System=
     new Z80System(memoryController,registerController,newOut,inputController,elapsedTCycles)
 
-  def replaceInput(newIn:BaseStateMonad[InputFile]):Z80System=
+  def replaceInput(newIn:StateWatcher[InputFile]):Z80System=
     new Z80System(memoryController,registerController,outputController,newIn,elapsedTCycles)
 }
 
 object Z80System {
-  val blank:Z80System=new Z80System(BaseStateMonad[Memory](Memory.blank(0x10000)),BaseStateMonad[Register](Register.blank),
-    BaseStateMonad[OutputFile](OutputFile.blank), BaseStateMonad[InputFile](InputFile.blank),0)
+  val blank:Z80System=new Z80System(StateWatcher[Memory](Memory.blank(0x10000)),StateWatcher[Register](Register.blank),
+    StateWatcher[OutputFile](OutputFile.blank), StateWatcher[InputFile](InputFile.blank),0)
 
   // functions changing state (Z80System=>Z80System)
   def changeList:List[SystemChangeBase] => Z80System => Z80System = list => system =>
@@ -157,12 +157,12 @@ object Z80System {
 
   // run - main functions changing state of the system
   def run(implicit debug:Debugger):Long=>Z80System=>Z80System=
-    toGo=>system=>steps(BaseStateMonad[Z80System](system),toGo).state
+    toGo=>system=>steps(StateWatcher[Z80System](system),toGo).state
 
   @tailrec
-  private def steps(start:BaseStateMonad[Z80System], toGo:Long)(implicit debugger: Debugger):BaseStateMonad[Z80System]={
+  private def steps(start:StateWatcher[Z80System], toGo:Long)(implicit debugger: Debugger):StateWatcher[Z80System]={
     toGo match {
-      case 0 => BaseStateMonad[Z80System](start.state)
+      case 0 => StateWatcher[Z80System](start.state)
       case _ => steps(start >>== Z80System.step(debugger)(),toGo-1)
     }
   }

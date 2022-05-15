@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{BaseStateMonad, Memory}
+import org.kr.scala.z80.system.{StateWatcher, Memory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -21,7 +21,7 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load single line") {
     //given
-    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
+    val mem=StateWatcher[Memory](Memory.blank(0x100))
     //when
     val memLoaded=mem >>== Memory.loadHexLine(":10004000282DDB81F53A4320FE3F2003F118202ABA")
     //then
@@ -33,7 +33,7 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load multiple lines") {
     //given
-    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
+    val mem=StateWatcher[Memory](Memory.blank(0x100))
     //when
     val memLoaded=mem >>== Memory.loadHexLines(
       List(
@@ -56,7 +56,7 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load ending line") {
     //given
-    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
+    val mem=StateWatcher[Memory](Memory.blank(0x100))
     //when
     val memLoaded=mem >>== Memory.loadHexLine(":00000001FF")
     //then
@@ -87,7 +87,7 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
     if(Files.exists(tmpFilePath)) Files.delete(tmpFilePath)
 
     saveToFile(tmpFilePath,lines)
-    val mem=BaseStateMonad[Memory](Memory.blank(0x100))
+    val mem=StateWatcher[Memory](Memory.blank(0x100))
     //when
     val linesFromFile=Files.readAllLines(tmpFilePath).asScala.toList
     val memLoaded=mem >>== Memory.loadHexLines(linesFromFile)
