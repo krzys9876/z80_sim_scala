@@ -27,7 +27,7 @@ object Main extends App {
   // input keys sequence
   val input=prepareInput(args(1))
   //whole system
-  val initSystem=new Z80System(memory.get,Register.blank,StateWatcher[OutputFile](OutputFile.blank),input,0)
+  val initSystem=new Z80System(memory.get,Register.blank,OutputFile.blank,input.get,0)
 
   println("START")
   val startTime=LocalDateTime.now()
@@ -76,11 +76,5 @@ object Main extends App {
     StateWatcher[InputFile](InputFile.blank) >>==
       InputFile.attachPort(CONTROL_PORT,inputPortControl) >>==
       InputFile.attachPort(DATA_PORT,inputPortKeys)
-  }
-
-  private def printOutput():Unit={
-    implicit val outputFormatter:OutputFormatter=CharFormatter
-    implicit val outputter:Outputter=PrintOutputter
-    after.get.outputController.get.show(DATA_PORT)
   }
 }

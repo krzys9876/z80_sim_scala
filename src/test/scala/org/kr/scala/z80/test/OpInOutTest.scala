@@ -13,9 +13,9 @@ class OpInOutTest extends AnyFunSuite {
     val systemC=TestUtils.prepareTest(List((Regs.A,0x41)),List((0x0000,0xD3),(0x0001,0x01)))
     //then
     assert(systemC.get.register(Regs.PC)==2)
-    assert(systemC.get.outputController.get(1,0)==0x41)
-    assert(systemC.get.outputController.get(111,112)==0)
-    //systemC.get.outputController.get.print(1)
+    assert(systemC.get.output(1,0)==0x41)
+    assert(systemC.get.output(111,112)==0)
+    //systemC.get.output.print(1)
   }
 
   test("run OUT (n),A - multiple") {
@@ -32,12 +32,12 @@ class OpInOutTest extends AnyFunSuite {
       ),6)
     //then
     assert(systemC.get.register(Regs.PC)==0x000C)
-    assert(systemC.get.outputController.get(0xFF,0)==0x41)
-    assert(systemC.get.outputController.get(0xFF,1)==0x42)
-    assert(systemC.get.outputController.get(0xFF,2)==0x43)
-    assert(systemC.get.outputController.get(111,112)==0)
+    assert(systemC.get.output(0xFF,0)==0x41)
+    assert(systemC.get.output(0xFF,1)==0x42)
+    assert(systemC.get.output(0xFF,2)==0x43)
+    assert(systemC.get.output(111,112)==0)
 
-    //systemC.get.outputController.get.print(0xFF)
+    //systemC.get.output.print(0xFF)
   }
 
   test("run OUT (C),r - multiple") {
@@ -61,14 +61,14 @@ class OpInOutTest extends AnyFunSuite {
       ),13)
     //then
     assert(systemC.get.register(Regs.PC)==0x001A)
-    assert(systemC.get.outputController.get(0x80,0)==0x41)
-    assert(systemC.get.outputController.get(0x80,1)==0x42)
-    assert(systemC.get.outputController.get(0x80,2)==0x43)
-    assert(systemC.get.outputController.get(0x80,3)==0x44)
-    assert(systemC.get.outputController.get(0x80,4)==0x45)
-    assert(systemC.get.outputController.get(0x80,5)==0x46)
+    assert(systemC.get.output(0x80,0)==0x41)
+    assert(systemC.get.output(0x80,1)==0x42)
+    assert(systemC.get.output(0x80,2)==0x43)
+    assert(systemC.get.output(0x80,3)==0x44)
+    assert(systemC.get.output(0x80,4)==0x45)
+    assert(systemC.get.output(0x80,5)==0x46)
 
-    //systemC.get.outputController.get.print(0xFF)
+    //systemC.get.output.print(0xFF)
   }
 
   def prepareTestWithInput(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,

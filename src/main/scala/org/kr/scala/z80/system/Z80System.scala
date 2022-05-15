@@ -6,8 +6,7 @@ import org.kr.scala.z80.utils.Z80Utils
 import scala.annotation.tailrec
 
 class Z80System(val memory: Memory, val register: Register,
-                val outputController: StateWatcher[OutputFile],
-                val inputController: StateWatcher[InputFile],
+                val output: OutputFile, val input: InputFile,
                 val elapsedTCycles:Long)(implicit debugger:Debugger) {
   lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(getCurrentOpCode)
 
@@ -45,7 +44,7 @@ class Z80System(val memory: Memory, val register: Register,
     (StateWatcherSilent[Z80System](this) >>== Z80System.changeList(debugger)(chgListAfterPC)).get
   }
 
-  def readPort(port:Int):Int=inputController.get.read(port)
+  def readPort(port:Int):Int=input.read(port)
 
   def getValueFromLocation(loc:Location):Int =
     loc match {
@@ -84,24 +83,24 @@ class Z80System(val memory: Memory, val register: Register,
     }
 
   def replaceRegister(newReg:Register):Z80System=
-    new Z80System(memory,newReg,outputController,inputController,elapsedTCycles)
+    new Z80System(memory,newReg,output,input,elapsedTCycles)
 
   def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System=
-    new Z80System(memory,newReg,outputController,inputController,newTCycles)
+    new Z80System(memory,newReg,output,input,newTCycles)
 
   def replaceMemory(newMem:Memory):Z80System=
-    new Z80System(newMem,register,outputController,inputController,elapsedTCycles)
+    new Z80System(newMem,register,output,input,elapsedTCycles)
 
-  def replaceOutput(newOut:StateWatcher[OutputFile]):Z80System=
-    new Z80System(memory,register,newOut,inputController,elapsedTCycles)
+  def replaceOutput(newOut:OutputFile):Z80System=
+    new Z80System(memory,register,newOut,input,elapsedTCycles)
 
-  def replaceInput(newIn:StateWatcher[InputFile]):Z80System=
-    new Z80System(memory,register,outputController,newIn,elapsedTCycles)
+  def replaceInput(newIn:InputFile):Z80System=
+    new Z80System(memory,register,output,newIn,elapsedTCycles)
 }
 
 object Z80System {
   def blank(implicit debugger:Debugger):Z80System=new Z80System(Memory.blank(0x10000),Register.blank,
-    StateWatcher[OutputFile](OutputFile.blank), StateWatcher[InputFile](InputFile.blank),0)
+    OutputFile.blank, InputFile.blank,0)
 
   // functions changing state (Z80System=>Z80System)
   def changeList(implicit debugger:Debugger):List[SystemChangeBase] => Z80System => Z80System = list => system =>
@@ -137,17 +136,17 @@ object Z80System {
   }
 
   def outputByte(implicit debugger:Debugger):(Int,Int) => Z80System => Z80System = (port, value) => system => {
-    val newOut=system.outputController >>== OutputFile.out(debugger)(port,value)
+    val newOut=(StateWatcher(system.output) >>== OutputFile.out(debugger)(port,value)).get
     system.replaceOutput(newOut)
   }
 
   def attachPort(implicit debugger:Debugger):(Int,InputPort) => Z80System => Z80System = (port,inPort) => system => {
-    val newIn=system.inputController >>== InputFile.attachPort(port,inPort)
+    val newIn=(StateWatcherSilent(system.input) >>== InputFile.attachPort(port,inPort)).get
     system.replaceInput(newIn)
   }
 
   def refreshInput(implicit debugger:Debugger):Int => Z80System => Z80System = port => system => {
-    val newIn=system.inputController >>== InputFile.refreshPort(port)
+    val newIn=(StateWatcherSilent(system.input) >>== InputFile.refreshPort(port)).get
     system.replaceInput(newIn)
   }
 
