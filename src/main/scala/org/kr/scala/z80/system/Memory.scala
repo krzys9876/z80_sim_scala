@@ -40,7 +40,7 @@ object Memory {
       case _ => fillZero(memory :+ 0.toShort,noLeft-1)
     }
 
-  // functors - functions changing state (Memory=>Memory)
+  // functions changing state (Memory=>Memory)
   def poke: (Int, Int) => Memory => Memory = (address, value) => memory => memory.poke(address, value)
   def pokeMulti: (Int, Vector[Int]) => Memory => Memory = (address, values) => memory => memory.pokeMulti(address, values)
   def loadHexLine:String => Memory => Memory = line => memory => memory.loadHexLine(line)

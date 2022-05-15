@@ -55,6 +55,7 @@ object InputFile {
     .foldLeft(List[Int]())((list,line)=>list ++ keys2Ints(line.strip(),cr))
   def lines2Ints(lines:String,cr:Int=CR):List[Int]=linesList2Ints(lines.strip().split("\r\n").toList,cr)
 
+  // functions changing state (InputFile=>InputFile)
   val attachPort: (Int, InputPort) => InputFile => InputFile = (port, inPort) => inputFile => inputFile.attachPort(port,inPort)
   val refreshPort: Int => InputFile => InputFile = port => inputFile => {
     val inputPort:InputPort=inputFile.ports.getOrElse(port,InputPortConstant.blank)

@@ -31,6 +31,7 @@ class OutputFile(val files:Map[Int,OutputPort]) {
 object OutputFile {
   def blank:OutputFile= new OutputFile(Map())
 
+  // functions changing state (OutputFile=>OutputFile)
   def out(implicit debugger:Debugger): (Int, Int) => OutputFile => OutputFile = (port, value) => outputFile =>
     outputFile.write(port,value)
 

@@ -81,6 +81,7 @@ object Register {
     register.d,register.e,register.h,register.l,register.pc,register.sp,register.r,register.i,register.ix,register.iy,
     register.af1,register.bc1,register.de1,register.hl1)
 
+  // functions changing state (Register=>Register)
   val set: (RegSymbol, Int) => Register => Register = (regSymbol, value) => register => register.set(regSymbol, value)
   val setRelative: (RegSymbol, Int) => Register => Register = (regSymbol, value) => register => register.setRelative(regSymbol, value)
 
