@@ -80,6 +80,10 @@ object Register {
   def apply(register: Register):Register=new Register(register.a,register.f,register.b,register.c,
     register.d,register.e,register.h,register.l,register.pc,register.sp,register.r,register.i,register.ix,register.iy,
     register.af1,register.bc1,register.de1,register.hl1)
+
+  val set: (RegSymbol, Int) => Register => Register = (regSymbol, value) => register => register.set(regSymbol, value)
+  val setRelative: (RegSymbol, Int) => Register => Register = (regSymbol, value) => register => register.setRelative(regSymbol, value)
+
 }
 
 sealed abstract class RegSymbol(val symbol:String) {

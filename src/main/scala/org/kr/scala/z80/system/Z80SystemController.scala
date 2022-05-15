@@ -1,6 +1,7 @@
 package org.kr.scala.z80.system
 
 import org.kr.scala.z80.utils.Z80Utils
+import org.kr.scala.z80.system.Register
 
 import scala.annotation.tailrec
 
@@ -27,17 +28,17 @@ object Z80SystemController {
     Z80SystemController(system.step)
 
   def changeRegister:(RegSymbol,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
-    val newReg=system.registerController >>= RegisterController.set(regSymbol,value)
+    val newReg=system.registerController >>== Register.set(regSymbol,value)
     Z80SystemController(system.replaceRegister(newReg))
   }
 
   def changePCAndCycles:(Int,Int) => Z80System => Z80SystemController = (pc,cycles) => system => {
-    val newReg=system.registerController >>= RegisterController.setRelative(Regs.PC,pc)
+    val newReg=system.registerController >>== Register.setRelative(Regs.PC,pc)
     Z80SystemController(system.replaceRegisterAndCycles(newReg,system.elapsedTCycles+cycles))
   }
 
   def changeRegisterRelative:(RegSymbol,Int) => Z80System => Z80SystemController = (regSymbol, value) => system => {
-    val newReg=system.registerController >>= RegisterController.setRelative(regSymbol,value)
+    val newReg=system.registerController >>== Register.setRelative(regSymbol,value)
     Z80SystemController(system.replaceRegister(newReg))
   }
 

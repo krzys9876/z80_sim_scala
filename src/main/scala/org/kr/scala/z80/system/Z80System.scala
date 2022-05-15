@@ -3,7 +3,7 @@ package org.kr.scala.z80.system
 import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.utils.Z80Utils
 
-class Z80System(val memoryController: BaseStateMonad[Memory], val registerController: RegisterController,
+class Z80System(val memoryController: BaseStateMonad[Memory], val registerController: BaseStateMonad[Register],
                 val outputController: OutputController,
                 val inputController: InputController,
                 val elapsedTCycles:Long) {
@@ -85,10 +85,10 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${location.toString}")
     }
 
-  def replaceRegister(newReg:RegisterController):Z80System=
+  def replaceRegister(newReg:BaseStateMonad[Register]):Z80System=
     new Z80System(memoryController,newReg,outputController,inputController,elapsedTCycles)
 
-  def replaceRegisterAndCycles(newReg:RegisterController, newTCycles:Long):Z80System=
+  def replaceRegisterAndCycles(newReg:BaseStateMonad[Register], newTCycles:Long):Z80System=
     new Z80System(memoryController,newReg,outputController,inputController,newTCycles)
 
   def replaceMemory(newMem:BaseStateMonad[Memory]):Z80System=
@@ -103,6 +103,6 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
 }
 
 object Z80System {
-  val blank:Z80System=new Z80System(BaseStateMonad[Memory](Memory.blank(0x10000)),RegisterController.blank,
+  val blank:Z80System=new Z80System(BaseStateMonad[Memory](Memory.blank(0x10000)),BaseStateMonad[Register](Register.blank),
     OutputController.blank, InputController.blank,0)
 }

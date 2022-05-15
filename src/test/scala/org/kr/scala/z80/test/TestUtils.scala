@@ -1,7 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{Debugger, Flag, Memory, RegSymbol, Register, RegisterController, Regs, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{Debugger, Flag, Memory, RegSymbol, Register, Regs, Z80System, Z80SystemController}
 import org.kr.scala.z80.utils.Z80Utils
 
 object TestUtils {
@@ -23,7 +23,7 @@ object TestUtils {
                      (implicit debugger:Debugger): Z80SystemController = {
     //given
     val reg = regList.foldLeft(sysBlank.get.registerController)(
-      (regC, entry) => regC >>= RegisterController.set(entry._1, entry._2)
+      (regC, entry) => regC >>== Register.set(entry._1, entry._2)
     )
 
     val mem = memList.foldLeft(sysBlank.get.memoryController)(
