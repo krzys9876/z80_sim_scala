@@ -1,7 +1,6 @@
 package org.kr.scala.z80.system
 
 import org.kr.scala.z80.utils.Z80Utils
-import org.kr.scala.z80.system.Register
 
 import scala.annotation.tailrec
 
@@ -59,12 +58,12 @@ object Z80SystemController {
   }
 
   def refreshInput:Int => Z80System => Z80SystemController = port => system => {
-    val newIn=system.inputController >>= InputController.refreshPort(port)
+    val newIn=system.inputController >>== InputFile.refreshPort(port)
     Z80SystemController(system.replaceInput(newIn))
   }
 
   def attachPort:(Int,InputPort) => Z80System => Z80SystemController = (port,inPort) => system => {
-    val newIn=system.inputController >>= InputController.attachPort(port,inPort)
+    val newIn=system.inputController >>== InputFile.attachPort(port,inPort)
     Z80SystemController(system.replaceInput(newIn))
   }
 

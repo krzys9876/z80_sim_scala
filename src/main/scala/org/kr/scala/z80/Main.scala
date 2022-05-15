@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputController, InputFile,
+import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputFile,
   InputPortMultiple, Memory, OutputController, OutputFormatter, Outputter, PrintOutputter, Register, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
@@ -67,15 +67,15 @@ object Main extends App {
     BaseStateMonad[Memory](Memory.blank(0x10000)) >>== Memory.loadHexLines(hexLines) >>== Memory.lockTo(0x4000)
   }
 
-  private def prepareInput(inputFile:String):InputController={
+  private def prepareInput(inputFile:String):BaseStateMonad[InputFile]={
     // add initial "memory top" answer to skip long-lasting memory test
     val inputLines=List(MEMORY_TOP) ++ readFile(inputFile)
     val inputList:List[Int]=InputFile.linesList2Ints(inputLines)
     val inputPortKeys=new InputPortMultiple(inputList)
     val inputPortControl=new InputPortMultiple(List.fill(inputList.length)(1))
-    InputController.blank >>=
-      InputController.attachPort(CONTROL_PORT,inputPortControl) >>=
-      InputController.attachPort(DATA_PORT,inputPortKeys)
+    BaseStateMonad[InputFile](InputFile.blank) >>==
+      InputFile.attachPort(CONTROL_PORT,inputPortControl) >>==
+      InputFile.attachPort(DATA_PORT,inputPortKeys)
   }
 
   private def printOutput():Unit={

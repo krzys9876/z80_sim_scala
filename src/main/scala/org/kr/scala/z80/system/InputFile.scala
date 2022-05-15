@@ -42,7 +42,7 @@ class InputFile(val ports:Map[Int,InputPort]=Map()) {
     debugger.input(port, value)
     value
   }
-  def addOrReplace(port:Int, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
+  def attachPort(port:Int, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
 }
 
 object InputFile {
@@ -54,5 +54,13 @@ object InputFile {
     lines
     .foldLeft(List[Int]())((list,line)=>list ++ keys2Ints(line.strip(),cr))
   def lines2Ints(lines:String,cr:Int=CR):List[Int]=linesList2Ints(lines.strip().split("\r\n").toList,cr)
+
+  val attachPort: (Int, InputPort) => InputFile => InputFile = (port, inPort) => inputFile => inputFile.attachPort(port,inPort)
+  val refreshPort: Int => InputFile => InputFile = port => inputFile => {
+    val inputPort:InputPort=inputFile.ports.getOrElse(port,InputPortConstant.blank)
+    val inputPortRefreshed:InputPort=inputPort.refresh()
+    inputFile.attachPort(port,inputPortRefreshed)
+  }
+
 }
 

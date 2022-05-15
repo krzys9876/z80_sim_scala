@@ -5,7 +5,7 @@ import org.kr.scala.z80.utils.Z80Utils
 
 class Z80System(val memoryController: BaseStateMonad[Memory], val registerController: BaseStateMonad[Register],
                 val outputController: OutputController,
-                val inputController: InputController,
+                val inputController: BaseStateMonad[InputFile],
                 val elapsedTCycles:Long) {
   def step(implicit debugger:Debugger):Z80System= {
     val opCode=getCurrentOpCode
@@ -47,7 +47,7 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
     (Z80SystemController(this) >>= Z80SystemController.changeList(chgListAfterPC)).get
   }
 
-  def readPort(port:Int)(implicit debugger:Debugger):Int=inputController.read(port)
+  def readPort(port:Int)(implicit debugger:Debugger):Int=inputController.get.read(port)
 
   def getValueFromLocation(loc:Location):Int =
     loc match {
@@ -97,12 +97,12 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
   def replaceOutput(newOut:OutputController):Z80System=
     new Z80System(memoryController,registerController,newOut,inputController,elapsedTCycles)
 
-  def replaceInput(newIn:InputController):Z80System=
+  def replaceInput(newIn:BaseStateMonad[InputFile]):Z80System=
     new Z80System(memoryController,registerController,outputController,newIn,elapsedTCycles)
 
 }
 
 object Z80System {
   val blank:Z80System=new Z80System(BaseStateMonad[Memory](Memory.blank(0x10000)),BaseStateMonad[Register](Register.blank),
-    OutputController.blank, InputController.blank,0)
+    OutputController.blank, BaseStateMonad[InputFile](InputFile.blank),0)
 }
