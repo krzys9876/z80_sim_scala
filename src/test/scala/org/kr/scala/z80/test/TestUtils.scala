@@ -1,7 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{Debugger, Flag, Memory, RegSymbol, Register, Regs, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{BaseStateMonad, Debugger, Flag, Memory, RegSymbol, Register, Regs, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 object TestUtils {
@@ -15,12 +15,12 @@ object TestUtils {
   }
 
   def prepareTest(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int=1)
-                 (implicit debugger:Debugger): Z80SystemController = {
-    prepareTestWith(Z80SystemController.blank,regList,memList,steps)
+                 (implicit debugger:Debugger): BaseStateMonad[Z80System] = {
+    prepareTestWith(BaseStateMonad[Z80System](Z80System.blank),regList,memList,steps)
   }
 
-  def prepareTestWith(sysBlank:Z80SystemController, regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int)
-                     (implicit debugger:Debugger): Z80SystemController = {
+  def prepareTestWith(sysBlank:BaseStateMonad[Z80System], regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int)
+                     (implicit debugger:Debugger): BaseStateMonad[Z80System] = {
     //given
     val reg = regList.foldLeft(sysBlank.get.registerController)(
       (regC, entry) => regC >>== Register.set(entry._1, entry._2)
@@ -30,9 +30,8 @@ object TestUtils {
       (memC, entry) => memC >>== Memory.poke(entry._1, entry._2)
     )
     //when
-    val sysInit = Z80SystemController(new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController,0))
-    val sysTest = sysInit >>= Z80SystemController.run(debugger)(steps.toLong)
-    Z80SystemController(sysTest.get)
+    val sysInit = BaseStateMonad[Z80System](new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController,0))
+    sysInit >>== Z80System.run(debugger)(steps.toLong)
   }
 
   def testRegOrAddrWithFlags(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], resultReg: RegSymbol, resultAddr: Int,

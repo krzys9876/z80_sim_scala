@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, OutputFormatter, Outputter, PrintOutputter, Register, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, OutputFormatter, Outputter, PrintOutputter, Register, Z80System}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -31,7 +31,7 @@ object Main extends App {
   val startTime=LocalDateTime.now()
 
   implicit val debugger:Debugger=ConsoleDebugger
-  val after=Z80SystemController(initSystem) >>= Z80SystemController.run(debugger)(MAX_STEPS)
+  val after=BaseStateMonad[Z80System](initSystem) >>== Z80System.run(debugger)(MAX_STEPS)
 
   val endTime=LocalDateTime.now()
   val seconds=ChronoUnit.MILLIS.between(startTime,endTime).toDouble/1000
