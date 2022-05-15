@@ -21,10 +21,10 @@ class OutputFileTest extends AnyFunSuite{
     implicit val debugger:Debugger=DummyDebugger
     //when
     val outFileTest=outFile
-      .put(10,0x41)
-      .put(10,0x42)
-      .put(10,0x43)
-      .put(20,0x44)
+      .write(10,0x41)
+      .write(10,0x42)
+      .write(10,0x43)
+      .write(20,0x44)
     //then
     assert(outFileTest(10,0)==0x41)
     assert(outFileTest(10,1)==0x42)

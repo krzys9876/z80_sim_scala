@@ -4,7 +4,7 @@ import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.utils.Z80Utils
 
 class Z80System(val memoryController: BaseStateMonad[Memory], val registerController: BaseStateMonad[Register],
-                val outputController: OutputController,
+                val outputController: BaseStateMonad[OutputFile],
                 val inputController: BaseStateMonad[InputFile],
                 val elapsedTCycles:Long) {
   def step(implicit debugger:Debugger):Z80System= {
@@ -94,7 +94,7 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
   def replaceMemory(newMem:BaseStateMonad[Memory]):Z80System=
     new Z80System(newMem,registerController,outputController,inputController,elapsedTCycles)
 
-  def replaceOutput(newOut:OutputController):Z80System=
+  def replaceOutput(newOut:BaseStateMonad[OutputFile]):Z80System=
     new Z80System(memoryController,registerController,newOut,inputController,elapsedTCycles)
 
   def replaceInput(newIn:BaseStateMonad[InputFile]):Z80System=
@@ -104,5 +104,5 @@ class Z80System(val memoryController: BaseStateMonad[Memory], val registerContro
 
 object Z80System {
   val blank:Z80System=new Z80System(BaseStateMonad[Memory](Memory.blank(0x10000)),BaseStateMonad[Register](Register.blank),
-    OutputController.blank, BaseStateMonad[InputFile](InputFile.blank),0)
+    BaseStateMonad[OutputFile](OutputFile.blank), BaseStateMonad[InputFile](InputFile.blank),0)
 }

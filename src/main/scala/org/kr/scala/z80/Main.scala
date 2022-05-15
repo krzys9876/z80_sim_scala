@@ -1,7 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputFile,
-  InputPortMultiple, Memory, OutputController, OutputFormatter, Outputter, PrintOutputter, Register, Z80System, Z80SystemController}
+import org.kr.scala.z80.system.{BaseStateMonad, CharFormatter, ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, OutputFormatter, Outputter, PrintOutputter, Register, Z80System, Z80SystemController}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -26,7 +25,7 @@ object Main extends App {
   // input keys sequence
   val input=prepareInput(args(1))
   //whole system
-  val initSystem=new Z80System(memory,BaseStateMonad[Register](Register.blank),OutputController.blank,input,0)
+  val initSystem=new Z80System(memory,BaseStateMonad[Register](Register.blank),BaseStateMonad[OutputFile](OutputFile.blank),input,0)
 
   println("START")
   val startTime=LocalDateTime.now()

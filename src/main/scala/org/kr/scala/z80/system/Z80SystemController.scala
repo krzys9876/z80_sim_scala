@@ -53,7 +53,7 @@ object Z80SystemController {
   }
 
   def outputByte(implicit debugger:Debugger):(Int,Int) => Z80System => Z80SystemController = (port, value) => system => {
-    val newOut=system.outputController >>= OutputController.out(debugger)(port,value)
+    val newOut=system.outputController >>== OutputFile.out(debugger)(port,value)
     Z80SystemController(system.replaceOutput(newOut))
   }
 
