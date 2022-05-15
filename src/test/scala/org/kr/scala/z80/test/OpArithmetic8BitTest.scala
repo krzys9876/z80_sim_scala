@@ -17,11 +17,11 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == pcAfter)
-    assert(sysTest.get.registerController.get(Regs.A) == result || result == OpCode.ANY)
-    TestUtils.testFlags(sysTest.get.registerController.get, flagsAsString)
+    assert(sysTest.get.register(Regs.PC) == pcAfter)
+    assert(sysTest.get.register(Regs.A) == result || result == OpCode.ANY)
+    TestUtils.testFlags(sysTest.get.register, flagsAsString)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
-    //println(sysTest.get.registerController.get.reg)
+    //println(sysTest.get.register.reg)
   }
 
   test("run ADD A,r/(HL)/(IX+d)/(IY+d)/n") {

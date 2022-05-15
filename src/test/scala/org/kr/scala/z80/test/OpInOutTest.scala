@@ -12,7 +12,7 @@ class OpInOutTest extends AnyFunSuite {
     //when
     val systemC=TestUtils.prepareTest(List((Regs.A,0x41)),List((0x0000,0xD3),(0x0001,0x01)))
     //then
-    assert(systemC.get.registerController.get(Regs.PC)==2)
+    assert(systemC.get.register(Regs.PC)==2)
     assert(systemC.get.outputController.get(1,0)==0x41)
     assert(systemC.get.outputController.get(111,112)==0)
     //systemC.get.outputController.get.print(1)
@@ -31,7 +31,7 @@ class OpInOutTest extends AnyFunSuite {
         (0x000A,0xD3),(0x000B,0xFF)  // OUT (0xFF),A
       ),6)
     //then
-    assert(systemC.get.registerController.get(Regs.PC)==0x000C)
+    assert(systemC.get.register(Regs.PC)==0x000C)
     assert(systemC.get.outputController.get(0xFF,0)==0x41)
     assert(systemC.get.outputController.get(0xFF,1)==0x42)
     assert(systemC.get.outputController.get(0xFF,2)==0x43)
@@ -60,7 +60,7 @@ class OpInOutTest extends AnyFunSuite {
         (0x0018,0xED),(0x0019,0x69)  // OUT (C),L
       ),13)
     //then
-    assert(systemC.get.registerController.get(Regs.PC)==0x001A)
+    assert(systemC.get.register(Regs.PC)==0x001A)
     assert(systemC.get.outputController.get(0x80,0)==0x41)
     assert(systemC.get.outputController.get(0x80,1)==0x42)
     assert(systemC.get.outputController.get(0x80,2)==0x43)
@@ -73,7 +73,7 @@ class OpInOutTest extends AnyFunSuite {
 
   def prepareTestWithInput(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,
                            steps:Int=1): StateWatcher[Z80System] = {
-    val blank=StateWatcher[Z80System](Z80System.blank) >>== Z80System.attachPort(port,inputPort)
+    val blank=StateWatcher[Z80System](Z80System.blank) >>== Z80System.attachPort(debugger)(port,inputPort)
     TestUtils.prepareTestWith(blank,regList,memList,steps)
   }
 
@@ -85,8 +85,8 @@ class OpInOutTest extends AnyFunSuite {
         (0x0000,0xDB),(0x0001,0x40), // IN A,(0x40)
       ), 0x40,new InputPortConstant(0xAB))
     //then
-    assert(systemC.get.registerController.get(Regs.PC)==2)
-    assert(systemC.get.registerController.get(Regs.A)==0xAB)
+    assert(systemC.get.register(Regs.PC)==2)
+    assert(systemC.get.register(Regs.A)==0xAB)
   }
 
   test("run IN A,(C)") {
@@ -101,10 +101,10 @@ class OpInOutTest extends AnyFunSuite {
       ),0x20, new InputPortSequential(0xF0,2,0,0x0F),
       4)
     //then
-    assert(systemC.get.registerController.get(Regs.PC)==8)
-    assert(systemC.get.registerController.get(Regs.D)==0xF0)
-    assert(systemC.get.registerController.get(Regs.E)==0x0F)
-    assert(systemC.get.registerController.get(Regs.H)==0xF0)
-    assert(systemC.get.registerController.get(Regs.L)==0x0F)
+    assert(systemC.get.register(Regs.PC)==8)
+    assert(systemC.get.register(Regs.D)==0xF0)
+    assert(systemC.get.register(Regs.E)==0x0F)
+    assert(systemC.get.register(Regs.H)==0xF0)
+    assert(systemC.get.register(Regs.L)==0x0F)
   }
 }

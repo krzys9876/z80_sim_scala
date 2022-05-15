@@ -22,15 +22,15 @@ object TestUtils {
   def prepareTestWith(sysBlank:StateWatcher[Z80System], regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int)
                      (implicit debugger:Debugger): StateWatcher[Z80System] = {
     //given
-    val reg = regList.foldLeft(sysBlank.get.registerController)(
+    val reg = regList.foldLeft(StateWatcher(sysBlank.get.register))(
       (regC, entry) => regC >>== Register.set(entry._1, entry._2)
     )
 
-    val mem = memList.foldLeft(sysBlank.get.memoryController)(
+    val mem = memList.foldLeft(StateWatcher(sysBlank.get.memory))(
       (memC, entry) => memC >>== Memory.poke(entry._1, entry._2)
     )
     //when
-    val sysInit = StateWatcher[Z80System](new Z80System(mem, reg,sysBlank.get.outputController, sysBlank.get.inputController,0))
+    val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.outputController, sysBlank.get.inputController,0))
     sysInit >>== Z80System.run(debugger)(steps.toLong)
   }
 
@@ -40,15 +40,15 @@ object TestUtils {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == pcAfter)
+    assert(sysTest.get.register(Regs.PC) == pcAfter)
     (resultReg,resultAddr) match {
-      case (reg,_) if reg!=Regs.NONE => assert(sysTest.get.registerController.get(resultReg) == result)
-      case (_,addr) if addr!=OpCode.ANY => assert(sysTest.get.memoryController.get(resultAddr) == result)
+      case (reg,_) if reg!=Regs.NONE => assert(sysTest.get.register(resultReg) == result)
+      case (_,addr) if addr!=OpCode.ANY => assert(sysTest.get.memory(resultAddr) == result)
       case _ =>
     }
-    TestUtils.testFlags(sysTest.get.registerController.get, flagsAsString)
+    TestUtils.testFlags(sysTest.get.register, flagsAsString)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
-    //println(sysTest.get.registerController.get.reg)
+    //println(sysTest.get.register.reg)
   }
 
   def testRegAndAddrWordWithFlags(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)],
@@ -58,13 +58,13 @@ object TestUtils {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == pcAfter)
-    assert(sysTest.get.registerController.get(resultReg) == resultValReg)
-    assert(sysTest.get.memoryController.get(resultAddr) == (resultValMem & 0x00FF))
-    assert(sysTest.get.memoryController.get(resultAddr+1) == ((resultValMem & 0xFF00) >> 8))
-    TestUtils.testFlags(sysTest.get.registerController.get, flagsAsString)
+    assert(sysTest.get.register(Regs.PC) == pcAfter)
+    assert(sysTest.get.register(resultReg) == resultValReg)
+    assert(sysTest.get.memory(resultAddr) == (resultValMem & 0x00FF))
+    assert(sysTest.get.memory(resultAddr+1) == ((resultValMem & 0xFF00) >> 8))
+    TestUtils.testFlags(sysTest.get.register, flagsAsString)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
-    //println(sysTest.get.registerController.get.reg)
+    //println(sysTest.get.register.reg)
   }
 
 }

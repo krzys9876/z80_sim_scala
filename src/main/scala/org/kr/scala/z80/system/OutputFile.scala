@@ -10,7 +10,7 @@ object OutputPort {
   val empty:OutputPort=new OutputPort(Vector())
 }
 
-class OutputFile(val files:Map[Int,OutputPort]) {
+class OutputFile(val files:Map[Int,OutputPort], val lastPort:Int=0, val lastValue:Int=0) {
   def apply(port:Int,pos:Int):Int={
     val file=getFile(port)
     if(file.size>pos) file(pos)
@@ -18,8 +18,7 @@ class OutputFile(val files:Map[Int,OutputPort]) {
   }
   def write(port:Int, value:Int)(implicit debugger: Debugger):OutputFile={
     val file=getFile(port).put(value)
-    debugger.output(port,value)
-    new OutputFile(files ++ Map(port->file))
+    new OutputFile(files ++ Map(port->file),port,value)
   }
 
   def show(port:Int, limit:Int=9999)(implicit formatter:OutputFormatter, outputter:Outputter):Unit =

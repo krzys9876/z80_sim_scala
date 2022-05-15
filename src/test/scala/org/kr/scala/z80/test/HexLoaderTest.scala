@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{StateWatcher, Memory}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, Memory, StateWatcher}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -10,6 +10,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 
 class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
+  implicit val debugger:Debugger=DummyDebugger
   val tmpDir:String="./tmp-files"
 
   override def beforeAll(): Unit = {

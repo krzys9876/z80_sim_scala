@@ -38,9 +38,7 @@ class InputPortMultiple(val valueList:List[Int], val defaultValue:Int=0) extends
 
 class InputFile(val ports:Map[Int,InputPort]=Map()) {
   def read(port:Int)(implicit debugger:Debugger):Int={
-    val value=ports.getOrElse(port,InputPortConstant.blank).read()
-    debugger.input(port, value)
-    value
+    ports.getOrElse(port,InputPortConstant.blank).read()
   }
   def attachPort(port:Int, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
 }

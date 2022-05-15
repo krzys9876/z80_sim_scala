@@ -1,12 +1,12 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{StateWatcher, Flag, Register, Regs}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, Flag, Register, Regs, StateWatcher}
 import org.scalatest.funsuite.AnyFunSuite
 
 class RegisterTest extends AnyFunSuite {
-  test("always pass") {
-    1==1
-  }
+
+  implicit val debugger:Debugger=DummyDebugger
+
 
   test("init blank register") {
     //given

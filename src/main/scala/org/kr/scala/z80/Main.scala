@@ -13,24 +13,25 @@ object Main extends App {
     println("Incorrect input parameters: hex_file input_file [steps]")
     System.exit(1)
   }
-
   println("INIT")
 
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
   val MEMORY_TOP="65536"
   val MAX_STEPS=if(args.length==3) args(2).toLong else Long.MaxValue
+
+  //debugger
+  implicit val debugger:Debugger=ConsoleDebugger
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence
   val input=prepareInput(args(1))
   //whole system
-  val initSystem=new Z80System(memory,StateWatcher[Register](Register.blank),StateWatcher[OutputFile](OutputFile.blank),input,0)
+  val initSystem=new Z80System(memory.get,Register.blank,StateWatcher[OutputFile](OutputFile.blank),input,0)
 
   println("START")
   val startTime=LocalDateTime.now()
 
-  implicit val debugger:Debugger=ConsoleDebugger
   val after=StateWatcher[Z80System](initSystem) >>== Z80System.run(debugger)(MAX_STEPS)
 
   val endTime=LocalDateTime.now()

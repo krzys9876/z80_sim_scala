@@ -12,8 +12,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
     //when
     val sysTest=TestUtils.prepareTest(List(),List((0,0x06),(1,0xFE))) //LD H,0xFE
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==2)
-    assert(sysTest.get.registerController.get(Regs.B)==0xFE)
+    assert(sysTest.get.register(Regs.PC)==2)
+    assert(sysTest.get.register(Regs.B)==0xFE)
   }
 
   test("run LD H,0xFF | LD A,H") {
@@ -23,9 +23,9 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0x26),(1,0xFF), //LD H,0xFE
         (2,0x7C)),2) // LD A, H
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==3)
-    assert(sysTest.get.registerController.get(Regs.A)==0xFF)
-    assert(sysTest.get.registerController.get(Regs.H)==0xFF)
+    assert(sysTest.get.register(Regs.PC)==3)
+    assert(sysTest.get.register(Regs.A)==0xFF)
+    assert(sysTest.get.register(Regs.H)==0xFF)
   }
 
   test("run LD C,(HL)") {
@@ -35,8 +35,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0x4E), //LD C,(HL)
         (0x0102,0xFE)))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==1)
-    assert(sysTest.get.registerController.get(Regs.C)==0xFE)
+    assert(sysTest.get.register(Regs.PC)==1)
+    assert(sysTest.get.register(Regs.C)==0xFE)
   }
 
   test("run LD (HL),E") {
@@ -46,8 +46,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0x73) //LD (HL),E
         ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==1)
-    assert(sysTest.get.memoryController.get(0x0102)==0xFF)
+    assert(sysTest.get.register(Regs.PC)==1)
+    assert(sysTest.get.memory(0x0102)==0xFF)
   }
 
   test("run LD r,(IX+d) | LD r,(IY+d)") {
@@ -58,9 +58,9 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
         (3,0xFD),(4,0x5E),(5,0xFE), //LD E,(IY-2)
         (0x0106,0xFF),(0x0107,0xFE)),2)
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==6)
-    assert(sysTest.get.registerController.get(Regs.D)==0xFF)
-    assert(sysTest.get.registerController.get(Regs.E)==0xFE)
+    assert(sysTest.get.register(Regs.PC)==6)
+    assert(sysTest.get.register(Regs.D)==0xFF)
+    assert(sysTest.get.register(Regs.E)==0xFE)
   }
 
   test("run LD (IX+d),r | LD (IY+d),r") {
@@ -71,9 +71,9 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
         (3,0xFD),(4,0x70),(5,0xFC) //LD (IY-4),B
       ),2)
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==6)
-    assert(sysTest.get.memoryController.get(0x0103)==0x01)
-    assert(sysTest.get.memoryController.get(0x0105)==0x02)
+    assert(sysTest.get.register(Regs.PC)==6)
+    assert(sysTest.get.memory(0x0103)==0x01)
+    assert(sysTest.get.memory(0x0105)==0x02)
   }
 
   test("run LD (HL),n") {
@@ -83,10 +83,10 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0x36),(1,0xFF),//LD (HL),0xFF
         ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==2)
-    assert(sysTest.get.registerController.get(Regs.H)==1)
-    assert(sysTest.get.registerController.get(Regs.L)==2)
-    assert(sysTest.get.memoryController.get(0x0102)==0xFF)
+    assert(sysTest.get.register(Regs.PC)==2)
+    assert(sysTest.get.register(Regs.H)==1)
+    assert(sysTest.get.register(Regs.L)==2)
+    assert(sysTest.get.memory(0x0102)==0xFF)
   }
 
   test("run LD (IX+d),n | LD (IY+d),n") {
@@ -97,9 +97,9 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
         (4,0xFD),(5,0x36),(6,0x03),(7,0xFE), //LD (IY+3),0xFE
         ),2)
     //then
-    assert(sysTest.get.registerController.get(Regs.PC)==8)
-    assert(sysTest.get.memoryController.get(0x0102)==0xFF)
-    assert(sysTest.get.memoryController.get(0x0104)==0xFE)
+    assert(sysTest.get.register(Regs.PC)==8)
+    assert(sysTest.get.memory(0x0102)==0xFF)
+    assert(sysTest.get.memory(0x0104)==0xFE)
   }
 
   test("run LD A,(BC)") {
@@ -110,8 +110,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
         (0x0102,0xFE)
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 1)
-    assert(sysTest.get.registerController.get(Regs.A) == 0xFE)
+    assert(sysTest.get.register(Regs.PC) == 1)
+    assert(sysTest.get.register(Regs.A) == 0xFE)
   }
 
   test("run LD A,(DE)") {
@@ -122,8 +122,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
         (0x0103,0xFD)
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 1)
-    assert(sysTest.get.registerController.get(Regs.A) == 0xFD)
+    assert(sysTest.get.register(Regs.PC) == 1)
+    assert(sysTest.get.register(Regs.A) == 0xFD)
   }
 
   test("run LD (BC),A") {
@@ -133,8 +133,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0, 0x02) //LD (BC),A
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 1)
-    assert(sysTest.get.memoryController.get(0x0102) == 0xFF)
+    assert(sysTest.get.register(Regs.PC) == 1)
+    assert(sysTest.get.memory(0x0102) == 0xFF)
   }
 
   test("run LD (DE),A") {
@@ -144,8 +144,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0, 0x12) //LD (DE),A
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 1)
-    assert(sysTest.get.memoryController.get(0x0203) == 0xFE)
+    assert(sysTest.get.register(Regs.PC) == 1)
+    assert(sysTest.get.memory(0x0203) == 0xFE)
   }
 
   test("run LD A,(nn)") {
@@ -156,8 +156,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
         (0x0102, 0xFE)
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 3)
-    assert(sysTest.get.registerController.get(Regs.A) == 0xFE)
+    assert(sysTest.get.register(Regs.PC) == 3)
+    assert(sysTest.get.register(Regs.A) == 0xFE)
   }
 
   test("run LD (nn),A") {
@@ -167,8 +167,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0, 0x32),(1,0x02),(2,0x01) //LD (nn),A
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 3)
-    assert(sysTest.get.memoryController.get(0x0102) == 0xFF)
+    assert(sysTest.get.register(Regs.PC) == 3)
+    assert(sysTest.get.memory(0x0102) == 0xFF)
   }
 
   test("run LD A,I") {
@@ -178,8 +178,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0xED),(1,0x57) //LD A,I
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 2)
-    assert(sysTest.get.registerController.get(Regs.A) == 0xFF)
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.register(Regs.A) == 0xFF)
   }
 
   test("run LD A,R") {
@@ -189,8 +189,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0xED),(1,0x5F) //LD A,R
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 2)
-    assert(sysTest.get.registerController.get(Regs.A) == 0xFE)
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.register(Regs.A) == 0xFE)
   }
 
   test("run LD I,A") {
@@ -200,8 +200,8 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0xED),(1,0x47) //LD I,A
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 2)
-    assert(sysTest.get.registerController.get(Regs.I) == 0xFD)
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.register(Regs.I) == 0xFD)
   }
 
   test("run LD R,A") {
@@ -211,7 +211,7 @@ class OpLoad8BitTypeTest extends AnyFunSuite {
       List((0,0xED),(1,0x4F) //LD R,A
       ))
     //then
-    assert(sysTest.get.registerController.get(Regs.PC) == 2)
-    assert(sysTest.get.registerController.get(Regs.R) == 0xFC)
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.register(Regs.R) == 0xFC)
   }
 }

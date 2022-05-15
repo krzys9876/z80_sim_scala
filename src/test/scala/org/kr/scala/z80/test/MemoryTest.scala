@@ -1,12 +1,10 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{StateWatcher, Memory}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, Memory, StateWatcher}
 import org.scalatest.funsuite.AnyFunSuite
 
 class MemoryTest extends AnyFunSuite {
-  test("always pass") {
-    assert(1==1)
-  }
+  implicit val debugger:Debugger=DummyDebugger
 
   test("init blank memory") {
     //given
