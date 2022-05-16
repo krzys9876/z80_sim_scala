@@ -41,8 +41,9 @@ class Z80System(val memory: Memory, val register: Register,
 
   def readPort(port:Int):Int=input.read(port)
 
-  def getValueFromLocation(loc:Location):Int =
-    loc match {
+  def getValueFromLocation(loc:LocationBase):Int = {
+    val refLoc=Location(loc.reg,loc.immediate,loc.offsetPC,loc.addressReg,loc.directOffset,loc.indirectOffset2Compl,loc.isWord)
+    refLoc match {
       case l if l==Location.empty => OpCode.ANY
       case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => getRegValue(r)
       case Location(_,i,_,_,_,_,_) if i!=AnyInt => i()
@@ -57,26 +58,28 @@ class Z80System(val memory: Memory, val register: Register,
         }
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
+  }
 
   private def putValueToMemory(address:Int, value:Int, isWord:Boolean):SystemChange =
     if(isWord) new MemoryChangeWord(address,value)
     else new MemoryChangeByte(address,value)
 
-  def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChange =
-    location match {
-      case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => new RegisterChange(r,value)
-      case Location(_,_,pco,_,_,_,_) if pco!=AnyInt => putValueToMemory(getWordFromMemoryAtPC(pco()),value,isWord)
-      case Location(_,_,_,r,dirO,indirO,_) if r!=Regs.NONE =>
-        (dirO,indirO) match {
-          case (dirO,AnyInt) if dirO!=AnyInt => putValueToMemory(getAddressFromReg(r,dirO()),value,isWord)
-          case (AnyInt,AnyInt) => putValueToMemory(getAddressFromReg(r,0),value,isWord)
-          case (AnyInt,indirOff2Compl) =>
-            putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl()))),value,isWord)
+  def putValueToLocation(loc:LocationBase, value:Int, isWord:Boolean=false):SystemChange = {
+    val refLoc = Location(loc.reg, loc.immediate, loc.offsetPC, loc.addressReg, loc.directOffset, loc.indirectOffset2Compl, loc.isWord)
+    refLoc match {
+      case Location(r,_,_,_,_,_,_) if r != Regs.NONE => new RegisterChange(r, value)
+      case Location(_, _, pco, _, _, _, _) if pco != AnyInt => putValueToMemory(getWordFromMemoryAtPC(pco()), value, isWord)
+      case Location(_, _, _, r, dirO, indirO, _) if r != Regs.NONE =>
+        (dirO, indirO) match {
+          case (dirO, AnyInt) if dirO != AnyInt => putValueToMemory(getAddressFromReg(r, dirO()), value, isWord)
+          case (AnyInt, AnyInt) => putValueToMemory(getAddressFromReg(r, 0), value, isWord)
+          case (AnyInt, indirOff2Compl) =>
+            putValueToMemory(getAddressFromReg(r, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl()))), value, isWord)
         }
-      case l if l==Location.empty => new DummyChange
-      case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${location.toString}")
+      case l if l == Location.empty => new DummyChange
+      case Location(_, _, _, _, _, _, _) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
-
+  }
   // functions changing state
   private def returnAfterChange(chgList:List[SystemChange], forwardPC:Int=0, forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
     val chgListAfterPC=addPCAndTCyclesChange(chgList,forwardPC,forwardTCycles)

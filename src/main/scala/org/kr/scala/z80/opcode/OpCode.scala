@@ -48,20 +48,20 @@ case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
 
 object OpCode {
   val ANY:Int = Int.MinValue
-  val registerMap:Map[Int,Location]=Map(
-    7->Location.register(Regs.A),
-    0->Location.register(Regs.B),
-    1->Location.register(Regs.C),
-    2->Location.register(Regs.D),
-    3->Location.register(Regs.E),
-    4->Location.register(Regs.H),
-    5->Location.register(Regs.L))
+  val registerMap:Map[Int,LocationBase]=Map(
+    7->RegisterLocation(Regs.A),
+    0->RegisterLocation(Regs.B),
+    1->RegisterLocation(Regs.C),
+    2->RegisterLocation(Regs.D),
+    3->RegisterLocation(Regs.E),
+    4->RegisterLocation(Regs.H),
+    5->RegisterLocation(Regs.L))
 
   def num2hex(num:Int):String= f"0x$num%02X"
 
-  private def codeGenReg(base:Int,bit:Int):Map[Int,Location]={
+  private def codeGenReg(base:Int,bit:Int):Map[Int,LocationBase]={
     val baseOper=base & (~(0x07 << bit))
-    registerMap.foldLeft(Map[Int,Location]())((m, entry)=>m++Map(baseOper+(entry._1 << bit)->entry._2))
+    registerMap.foldLeft(Map[Int,LocationBase]())((m, entry)=>m++Map(baseOper+(entry._1 << bit)->entry._2))
   }
 
   private def codeGenBit(base:Int,bit:Int):Map[Int,Int]={
@@ -72,9 +72,9 @@ object OpCode {
   private def mapToOpCodeMap[To](base:OpCode,codeNo:Int,baseMap:Map[Int,To]):Map[List[OpCode],To]=
     baseMap.map(entry=>List(base.replaceCode(codeNo,entry._1))->entry._2)
 
-  def generateMapByReg(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],Location]={
+  def generateMapByReg(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],LocationBase]={
     val regMap=codeGenReg(base.getCode(codeNo),bit)
-    mapToOpCodeMap[Location](base,codeNo,regMap)
+    mapToOpCodeMap[LocationBase](base,codeNo,regMap)
   }
 
   def generateMapByBit(base:OpCode, codeNo:Int, bit:Int):Map[List[OpCode],Int]={
@@ -96,12 +96,12 @@ object OpCode {
   val baseCodesType1:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
     OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05),
     OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
-  val baseLocationsType1:List[Location]=List(Location.register(Regs.A),Location.register(Regs.B),Location.register(Regs.C),
-    Location.register(Regs.D),Location.register(Regs.E),Location.register(Regs.H),Location.register(Regs.L),
+  val baseLocationsType1:List[LocationBase]=List(RegisterLocation(Regs.A),RegisterLocation(Regs.B),RegisterLocation(Regs.C),
+    RegisterLocation(Regs.D),RegisterLocation(Regs.E),RegisterLocation(Regs.H),RegisterLocation(Regs.L),
     Location.registerAddr(Regs.HL),Location.registerAddrIndirOffset(Regs.IX, 2),Location.registerAddrIndirOffset(Regs.IY, 2))
   val baseSizesType1:List[Int]=List(1,1,1,1,1,1,1,1,3,3)
   val baseTCyclesType1:List[Int]=List(4,4,4,4,4,4,4,7,19,19)
-  def generateOpCodesType1(base:OpCode,bit:Int=0):List[(OpCode,Location,Int,Int)]= {
+  def generateOpCodesType1(base:OpCode,bit:Int=0):List[(OpCode,LocationBase,Int,Int)]= {
     val opCodes=baseCodesType1.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main+(code.main << bit)) else OpCode(code.main,base.main+(code.supp << bit)))
     opCodes.zip(baseLocationsType1).zip(baseSizesType1).zip(baseTCyclesType1)
@@ -114,7 +114,7 @@ object OpCode {
   val baseSizesType2:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
   val baseTCyclesType21:List[Int]=List(8,8,8,8,8,8,8,12,20,20) // bit test
   val baseTCyclesType22:List[Int]=List(8,8,8,8,8,8,8,15,23,23) // bit set or reset
-  def generateOpCodesType2(base:OpCode,setOrRes:Boolean):List[(OpCode,Location,Int,Int,Int)]= {
+  def generateOpCodesType2(base:OpCode,setOrRes:Boolean):List[(OpCode,LocationBase,Int,Int,Int)]= {
     val cyclesList=if(setOrRes) baseTCyclesType22 else baseTCyclesType21
     val codeLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType2).zip(cyclesList)
       .map({case(((code,loc),size),cycles)=>(code,loc,size,cycles)})
@@ -130,11 +130,11 @@ object OpCode {
 
   //TYPE3: registers decoded by bits 3-5 - used only for load
   // opcodes multiplied by list of registers
-  val baseLocationsType3:List[Location]=List(Location.register(Regs.A),Location.register(Regs.B),Location.register(Regs.C),
-    Location.register(Regs.D),Location.register(Regs.E),Location.register(Regs.H),Location.register(Regs.L))
+  val baseLocationsType3:List[LocationBase]=List(RegisterLocation(Regs.A),RegisterLocation(Regs.B),RegisterLocation(Regs.C),
+    RegisterLocation(Regs.D),RegisterLocation(Regs.E),RegisterLocation(Regs.H),RegisterLocation(Regs.L))
   val baseCodesType3:List[OpCode]=List(OpCode(0x38),OpCode(0x00),OpCode(0x08),
     OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28))
-  def generateOpCodesType3(base:OpCode):List[(OpCode,Location,Location,Int,Int)]= {
+  def generateOpCodesType3(base:OpCode):List[(OpCode,LocationBase,LocationBase,Int,Int)]= {
     val codeSrcLocSize=baseCodesType1.zip(baseLocationsType1).zip(baseSizesType1).zip(baseTCyclesType1)
       .map({case(((code,loc),size),cycles)=>(code,loc,size,cycles)})
     val codeDestLoc=baseCodesType3.zip(baseLocationsType3)
@@ -152,8 +152,8 @@ object OpCode {
   // opcode pattern: A-L only
   val baseCodesType4:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
     OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05))
-  val baseLocationsType4:List[Location]=baseLocationsType3
-  def generateOpCodesType4(base:OpCode,size:Int):List[(OpCode,Location,Int)]= {
+  val baseLocationsType4:List[LocationBase]=baseLocationsType3
+  def generateOpCodesType4(base:OpCode,size:Int):List[(OpCode,LocationBase,Int)]= {
     val opCodes=baseCodesType4.map(code=>
       if(base.numberOfCodes==1) OpCode(base.main+code.main) else OpCode(base.main,base.supp+code.main))
     opCodes.zip(baseLocationsType4).map({case(code,loc)=>(code,loc,size)})
@@ -163,10 +163,10 @@ object OpCode {
   // opcode pattern: A-L: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
   val baseCodesType5:List[OpCode]=List(OpCode(0x38),OpCode(0x00),OpCode(0x08),
     OpCode(0x10),OpCode(0x18),OpCode(0x20),OpCode(0x28),OpCode(0x30),OpCode(0xDD,0x30),OpCode(0xFD,0x30))
-  val baseLocationsType5:List[Location]=baseLocationsType1
+  val baseLocationsType5:List[LocationBase]=baseLocationsType1
   val baseSizesType5:List[Int]=List(2,2,2,2,2,2,2,2,4,4)
   val baseTCyclesType5:List[Int]=List(7,7,7,7,7,7,7,10,19,19)
-  def generateOpCodesType5(base:OpCode):List[(OpCode,Location,Int,Int)]= {
+  def generateOpCodesType5(base:OpCode):List[(OpCode,LocationBase,Int,Int)]= {
     val opCodes=baseCodesType5.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main+code.main) else OpCode(code.main,base.main+code.supp))
     opCodes.zip(baseLocationsType5).zip(baseSizesType5).zip(baseTCyclesType5)
@@ -177,10 +177,10 @@ object OpCode {
   // opcode pattern: A-L: 0x01-0x07, (HL): 0x06, (IX+d),(IY+d): (0xDD,0x06), (0xFD,0x06)
   val baseCodesType6:List[OpCode]=List(OpCode(0x07),OpCode(0x00),OpCode(0x01),
     OpCode(0x02),OpCode(0x03),OpCode(0x04),OpCode(0x05),OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
-  val baseLocationsType6:List[Location]=baseLocationsType1
+  val baseLocationsType6:List[LocationBase]=baseLocationsType1
   val baseSizesType6:List[Int]=baseSizesType5
   val baseTCyclesType6:List[Int]=List(8,8,8,8,8,8,8,15,23,23)
-  def generateOpCodesType6(base:OpCode):List[(OpCode,Location,Int,Int)]= {
+  def generateOpCodesType6(base:OpCode):List[(OpCode,LocationBase,Int,Int)]= {
     val opCodes=baseCodesType6.map(code=>
       if(code.numberOfCodes==1) OpCode(base.main,base.supp+code.main) else OpCode(code.main,base.main,base.supp+code.supp))
     opCodes.zip(baseLocationsType6).zip(baseSizesType6).zip(baseTCyclesType6)

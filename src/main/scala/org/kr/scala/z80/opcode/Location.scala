@@ -3,8 +3,17 @@ package org.kr.scala.z80.opcode
 import org.kr.scala.z80.system.{RegSymbol, Regs}
 import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt}
 
-case class Location(reg:RegSymbol, immediate:OptionInt, offsetPC:OptionInt, addressReg:RegSymbol,
-                    directOffset:OptionInt, indirectOffset2Compl:OptionInt, isWord:Boolean=false) {
+
+abstract class LocationBase(val reg:RegSymbol,val immediate:OptionInt,val offsetPC:OptionInt,val addressReg:RegSymbol,
+                            val directOffset:OptionInt, val indirectOffset2Compl:OptionInt, val isWord:Boolean=false) {
+  val label: String
+}
+
+
+case class Location(override val reg:RegSymbol,override val immediate:OptionInt,override val offsetPC:OptionInt,
+                    override val addressReg:RegSymbol,override val directOffset:OptionInt,
+                    override val indirectOffset2Compl:OptionInt,override val isWord:Boolean=false)
+  extends LocationBase(reg, immediate, offsetPC, addressReg, directOffset, indirectOffset2Compl, isWord) {
   override lazy val toString: String =
     this match {
       case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => f"$r$isWordString"
@@ -19,7 +28,7 @@ case class Location(reg:RegSymbol, immediate:OptionInt, offsetPC:OptionInt, addr
       case _ => "empty"
     }
 
-  lazy val label: String =
+  override lazy val label: String =
     this match {
       case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => f"$r"
       case Location(_,i,_,_,_,_,_) if i!=AnyInt => f"$i$isWordString"
@@ -56,3 +65,8 @@ object Location {
 }
 
 class IncorrectLocation(message : String) extends Exception(message) {}
+
+case class RegisterLocation(override val reg:RegSymbol)
+  extends LocationBase(reg,AnyInt,AnyInt,Regs.NONE,AnyInt,AnyInt,false) {
+  override lazy val label:String=reg.toString
+}

@@ -44,7 +44,7 @@ object JumpCallReturn extends OpCodeHandler {
   // Jump relative - relative operand is 2's complement and must be incremented by 2
   private def calcRelativeAddress(pc: Int, relative: Int): Int = Z80Utils.word2ComplToRaw(pc + 2 + Z80Utils.rawByteTo2Compl(relative))
 
-  private def handleJump(oper: JumpOperation, cond: JumpCondition, checker: JumpConditionChecker, location: Location, instrSize: Int)
+  private def handleJump(oper: JumpOperation, cond: JumpCondition, checker: JumpConditionChecker, location: LocationBase, instrSize: Int)
                         (implicit system: Z80System): List[SystemChange] = {
     val prevPC = system.getRegValue(Regs.PC)
     val address = calcAddress(oper, system.getValueFromLocation(location), prevPC)

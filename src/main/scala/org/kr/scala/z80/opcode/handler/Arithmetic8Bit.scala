@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
+import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, LocationBase, OpCode, OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
 import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
@@ -80,7 +80,7 @@ object Comp8b extends ArithmeticOperation("COMP_8B") with ArithmeticCalculatorBy
   override def calcAux(input: ArithmeticOpInput): OptionInt =
     IntValue((input.value & 0x0F)-(input.operand & 0x0F))
 
-  override def getDestination(source:Location):Location=Location.empty
+  override def getDestination(source:LocationBase):LocationBase=Location.empty
 }
 
 object Inc8b extends ArithmeticOperation("INC_8B") with ArithmeticCalculatorByte
@@ -114,11 +114,11 @@ object Neg8b extends ArithmeticOperation("NEG_8B") with ArithmeticCalculatorByte
 object Ccf8b extends ArithmeticOperation("CCF_8B") with ArithmeticCalculatorByte
   with FlagHCopyC with FlagNReset with FlagCInvert {
 
-  override def getDestination(source:Location):Location=Location.empty
+  override def getDestination(source:LocationBase):LocationBase=Location.empty
 }
 
 object Scf8b extends ArithmeticOperation("SCF_8B") with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCSet {
 
-  override def getDestination(source:Location):Location=Location.empty
+  override def getDestination(source:LocationBase):LocationBase=Location.empty
 }

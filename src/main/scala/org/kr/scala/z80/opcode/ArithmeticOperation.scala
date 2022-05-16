@@ -33,7 +33,7 @@ trait ArithmeticCalculatorBase {
 
   def calc(input:ArithmeticOpInput):ArithmeticOpResult
 
-  def getDestination(source:Location):Location=source
+  def getDestination(source:LocationBase):LocationBase=source
 }
 
 trait ArithmeticCalculatorByte extends ArithmeticCalculatorBase {
