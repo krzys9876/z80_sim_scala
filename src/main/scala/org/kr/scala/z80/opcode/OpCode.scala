@@ -98,7 +98,7 @@ object OpCode {
     OpCode(0x06),OpCode(0xDD,0x06),OpCode(0xFD,0x06))
   val baseLocationsType1:List[LocationBase]=List(RegisterLocation(Regs.A),RegisterLocation(Regs.B),RegisterLocation(Regs.C),
     RegisterLocation(Regs.D),RegisterLocation(Regs.E),RegisterLocation(Regs.H),RegisterLocation(Regs.L),
-    Location.registerAddr(Regs.HL),Location.registerAddrIndirOffset(Regs.IX, 2),Location.registerAddrIndirOffset(Regs.IY, 2))
+    RegisterAddrLocation(Regs.HL),Location.registerAddrIndirOffset(Regs.IX, 2),Location.registerAddrIndirOffset(Regs.IY, 2))
   val baseSizesType1:List[Int]=List(1,1,1,1,1,1,1,1,3,3)
   val baseTCyclesType1:List[Int]=List(4,4,4,4,4,4,4,7,19,19)
   def generateOpCodesType1(base:OpCode,bit:Int=0):List[(OpCode,LocationBase,Int,Int)]= {

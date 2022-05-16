@@ -10,16 +10,9 @@ object Load16Bit extends OpCodeHandler {
     val sourceLoc = actualCode.source
     val value = system.getValueFromLocation(sourceLoc)
     val destLoc = actualCode.destination
-    val stackChange = code match {
-      case change: OpStackChange => change.stackChange
-      case _ => 0
-    }
-
     val chgList = List(system.putValueToLocation(destLoc, value, isWord = true))
-    val destLocRef=Location(destLoc.reg,destLoc.immediate,destLoc.offsetPC,destLoc.addressReg,destLoc.directOffset,destLoc.indirectOffset2Compl,destLoc.isWord)
-    val stackChgList = destLocRef match {
-      case Location(r, _, _, rd, dirO, _, _) if r != Regs.NONE || (rd != Regs.NONE && dirO != AnyInt) =>
-        List(new RegisterChangeRelative(Regs.SP, stackChange))
+    val stackChgList = code match {
+      case change: OpStackChange => List(new RegisterChangeRelative(Regs.SP, change.stackChange))
       case _ => List()
     }
     (chgList ++ stackChgList, actualCode.size, actualCode.t)

@@ -157,7 +157,7 @@ object LD_reg_all {
 }
 object LD_HL_reg {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0x70),1).map(op=>
-    new Load8bitDef(op._1.main,op._1.supp,op._2,Location.registerAddr(Regs.HL),op._3,7,f"LD (HL),${op._2.label}"))
+    new Load8bitDef(op._1.main,op._1.supp,op._2,RegisterAddrLocation(Regs.HL),op._3,7,f"LD (HL),${op._2.label}"))
 }
 object LD_IXd_reg {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType4(OpCode(0xDD,0x70),3).map(op=>
@@ -169,16 +169,16 @@ object LD_IYd_reg {
 }
 object LD_all_n {
   val codes: List[Load8bitDef] = OpCode.generateOpCodesType5(OpCode(0x06)).map(op=>
-    new Load8bitDef(op._1.main,op._1.supp,Location.registerAddrDirOffset(Regs.PC,op._3-1),op._2,op._3,op._4,f"LD ${op._2.label},n"))
+    new Load8bitDef(op._1.main,op._1.supp,RegisterAddrDirOffsetLocation(Regs.PC,op._3-1),op._2,op._3,op._4,f"LD ${op._2.label},n"))
 }
 object LD_A_I extends Load8bitDef(0xED,0x57,RegisterLocation(Regs.I),RegisterLocation(Regs.A),2,9,"LD A,I")
 object LD_A_R extends Load8bitDef(0xED,0x5F,RegisterLocation(Regs.R),RegisterLocation(Regs.A),2,9,"LD A,R")
 object LD_I_A extends Load8bitDef(0xED,0x47,RegisterLocation(Regs.A),RegisterLocation(Regs.I),2,9,"LD I,A")
 object LD_R_A extends Load8bitDef(0xED,0x4F,RegisterLocation(Regs.A),RegisterLocation(Regs.R),2,9,"LD R,A")
-object LD_A_BC extends Load8bitDef(0x0A,OpCode.ANY,Location.registerAddr(Regs.BC),RegisterLocation(Regs.A),1,7,"LD A,(BC)")
-object LD_A_DE extends Load8bitDef(0x1A,OpCode.ANY,Location.registerAddr(Regs.DE),RegisterLocation(Regs.A),1,7,"LD A,(DE)")
-object LD_BC_A extends Load8bitDef(0x02,OpCode.ANY,RegisterLocation(Regs.A),Location.registerAddr(Regs.BC),1,7,"LD (BC),A")
-object LD_DE_A extends Load8bitDef(0x12,OpCode.ANY,RegisterLocation(Regs.A),Location.registerAddr(Regs.DE),1,7,"LD (DE),A")
+object LD_A_BC extends Load8bitDef(0x0A,OpCode.ANY,RegisterAddrLocation(Regs.BC),RegisterLocation(Regs.A),1,7,"LD A,(BC)")
+object LD_A_DE extends Load8bitDef(0x1A,OpCode.ANY,RegisterAddrLocation(Regs.DE),RegisterLocation(Regs.A),1,7,"LD A,(DE)")
+object LD_BC_A extends Load8bitDef(0x02,OpCode.ANY,RegisterLocation(Regs.A),RegisterAddrLocation(Regs.BC),1,7,"LD (BC),A")
+object LD_DE_A extends Load8bitDef(0x12,OpCode.ANY,RegisterLocation(Regs.A),RegisterAddrLocation(Regs.DE),1,7,"LD (DE),A")
 object LD_A_nn extends Load8bitDef(0x3A,OpCode.ANY,Location.indirAddress(1),RegisterLocation(Regs.A),3,13,"LD A,(nn)")
 object LD_nn_A extends Load8bitDef(0x32,OpCode.ANY,RegisterLocation(Regs.A),Location.indirAddress(1),3,13,"LD (nn),A")
 
@@ -187,18 +187,18 @@ object LD_nn_A extends Load8bitDef(0x32,OpCode.ANY,RegisterLocation(Regs.A),Loca
 // generator for LD (8 bit)
 class Load16bitDef(main:Int, supp:Int, val source:LocationBase, val destination:LocationBase, val size:Int, val t:Int, val label:String)
   extends OpCode(main,supp) with HandleLoad16Bit with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with OpCodeTCycles with Label
-object PUSH_AF extends Load16bitDef(0xF5,OpCode.ANY,RegisterLocation(Regs.AF),Location.registerAddrDirOffset(Regs.SP, -2, isWord = true),1,11,"PUSH AF") with PushStack
-object PUSH_BC extends Load16bitDef(0xC5,OpCode.ANY,RegisterLocation(Regs.BC),Location.registerAddrDirOffset(Regs.SP, -2, isWord = true),1,11,"PUSH BC") with PushStack
-object PUSH_DE extends Load16bitDef(0xD5,OpCode.ANY,RegisterLocation(Regs.DE),Location.registerAddrDirOffset(Regs.SP, -2, isWord = true),1,11,"PUSH DE") with PushStack
-object PUSH_HL extends Load16bitDef(0xE5,OpCode.ANY,RegisterLocation(Regs.HL),Location.registerAddrDirOffset(Regs.SP, -2, isWord = true),1,11,"PUSH HL") with PushStack
-object PUSH_IX extends Load16bitDef(0xDD,0xE5,RegisterLocation(Regs.IX),Location.registerAddrDirOffset(Regs.SP, -2, isWord = true),2,15,"PUSH IX") with PushStack
-object PUSH_IY extends Load16bitDef(0xFD,0xE5,RegisterLocation(Regs.IY),Location.registerAddrDirOffset(Regs.SP, -2, isWord = true),2,15,"PUSH IY") with PushStack
-object POP_AF extends Load16bitDef(0xF1,OpCode.ANY,Location.registerAddr(Regs.SP,isWord = true),RegisterLocation(Regs.AF),1,10,"POP AF") with PopStack
-object POP_BC extends Load16bitDef(0xC1,OpCode.ANY,Location.registerAddr(Regs.SP,isWord = true),RegisterLocation(Regs.BC),1,10,"POP BC") with PopStack
-object POP_DE extends Load16bitDef(0xD1,OpCode.ANY,Location.registerAddr(Regs.SP,isWord = true),RegisterLocation(Regs.DE),1,10,"POP DE") with PopStack
-object POP_HL extends Load16bitDef(0xE1,OpCode.ANY,Location.registerAddr(Regs.SP,isWord = true),RegisterLocation(Regs.HL),1,10,"POP HL") with PopStack
-object POP_IX extends Load16bitDef(0xDD,0xE1,Location.registerAddr(Regs.SP,isWord = true),RegisterLocation(Regs.IX),2,14,"POP IX") with PopStack
-object POP_IY extends Load16bitDef(0xFD,0xE1,Location.registerAddr(Regs.SP,isWord = true),RegisterLocation(Regs.IY),2,14,"POP IY") with PopStack
+object PUSH_AF extends Load16bitDef(0xF5,OpCode.ANY,RegisterLocation(Regs.AF),RegisterAddrDirOffsetLocation(Regs.SP, -2, isWord = true),1,11,"PUSH AF") with PushStack
+object PUSH_BC extends Load16bitDef(0xC5,OpCode.ANY,RegisterLocation(Regs.BC),RegisterAddrDirOffsetLocation(Regs.SP, -2, isWord = true),1,11,"PUSH BC") with PushStack
+object PUSH_DE extends Load16bitDef(0xD5,OpCode.ANY,RegisterLocation(Regs.DE),RegisterAddrDirOffsetLocation(Regs.SP, -2, isWord = true),1,11,"PUSH DE") with PushStack
+object PUSH_HL extends Load16bitDef(0xE5,OpCode.ANY,RegisterLocation(Regs.HL),RegisterAddrDirOffsetLocation(Regs.SP, -2, isWord = true),1,11,"PUSH HL") with PushStack
+object PUSH_IX extends Load16bitDef(0xDD,0xE5,RegisterLocation(Regs.IX),RegisterAddrDirOffsetLocation(Regs.SP, -2, isWord = true),2,15,"PUSH IX") with PushStack
+object PUSH_IY extends Load16bitDef(0xFD,0xE5,RegisterLocation(Regs.IY),RegisterAddrDirOffsetLocation(Regs.SP, -2, isWord = true),2,15,"PUSH IY") with PushStack
+object POP_AF extends Load16bitDef(0xF1,OpCode.ANY,RegisterAddrLocation(Regs.SP,isWord = true),RegisterLocation(Regs.AF),1,10,"POP AF") with PopStack
+object POP_BC extends Load16bitDef(0xC1,OpCode.ANY,RegisterAddrLocation(Regs.SP,isWord = true),RegisterLocation(Regs.BC),1,10,"POP BC") with PopStack
+object POP_DE extends Load16bitDef(0xD1,OpCode.ANY,RegisterAddrLocation(Regs.SP,isWord = true),RegisterLocation(Regs.DE),1,10,"POP DE") with PopStack
+object POP_HL extends Load16bitDef(0xE1,OpCode.ANY,RegisterAddrLocation(Regs.SP,isWord = true),RegisterLocation(Regs.HL),1,10,"POP HL") with PopStack
+object POP_IX extends Load16bitDef(0xDD,0xE1,RegisterAddrLocation(Regs.SP,isWord = true),RegisterLocation(Regs.IX),2,14,"POP IX") with PopStack
+object POP_IY extends Load16bitDef(0xFD,0xE1,RegisterAddrLocation(Regs.SP,isWord = true),RegisterLocation(Regs.IY),2,14,"POP IY") with PopStack
 object LD_SP_HL extends Load16bitDef(0xF9,OpCode.ANY,RegisterLocation(Regs.HL),RegisterLocation(Regs.SP),1,6,"LD SP,HL")
 object LD_SP_IX extends Load16bitDef(0xDD,0xF9,RegisterLocation(Regs.IX),RegisterLocation(Regs.SP),2,10,"LD SP,IX")
 object LD_SP_IY extends Load16bitDef(0xFD,0xF9,RegisterLocation(Regs.IY),RegisterLocation(Regs.SP),2,10,"LD SP,IY")
@@ -214,12 +214,12 @@ object LD_HL_nn extends Load16bitDef(0x2A,OpCode.ANY,Location.indirAddress(1,isW
 object LD_SP_nn extends Load16bitDef(0xED,0x7B,Location.indirAddress(2,isWord = true),RegisterLocation(Regs.SP),4,20,"LD SP,(nn)")
 object LD_IX_nn extends Load16bitDef(0xDD,0x2A,Location.indirAddress(2,isWord = true),RegisterLocation(Regs.IX),4,20,"LD IX,(nn)")
 object LD_IY_nn extends Load16bitDef(0xFD,0x2A,Location.indirAddress(2,isWord = true),RegisterLocation(Regs.IY),4,20,"LD IY,(nn)")
-object LD_BC_i extends Load16bitDef(0x01,OpCode.ANY,Location.registerAddrDirOffset(Regs.PC, 1, isWord = true),RegisterLocation(Regs.BC),3,10,"LD BC,nn")
-object LD_DE_i extends Load16bitDef(0x11,OpCode.ANY,Location.registerAddrDirOffset(Regs.PC, 1, isWord = true),RegisterLocation(Regs.DE),3,10,"LD DE,nn")
-object LD_HL_i extends Load16bitDef(0x21,OpCode.ANY,Location.registerAddrDirOffset(Regs.PC, 1, isWord = true),RegisterLocation(Regs.HL),3,10,"LD HL,nn")
-object LD_SP_i extends Load16bitDef(0x31,OpCode.ANY,Location.registerAddrDirOffset(Regs.PC, 1, isWord = true),RegisterLocation(Regs.SP),3,10,"LD SP,nn")
-object LD_IX_i extends Load16bitDef(0xDD,0x21,Location.registerAddrDirOffset(Regs.PC, 2, isWord = true),RegisterLocation(Regs.IX),4,14,"LD IX,nn")
-object LD_IY_i extends Load16bitDef(0xFD,0x21,Location.registerAddrDirOffset(Regs.PC, 2, isWord = true),RegisterLocation(Regs.IY),4,14,"LD IY,nn")
+object LD_BC_i extends Load16bitDef(0x01,OpCode.ANY,RegisterAddrDirOffsetLocation(Regs.PC, 1, isWord = true),RegisterLocation(Regs.BC),3,10,"LD BC,nn")
+object LD_DE_i extends Load16bitDef(0x11,OpCode.ANY,RegisterAddrDirOffsetLocation(Regs.PC, 1, isWord = true),RegisterLocation(Regs.DE),3,10,"LD DE,nn")
+object LD_HL_i extends Load16bitDef(0x21,OpCode.ANY,RegisterAddrDirOffsetLocation(Regs.PC, 1, isWord = true),RegisterLocation(Regs.HL),3,10,"LD HL,nn")
+object LD_SP_i extends Load16bitDef(0x31,OpCode.ANY,RegisterAddrDirOffsetLocation(Regs.PC, 1, isWord = true),RegisterLocation(Regs.SP),3,10,"LD SP,nn")
+object LD_IX_i extends Load16bitDef(0xDD,0x21,RegisterAddrDirOffsetLocation(Regs.PC, 2, isWord = true),RegisterLocation(Regs.IX),4,14,"LD IX,nn")
+object LD_IY_i extends Load16bitDef(0xFD,0x21,RegisterAddrDirOffsetLocation(Regs.PC, 2, isWord = true),RegisterLocation(Regs.IY),4,14,"LD IY,nn")
 
 //Rotate and shift
 // Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))

@@ -7,6 +7,7 @@ import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt}
 abstract class LocationBase(val reg:RegSymbol,val immediate:OptionInt,val offsetPC:OptionInt,val addressReg:RegSymbol,
                             val directOffset:OptionInt, val indirectOffset2Compl:OptionInt, val isWord:Boolean=false) {
   val label: String
+  val isWordString:String=if(isWord) "w" else "b"
 }
 
 
@@ -41,22 +42,20 @@ case class Location(override val reg:RegSymbol,override val immediate:OptionInt,
         }
       case _ => "empty"
     }
-
-  private val isWordString=if(isWord) "w" else "b"
 }
 
 object Location {
   // register
-  def register(r:RegSymbol,isWord:Boolean=false):Location=Location(r,AnyInt,AnyInt,Regs.NONE,AnyInt,AnyInt,isWord)
+  //def register(r:RegSymbol,isWord:Boolean=false):Location=Location(r,AnyInt,AnyInt,Regs.NONE,AnyInt,AnyInt,isWord)
   // immediate value - fixed for the opcode (e.g. RST)
   def immediate(i:Int,isWord:Boolean=false):Location=Location(Regs.NONE,IntValue(i),AnyInt,Regs.NONE,AnyInt,AnyInt,isWord)
   // a value in a memory address located after OpCode,
   // eg. LD (nn),HL - nn=address of a memory location where contents of HL is loaded
   def indirAddress(a:Int,isWord:Boolean=false):Location=Location(Regs.NONE,AnyInt,IntValue(a),Regs.NONE,AnyInt,AnyInt,isWord)
   // a value in a memory address located in 16-bit register or a register pair
-  def registerAddr(r:RegSymbol,isWord:Boolean=false):Location=Location(Regs.NONE,AnyInt,AnyInt,r,AnyInt,AnyInt,isWord)
+  //def registerAddr(r:RegSymbol,isWord:Boolean=false):Location=Location(Regs.NONE,AnyInt,AnyInt,r,AnyInt,AnyInt,isWord)
   // same as registerAddr but with directly specified address offset, e.g. PC+1
-  def registerAddrDirOffset(r:RegSymbol,o:Int,isWord:Boolean=false):Location=Location(Regs.NONE,AnyInt,AnyInt,r,IntValue(o),AnyInt,isWord)
+  //def registerAddrDirOffset(r:RegSymbol,o:Int,isWord:Boolean=false):Location=Location(Regs.NONE,AnyInt,AnyInt,r,IntValue(o),AnyInt,isWord)
   // same as registerAddr but with address offset located in memory address PC+x,
   // e.g. (IX+d), where d is a value from memory address after OpCode (PC+x)
   def registerAddrIndirOffset(r:RegSymbol,o:Int,isWord:Boolean=false):Location=Location(Regs.NONE,AnyInt,AnyInt,r,AnyInt,IntValue(o),isWord)
@@ -66,7 +65,17 @@ object Location {
 
 class IncorrectLocation(message : String) extends Exception(message) {}
 
-case class RegisterLocation(override val reg:RegSymbol)
-  extends LocationBase(reg,AnyInt,AnyInt,Regs.NONE,AnyInt,AnyInt,false) {
+case class RegisterLocation(register:RegSymbol)
+  extends LocationBase(register,AnyInt,AnyInt,Regs.NONE,AnyInt,AnyInt,false) {
   override lazy val label:String=reg.toString
+}
+
+case class RegisterAddrLocation(register:RegSymbol, override val isWord:Boolean=false)
+  extends LocationBase(Regs.NONE,AnyInt,AnyInt,register,AnyInt,AnyInt,isWord) {
+  override lazy val label:String=addressReg.toString
+}
+
+case class RegisterAddrDirOffsetLocation(register:RegSymbol, offset:Int, override val isWord:Boolean=false)
+  extends LocationBase(Regs.NONE,AnyInt,AnyInt,register,IntValue(offset),AnyInt,isWord) {
+  override lazy val label:String=f"(${addressReg.toString}+0x${directOffset()}%02X)$isWordString"
 }

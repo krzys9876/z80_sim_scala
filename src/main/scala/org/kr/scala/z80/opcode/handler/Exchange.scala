@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeExchangeLocation, OpCodeSize, OpCodeTCycles}
+import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeExchangeLocation, OpCodeSize, OpCodeTCycles, RegisterAddrLocation}
 import org.kr.scala.z80.system.{Debugger, MemoryChangeWord, RegSymbol, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.IntValue
 
@@ -25,7 +25,7 @@ object Exchange extends OpCodeHandler {
             new RegisterChange(loc.reg2,system.getRegValue(entry.reg1)))
         case loc : ExchangeLocationIndirect =>
           val addressLoc1=system.getRegValue(loc.reg1)
-          val memLoc1=system.getValueFromLocation(Location.registerAddr(loc.reg1,isWord=true))
+          val memLoc1=system.getValueFromLocation(RegisterAddrLocation(loc.reg1,isWord=true))
           List(new MemoryChangeWord(addressLoc1,system.getRegValue(loc.reg2)),
             new RegisterChange(loc.reg2,memLoc1))
       }
