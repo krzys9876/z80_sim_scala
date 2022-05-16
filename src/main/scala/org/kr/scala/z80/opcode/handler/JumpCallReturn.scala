@@ -48,11 +48,10 @@ object JumpCallReturn extends OpCodeHandler {
                         (implicit system: Z80System): List[SystemChange] = {
     val prevPC = system.getRegValue(Regs.PC)
     val address = calcAddress(oper, system.getValueFromLocation(location), prevPC)
-    val registerDecrValue = checker.decRegValue
     val newPC = chooseAddress(prevPC, address, checker)
     val changePC = List(new RegisterChange(Regs.PC, newPC + (if (!checker.isMet) instrSize else 0)))
     val changeReg = (oper, cond) match {
-      case (JumpType.DJumpR, c:RegisterJumpCondition) => List(new RegisterChange(c.register, registerDecrValue))
+      case (JumpType.DJumpR, c:RegisterJumpCondition) => List(new RegisterChange(c.register, checker.decRegValue()))
       case _ => List()
     }
     changePC ++ changeReg
@@ -92,17 +91,17 @@ case class FlagJumpCondition(override val flag:FlagSymbol,boolValue:Boolean) ext
 class IncorrectJumpCondition(message : String) extends Exception(message) {}
 
 class JumpConditionChecker(val condition: JumpConditionBase)(implicit system: Z80System) {
-  lazy val decRegValue:Int =
+  lazy val decRegValue:OptionInt =
     condition match {
-      case c : RegisterJumpCondition => Z80Utils.add8bit(system.getRegValue(c.register),-1)
-      case _ => OpCode.ANY
+      case c : RegisterJumpCondition => IntValue(Z80Utils.add8bit(system.getRegValue(c.register),-1))
+      case _ => AnyInt
     }
 
   lazy val isMet: Boolean =
     condition match {
       case _ : EmptyJumpCondition => true
       case c : FlagJumpCondition => system.getFlags.flagValue(c.flag) == c.value()
-      case c : RegisterJumpCondition => decRegValue != c.value()
+      case c : RegisterJumpCondition => decRegValue() != c.value()
       case _ => throw new IncorrectJumpCondition(f"unknown condition state: ${condition.toString}")
     }
 }
