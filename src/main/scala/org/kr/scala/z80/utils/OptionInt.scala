@@ -7,7 +7,7 @@ sealed abstract class OptionInt {
 }
 
 case object AnyInt extends OptionInt {
-  override def isAny:Boolean=false
+  override def isAny:Boolean=true
   def apply():Int=throw new InvalidIntValueException("AnyInt does not have a value")
 }
 

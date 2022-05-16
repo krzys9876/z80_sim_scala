@@ -2,6 +2,7 @@ package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
 import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger, RegSymbol, Regs}
+import org.kr.scala.z80.utils.{AnyInt, IntValue}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpArithmetic8BitTest extends AnyFunSuite {
@@ -170,61 +171,61 @@ class OpArithmetic8BitTest extends AnyFunSuite {
 
   test("run INC r/(HL)/(IX+d)/(IY+d)") {
     // based on "real" Z80 emulator
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0x3C)), Regs.A,0, 0x01, "00_0_000")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.B, 0x01)), List((0x0000, 0x04)), Regs.B,0, 0x02, "00_0_000")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.C, 0x3F)), List((0x0000, 0x0C)), Regs.C,0, 0x40, "00_1_000")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.D, 0xFE)), List((0x0000, 0x14)), Regs.D,0, 0xFF, "10_0_000")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x01), (Regs.E, 0xFE)), List((0x0000, 0x1C)), Regs.E,0, 0xFF, "10_0_001")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.H, 0xFF)), List((0x0000, 0x24)), Regs.H,0, 0x00, "01_1_000")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.L, 0x7F)), List((0x0000, 0x2C)), Regs.L,0, 0x80, "10_1_100")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.HL, 0x0102)), List((0x0000, 0x34),(0x0102,0x7F)), Regs.NONE,0x0102, 0x80, "10_1_100")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.IX, 0x0201)), List((0x0000, 0xDD),(0x0001, 0x34),(0x0002, 0x02),(0x0203,0x7F)),
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0x3C)), Regs.A,0, 0x01, "00_0_000")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.B, 0x01)), List((0x0000, 0x04)), Regs.B,0, 0x02, "00_0_000")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.C, 0x3F)), List((0x0000, 0x0C)), Regs.C,0, 0x40, "00_1_000")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.D, 0xFE)), List((0x0000, 0x14)), Regs.D,0, 0xFF, "10_0_000")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x01), (Regs.E, 0xFE)), List((0x0000, 0x1C)), Regs.E,0, 0xFF, "10_0_001")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.H, 0xFF)), List((0x0000, 0x24)), Regs.H,0, 0x00, "01_1_000")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.L, 0x7F)), List((0x0000, 0x2C)), Regs.L,0, 0x80, "10_1_100")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.HL, 0x0102)), List((0x0000, 0x34),(0x0102,0x7F)), Regs.NONE,0x0102, 0x80, "10_1_100")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.IX, 0x0201)), List((0x0000, 0xDD),(0x0001, 0x34),(0x0002, 0x02),(0x0203,0x7F)),
       Regs.NONE,0x0203, 0x80, "10_1_100",3)
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.IY, 0x0301)), List((0x0000, 0xFD),(0x0001, 0x34),(0x0002, 0xFF),(0x0300,0x7F)),
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.IY, 0x0301)), List((0x0000, 0xFD),(0x0001, 0x34),(0x0002, 0xFF),(0x0300,0x7F)),
       Regs.NONE,0x0300, 0x80, "10_1_100",3)
   }
 
   test("run DEC r/(HL)/(IX+d)/(IY+d)") {
     // based on "real" Z80 emulator
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x01)), List((0x0000, 0x3D)), Regs.A,0, 0x00, "01_0_010")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.B, 0x02)), List((0x0000, 0x05)), Regs.B,0, 0x01, "00_0_010")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.C, 0x40)), List((0x0000, 0x0D)), Regs.C,0, 0x3F, "00_1_010")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.D, 0xFF)), List((0x0000, 0x15)), Regs.D,0, 0xFE, "10_0_010")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x01), (Regs.E, 0xFF)), List((0x0000, 0x1D)), Regs.E,0, 0xFE, "10_0_011")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.H, 0x00)), List((0x0000, 0x25)), Regs.H,0, 0xFF, "10_1_010")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.L, 0x80)), List((0x0000, 0x2D)), Regs.L,0, 0x7F, "00_1_110")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.HL, 0x0102)), List((0x0000, 0x35),(0x0102,0x80)), Regs.NONE,0x0102, 0x7F, "00_1_110")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.IX, 0x0201)), List((0x0000, 0xDD),(0x0001, 0x35),(0x0002, 0x02),(0x0203,0x80)),
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.A, 0x01)), List((0x0000, 0x3D)), Regs.A,0, 0x00, "01_0_010")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.B, 0x02)), List((0x0000, 0x05)), Regs.B,0, 0x01, "00_0_010")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.C, 0x40)), List((0x0000, 0x0D)), Regs.C,0, 0x3F, "00_1_010")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.D, 0xFF)), List((0x0000, 0x15)), Regs.D,0, 0xFE, "10_0_010")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x01), (Regs.E, 0xFF)), List((0x0000, 0x1D)), Regs.E,0, 0xFE, "10_0_011")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.H, 0x00)), List((0x0000, 0x25)), Regs.H,0, 0xFF, "10_1_010")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.L, 0x80)), List((0x0000, 0x2D)), Regs.L,0, 0x7F, "00_1_110")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.HL, 0x0102)), List((0x0000, 0x35),(0x0102,0x80)), Regs.NONE,0x0102, 0x7F, "00_1_110")
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.IX, 0x0201)), List((0x0000, 0xDD),(0x0001, 0x35),(0x0002, 0x02),(0x0203,0x80)),
       Regs.NONE,0x0203, 0x7F, "00_1_110",3)
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.IY, 0x0301)), List((0x0000, 0xFD),(0x0001, 0x35),(0x0002, 0xFF),(0x0300,0x80)),
+    TestUtils.testRegOrAddrWithFlagsInt(List((Regs.F, 0x00), (Regs.IY, 0x0301)), List((0x0000, 0xFD),(0x0001, 0x35),(0x0002, 0xFF),(0x0300,0x80)),
       Regs.NONE,0x0300, 0x7F, "00_1_110",3)
   }
 
   test("run CPL") {
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x01)), List((0x0000, 0x2F)), Regs.A,OpCode.ANY, 0xFE, "00_1_010")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0xFF), (Regs.A, 0x01)), List((0x0000, 0x2F)), Regs.A,OpCode.ANY, 0xFE, "11_1_111")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x55)), List((0x0000, 0x2F)), Regs.A,OpCode.ANY, 0xAA, "00_1_010")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x01)), List((0x0000, 0x2F)), Regs.A,AnyInt, IntValue(0xFE), "00_1_010")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0xFF), (Regs.A, 0x01)), List((0x0000, 0x2F)), Regs.A,AnyInt, IntValue(0xFE), "11_1_111")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x55)), List((0x0000, 0x2F)), Regs.A,AnyInt, IntValue(0xAA), "00_1_010")
   }
 
   test("run NEG") {
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x01)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,OpCode.ANY, 0xFF, "10_1_011",2)
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,OpCode.ANY, 0x00, "01_0_010",2)
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0xFF)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,OpCode.ANY, 0x01, "00_1_011",2)
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x7F)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,OpCode.ANY, 0x81, "10_1_011",2)
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x80)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,OpCode.ANY, 0x80, "10_0_111",2)
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x40)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,OpCode.ANY, 0xC0, "10_0_011",2)
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x01)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,AnyInt, IntValue(0xFF), "10_1_011",2)
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,AnyInt, IntValue(0x00), "01_0_010",2)
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0xFF)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,AnyInt, IntValue(0x01), "00_1_011",2)
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x7F)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,AnyInt, IntValue(0x81), "10_1_011",2)
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x80)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,AnyInt, IntValue(0x80), "10_0_111",2)
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x40)), List((0x0000, 0xED),(0x0001, 0x44)), Regs.A,AnyInt, IntValue(0xC0), "10_0_011",2)
   }
 
   test("run CCF") {
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0x3F)), Regs.NONE,OpCode.ANY, OpCode.ANY, "00_0_001")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x01), (Regs.A, 0x00)), List((0x0000, 0x3F)), Regs.NONE,OpCode.ANY, OpCode.ANY, "00_1_000")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0xFF), (Regs.A, 0x00)), List((0x0000, 0x3F)), Regs.NONE,OpCode.ANY, OpCode.ANY, "11_1_100")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0x3F)), Regs.NONE,AnyInt, AnyInt, "00_0_001")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x01), (Regs.A, 0x00)), List((0x0000, 0x3F)), Regs.NONE,AnyInt, AnyInt, "00_1_000")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0xFF), (Regs.A, 0x00)), List((0x0000, 0x3F)), Regs.NONE,AnyInt, AnyInt, "11_1_100")
   }
 
   test("run SCF") {
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0x37)), Regs.NONE,OpCode.ANY, OpCode.ANY, "00_0_001")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x01), (Regs.A, 0x00)), List((0x0000, 0x37)), Regs.NONE,OpCode.ANY, OpCode.ANY, "00_0_001")
-    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0xFF), (Regs.A, 0x00)), List((0x0000, 0x37)), Regs.NONE,OpCode.ANY, OpCode.ANY, "11_0_101")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x00)), List((0x0000, 0x37)), Regs.NONE,AnyInt, AnyInt, "00_0_001")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x01), (Regs.A, 0x00)), List((0x0000, 0x37)), Regs.NONE,AnyInt, AnyInt, "00_0_001")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0xFF), (Regs.A, 0x00)), List((0x0000, 0x37)), Regs.NONE,AnyInt, AnyInt, "11_0_101")
   }
 
 }

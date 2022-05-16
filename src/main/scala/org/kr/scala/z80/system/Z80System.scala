@@ -1,7 +1,7 @@
 package org.kr.scala.z80.system
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.utils.{AnyInt, Z80Utils}
+import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt, Z80Utils}
 
 import scala.annotation.tailrec
 
@@ -33,51 +33,50 @@ class Z80System(val memory: Memory, val register: Register,
   private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg(Regs.PC,offset)
   private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg(Regs.PC,offset)
   private def getAddressFromReg(symbol:RegSymbol,offset:Int):Int= getRegValue(symbol)+offset
+  private def getFromMemoryAtReg(symbol:RegSymbol,offset:Int,isWord:Boolean):Int =
+    if(isWord) getWordFromMemoryAtReg(symbol,offset) else getByteFromMemoryAtReg(symbol,offset)
   private def getByteFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int = getByte(getAddressFromReg(symbol,offset))
   private def getWordFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int =
     Z80Utils.makeWord(getByte(getAddressFromReg(symbol,offset)+1),getByte(getAddressFromReg(symbol,offset)))
+  private def getByteOrWord(address:Int,isWord:Boolean):Int =
+    if(isWord) getWord(address) else getByte(address)
   private def getByte(address:Int):Int = memory(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memory(address+1),memory(address))
 
   def readPort(port:Int):Int=input.read(port)
 
-  def getValueFromLocation(loc:LocationBase):Int = {
-    val refLoc=Location(loc.reg,loc.immediate,loc.offsetPC,loc.addressReg,loc.directOffset,loc.indirectOffset2Compl,loc.isWord)
-    refLoc match {
-      case l if l==Location.empty => OpCode.ANY
-      case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => getRegValue(r)
-      case Location(_,i,_,_,_,_,_) if i!=AnyInt => i()
-      case Location(_,_,pco,_,_,_,isWord) if pco!=AnyInt =>
-        if(isWord) getWord(getWordFromMemoryAtPC(pco())) else getByte(getWordFromMemoryAtPC(pco()))
-      case Location(_,_,_,r,dirO,indirO,isWord) if r!=Regs.NONE =>
-        (dirO,indirO,isWord) match {
-          case (AnyInt,AnyInt,_) => if(isWord) getWordFromMemoryAtReg(r,0) else getByteFromMemoryAtReg(r,0)
-          case (o,AnyInt,isWord) => if(isWord) getWordFromMemoryAtReg(r,o()) else getByteFromMemoryAtReg(r,o())
-          case (AnyInt,off2Compl,_) => getByteFromMemoryAtReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(off2Compl())))
-          case (_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
-        }
-      case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
+  def getOptionalValueFromLocation(location:Location):OptionInt =
+    location match {
+      case _:EmptyLocation => AnyInt
+      case loc => IntValue(getValueFromLocation(loc))
     }
-  }
+
+  def getValueFromLocation(location:Location):Int =
+    location match {
+      case loc:RegisterLocation => getRegValue(loc.register)
+      case loc:ImmediateLocation => loc.immediate()
+      case loc:IndirectAddrLocation =>
+        getByteOrWord(getWordFromMemoryAtPC(loc.offsetPC()),loc.isWord)
+      case loc:RegisterAddrLocation => getFromMemoryAtReg(loc.addressReg,0,loc.isWord)
+      case loc:RegisterAddrDirOffsetLocation => getFromMemoryAtReg(loc.addressReg,loc.directOffset(),loc.isWord)
+      case loc:RegisterAddrIndirOffsetLocation =>
+        getByteFromMemoryAtReg(loc.addressReg,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl())))
+      case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
+    }
 
   private def putValueToMemory(address:Int, value:Int, isWord:Boolean):SystemChange =
     if(isWord) new MemoryChangeWord(address,value)
     else new MemoryChangeByte(address,value)
 
-  def putValueToLocation(loc:LocationBase, value:Int, isWord:Boolean=false):SystemChange = {
-    val refLoc = Location(loc.reg, loc.immediate, loc.offsetPC, loc.addressReg, loc.directOffset, loc.indirectOffset2Compl, loc.isWord)
-    refLoc match {
-      case Location(r,_,_,_,_,_,_) if r != Regs.NONE => new RegisterChange(r, value)
-      case Location(_, _, pco, _, _, _, _) if pco != AnyInt => putValueToMemory(getWordFromMemoryAtPC(pco()), value, isWord)
-      case Location(_, _, _, r, dirO, indirO, _) if r != Regs.NONE =>
-        (dirO, indirO) match {
-          case (dirO, AnyInt) if dirO != AnyInt => putValueToMemory(getAddressFromReg(r, dirO()), value, isWord)
-          case (AnyInt, AnyInt) => putValueToMemory(getAddressFromReg(r, 0), value, isWord)
-          case (AnyInt, indirOff2Compl) =>
-            putValueToMemory(getAddressFromReg(r, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl()))), value, isWord)
-        }
-      case l if l == Location.empty => new DummyChange
-      case Location(_, _, _, _, _, _, _) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
+  def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChange = {
+    location match {
+      case loc:RegisterLocation => new RegisterChange(loc.register, value)
+      case loc:IndirectAddrLocation => putValueToMemory(getWordFromMemoryAtPC(loc.offsetPC()), value, isWord)
+      case loc:RegisterAddrLocation => putValueToMemory(getAddressFromReg(loc.addressReg, 0), value, isWord)
+      case loc:RegisterAddrDirOffsetLocation => putValueToMemory(getAddressFromReg(loc.addressReg, loc.directOffset()), value, isWord)
+      case loc:RegisterAddrIndirOffsetLocation =>
+        putValueToMemory(getAddressFromReg(loc.addressReg, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl()))), value, isWord)
+      case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
   }
   // functions changing state

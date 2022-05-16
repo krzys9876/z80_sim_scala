@@ -14,22 +14,22 @@ object InputOutput extends OpCodeHandler {
 }
 
 sealed abstract class InOutOperation(val name:String) {
-  def handle(system:Z80System,port:Int,location:LocationBase)(implicit debugger:Debugger):List[SystemChange]
+  def handle(system:Z80System,port:Int,location:Location)(implicit debugger:Debugger):List[SystemChange]
 }
 
 object InOutOpType {
   case object In extends InOutOperation("IN") {
-    override def handle(system:Z80System,port:Int,location:LocationBase)(implicit debugger:Debugger):List[SystemChange]= {
+    override def handle(system:Z80System,port:Int,location:Location)(implicit debugger:Debugger):List[SystemChange]= {
       List(system.putValueToLocation(location,system.readPort(port)),
       new InputRefreshChange(port))
     }
   }
   case object Out extends InOutOperation("OUT") {
-    override def handle(system:Z80System,port:Int,location:LocationBase)(implicit debugger:Debugger):List[SystemChange]=
+    override def handle(system:Z80System,port:Int,location:Location)(implicit debugger:Debugger):List[SystemChange]=
       List(new OutputChange(port,system.getValueFromLocation(location)))
   }
   case object None extends InOutOperation("NONE") {
-    override def handle(system:Z80System,port:Int,location:LocationBase)(implicit debugger:Debugger):List[SystemChange]=
+    override def handle(system:Z80System,port:Int,location:Location)(implicit debugger:Debugger):List[SystemChange]=
       List(new DummyChange())
   }
 }

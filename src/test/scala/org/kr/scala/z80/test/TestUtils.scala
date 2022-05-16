@@ -1,8 +1,8 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{StateWatcher, Debugger, Flag, Memory, RegSymbol, Register, Regs, Z80System}
-import org.kr.scala.z80.utils.Z80Utils
+import org.kr.scala.z80.system.{Debugger, Flag, Memory, RegSymbol, Register, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object TestUtils {
   def testFlags(reg: Register, flagsAsString: String): Unit = {
@@ -34,16 +34,21 @@ object TestUtils {
     sysInit >>== Z80System.run(debugger)(steps.toLong)
   }
 
-  def testRegOrAddrWithFlags(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], resultReg: RegSymbol, resultAddr: Int,
-                               result: Int, flagsAsString: String, pcAfter: Int = 1)
+  def testRegOrAddrWithFlagsInt(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], resultReg: RegSymbol, resultAddr: Int,
+                             result: Int, flagsAsString: String, pcAfter: Int = 1)
+                            (implicit debugger: Debugger): Unit =
+    testRegOrAddrWithFlags(regList,memList,resultReg,IntValue(resultAddr),IntValue(result),flagsAsString,pcAfter)
+
+    def testRegOrAddrWithFlags(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], resultReg: RegSymbol, resultAddr: OptionInt,
+                               result: OptionInt, flagsAsString: String, pcAfter: Int = 1)
                             (implicit debugger: Debugger): Unit = {
     //given when
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
     assert(sysTest.get.register(Regs.PC) == pcAfter)
     (resultReg,resultAddr) match {
-      case (reg,_) if reg!=Regs.NONE => assert(sysTest.get.register(resultReg) == result)
-      case (_,addr) if addr!=OpCode.ANY => assert(sysTest.get.memory(resultAddr) == result)
+      case (reg,_) if reg!=Regs.NONE => assert(sysTest.get.register(resultReg) == result())
+      case (_,addr:IntValue) => assert(sysTest.get.memory(resultAddr()) == result())
       case _ =>
     }
     TestUtils.testFlags(sysTest.get.register, flagsAsString)

@@ -27,57 +27,57 @@ trait HandleUnknown extends OpCodeHandledBy {override val handler:OpCodeHandler=
 
 //Building blocks for OpCode definition
 trait OpCodeSourceLocation {
-  val source:LocationBase
+  val source:Location
 }
-trait SourceA extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.A)}
-trait SourceB extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.B)}
-trait SourceC extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.C)}
-trait SourceD extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.D)}
-trait SourceE extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.E)}
-trait SourceH extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.H)}
-trait SourceL extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.L)}
-trait SourceHLra extends OpCodeSourceLocation {override val source:LocationBase=RegisterAddrLocation(Regs.HL)}
-trait SourceBC extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.BC)}
-trait SourceDE extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.DE)}
-trait SourceHL extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.HL)}
-trait SourceSP extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.SP)}
-trait SourceIX extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.IX)}
-trait SourceIY extends OpCodeSourceLocation {override val source:LocationBase=RegisterLocation(Regs.IY)}
-trait SourceIXd extends OpCodeSourceLocation {override val source:LocationBase=Location.registerAddrIndirOffset(Regs.IX, 2)}
-trait SourceIYd extends OpCodeSourceLocation {override val source:LocationBase=Location.registerAddrIndirOffset(Regs.IY, 2)}
-trait SourceN extends OpCodeSourceLocation {override val source:LocationBase=RegisterAddrDirOffsetLocation(Regs.PC, 1)}
-trait SourceNw extends OpCodeSourceLocation {override val source:LocationBase=RegisterAddrDirOffsetLocation(Regs.PC, 1, isWord = true)}
-trait SourceStack extends OpCodeSourceLocation {override val source:LocationBase=RegisterAddrLocation(Regs.SP,isWord = true)}
-trait Source00h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0000)}
-trait Source08h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0008)}
-trait Source10h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0010)}
-trait Source18h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0018)}
-trait Source20h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0020)}
-trait Source28h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0028)}
-trait Source30h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0030)}
-trait Source38h extends OpCodeSourceLocation {override val source:LocationBase=Location.immediate(0x0038)}
+trait SourceA extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.A)}
+trait SourceB extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.B)}
+trait SourceC extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.C)}
+trait SourceD extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.D)}
+trait SourceE extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.E)}
+trait SourceH extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.H)}
+trait SourceL extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.L)}
+trait SourceHLra extends OpCodeSourceLocation {override val source:Location=RegisterAddrLocation(Regs.HL)}
+trait SourceBC extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.BC)}
+trait SourceDE extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.DE)}
+trait SourceHL extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.HL)}
+trait SourceSP extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.SP)}
+trait SourceIX extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.IX)}
+trait SourceIY extends OpCodeSourceLocation {override val source:Location=RegisterLocation(Regs.IY)}
+trait SourceIXd extends OpCodeSourceLocation {override val source:Location=RegisterAddrIndirOffsetLocation(Regs.IX, 2)}
+trait SourceIYd extends OpCodeSourceLocation {override val source:Location=RegisterAddrIndirOffsetLocation(Regs.IY, 2)}
+trait SourceN extends OpCodeSourceLocation {override val source:Location=RegisterAddrDirOffsetLocation(Regs.PC, 1)}
+trait SourceNw extends OpCodeSourceLocation {override val source:Location=RegisterAddrDirOffsetLocation(Regs.PC, 1, isWord = true)}
+trait SourceStack extends OpCodeSourceLocation {override val source:Location=RegisterAddrLocation(Regs.SP,isWord = true)}
+trait Source00h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0000,isWord=true)}
+trait Source08h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0008,isWord=true)}
+trait Source10h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0010,isWord=true)}
+trait Source18h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0018,isWord=true)}
+trait Source20h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0020,isWord=true)}
+trait Source28h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0028,isWord=true)}
+trait Source30h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0030,isWord=true)}
+trait Source38h extends OpCodeSourceLocation {override val source:Location=ImmediateLocation(0x0038,isWord=true)}
 
 trait OpCodeDestLocation {
-  val destination:LocationBase
+  val destination:Location
 }
-trait DestinationA extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.A)}
-trait DestinationB extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.B)}
-trait DestinationC extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.C)}
-trait DestinationD extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.D)}
-trait DestinationE extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.E)}
-trait DestinationH extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.H)}
-trait DestinationL extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.L)}
-trait DestinationHLra extends OpCodeDestLocation {override val destination:LocationBase=RegisterAddrLocation(Regs.HL)}
-trait DestinationBC extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.BC)}
-trait DestinationDE extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.DE)}
-trait DestinationHL extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.HL)}
-trait DestinationSP extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.SP)}
-trait DestinationIX extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.IX)}
-trait DestinationIY extends OpCodeDestLocation {override val destination:LocationBase=RegisterLocation(Regs.IY)}
-trait DestinationIXd extends OpCodeDestLocation {override val destination:LocationBase=Location.registerAddrIndirOffset(Regs.IX, 2)}
-trait DestinationIYd extends OpCodeDestLocation {override val destination:LocationBase=Location.registerAddrIndirOffset(Regs.IY, 2)}
-trait DestinationN extends OpCodeDestLocation {override val destination:LocationBase=RegisterAddrDirOffsetLocation(Regs.PC, 1)}
-trait DestinationEmpty extends OpCodeDestLocation {override val destination:LocationBase=Location.empty}
+trait DestinationA extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.A)}
+trait DestinationB extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.B)}
+trait DestinationC extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.C)}
+trait DestinationD extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.D)}
+trait DestinationE extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.E)}
+trait DestinationH extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.H)}
+trait DestinationL extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.L)}
+trait DestinationHLra extends OpCodeDestLocation {override val destination:Location=RegisterAddrLocation(Regs.HL)}
+trait DestinationBC extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.BC)}
+trait DestinationDE extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.DE)}
+trait DestinationHL extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.HL)}
+trait DestinationSP extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.SP)}
+trait DestinationIX extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.IX)}
+trait DestinationIY extends OpCodeDestLocation {override val destination:Location=RegisterLocation(Regs.IY)}
+trait DestinationIXd extends OpCodeDestLocation {override val destination:Location=RegisterAddrIndirOffsetLocation(Regs.IX, 2)}
+trait DestinationIYd extends OpCodeDestLocation {override val destination:Location=RegisterAddrIndirOffsetLocation(Regs.IY, 2)}
+trait DestinationN extends OpCodeDestLocation {override val destination:Location=RegisterAddrDirOffsetLocation(Regs.PC, 1)}
+trait DestinationEmpty extends OpCodeDestLocation {override val destination:Location=EmptyLocation()}
 
 trait SourceDestA extends SourceA with DestinationA
 trait SourceDestB extends SourceB with DestinationB
@@ -98,7 +98,7 @@ trait SourceDestIYd extends SourceIYd with DestinationIYd
 
 // copies destination to source - useful for INC and DEC
 trait SourceFromDestination extends OpCodeSourceLocation with OpCodeDestLocation {
-  override val source:LocationBase=destination
+  override val source:Location=destination
 }
 
 trait OpCodeArithmetic8b {

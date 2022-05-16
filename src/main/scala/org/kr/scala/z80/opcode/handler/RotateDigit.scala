@@ -16,7 +16,7 @@ object RotateDigit extends OpCodeHandler {
     // output: valueOut -> accumulator, valueAux -> location
     val (result, newF) = oper.calcAll(
       ArithmeticOpInput(system.getRegValue(Regs.A),
-        system.getValueFromLocation(loc),
+        IntValue(system.getValueFromLocation(loc)),
         system.getFlags))
     val change = List(
       new RegisterChange(Regs.A, result.valueOut),
@@ -32,16 +32,16 @@ class RotateDigitBase(override val name:String) extends ArithmeticOperation(name
 
   def unchangedDigit1A(input:ArithmeticOpInput):Int = input.value & 0xF0
   def digit2A(input:ArithmeticOpInput):Int = input.value & 0x0F
-  def digit1R(input:ArithmeticOpInput):Int = (input.operand & 0xF0) >> 4
-  def digit2R(input:ArithmeticOpInput):Int = input.operand & 0x0F
+  def digit1R(input:ArithmeticOpInput):Int = (input.operand() & 0xF0) >> 4
+  def digit2R(input:ArithmeticOpInput):Int = input.operand() & 0x0F
 }
 
 object RotateDL extends RotateDigitBase("RLD") {
   override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((digit2R(input) << 4) + digit2A(input))
-  override def calcUnsigned(input: ArithmeticOpInput): Int = unchangedDigit1A(input) + digit1R(input)
+  override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(unchangedDigit1A(input) + digit1R(input))
 }
 
 object RotateDR extends RotateDigitBase("RLD") {
   override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((digit2A(input) << 4) + digit1R(input))
-  override def calcUnsigned(input: ArithmeticOpInput): Int = unchangedDigit1A(input) + digit2R(input)
+  override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(unchangedDigit1A(input) + digit2R(input))
 }
