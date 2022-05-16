@@ -39,6 +39,8 @@ object OpCodes {
         NOP
       )
 
+  //Separate maps to find opcodes 1-, 2- and 3-bytes long
+  //(separation due to performance considerations after profiling)
   // 1-byte opcodes
   lazy val mapMainOnly:Map[OpCode,OpCode with OpCodeHandledBy]=
     list
@@ -68,7 +70,7 @@ object OpCodes {
     mapMainOnly.getOrElse(code.mainOnly,
       mapMainSupp.getOrElse(code.mainSupp,
         mapMainSupp2.getOrElse(code,
-          new UNKNOWN_WITH_CODE(code))))
+          new UNKNOWN(code))))
     //OpCodes.list.find(elem=>elem.matches(code)).getOrElse(new UNKNOWN_WITH_CODE(code))
   }
 }

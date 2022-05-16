@@ -6,6 +6,7 @@ import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt}
 
 case class OpCode(main:Int,supp:OptionInt=AnyInt,supp2:OptionInt=AnyInt) {
   /* OpCode format:
+  1    2      3   4  - bytes in memory starting with PC
   main (supp) (d) (supp2)
   main - primary OpCode for 1-byte opcodes (1st byte of any operation)
   supp - supplementary OpCode for 2-byte opcodes (2nd byte)
@@ -40,17 +41,9 @@ case class OpCode(main:Int,supp:OptionInt=AnyInt,supp2:OptionInt=AnyInt) {
 }
 
 object OpCode {
-  val registerMap:Map[Int,Location]=Map(
-    7->RegisterLocation(Regs.A),
-    0->RegisterLocation(Regs.B),
-    1->RegisterLocation(Regs.C),
-    2->RegisterLocation(Regs.D),
-    3->RegisterLocation(Regs.E),
-    4->RegisterLocation(Regs.H),
-    5->RegisterLocation(Regs.L))
-
   def num2hex(num:Int):String= f"0x$num%02X"
 
+  // helper factory methods
   def c2(main:Int,supp:Int):OpCode=OpCode(main,IntValue(supp),AnyInt)
   def c3(main:Int,supp:Int,supp2:Int):OpCode=OpCode(main,IntValue(supp),IntValue(supp2))
 
@@ -167,5 +160,4 @@ object OpCode {
   }
 }
 
-class UnknownOperationException(message : String) extends Exception(message) {}
-
+class UnknownOperationException(message : String) extends Exception(message)

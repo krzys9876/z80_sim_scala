@@ -325,5 +325,4 @@ object OUT_C_L extends OpCode(0xED,IntValue(0x69)) with DestinationC with Source
 object NOP extends  OpCode(0x00) with Size1 with T4 with HandleNop with Label {override val label:String="NOP"}
 
 //UNKNOWN
-object UNKNOWN extends OpCode(0) with HandleUnknown
-class UNKNOWN_WITH_CODE(opcode:OpCode) extends OpCode(opcode.main,opcode.supp,opcode.supp2) with HandleUnknown
+class UNKNOWN(opcode:OpCode) extends OpCode(opcode.main,opcode.supp,opcode.supp2) with HandleUnknown
