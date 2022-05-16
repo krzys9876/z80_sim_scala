@@ -38,6 +38,7 @@ object BitManipulation extends OpCodeHandler {
         (prevValue,newF)
       case BitOpType.Reset => (Z80Utils.resetBit(prevValue,bit),prevFlags)
       case BitOpType.Set => (Z80Utils.setBit(prevValue,bit),prevFlags)
+      case BitOpType.None => (prevValue,prevFlags)
     }
   }
 }

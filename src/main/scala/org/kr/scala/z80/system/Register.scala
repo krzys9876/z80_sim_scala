@@ -1,13 +1,11 @@
 package org.kr.scala.z80.system
 
-import org.kr.scala.z80.opcode.OpCode
 import org.kr.scala.z80.utils.Z80Utils
 
 class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h:Int,val l:Int,
                val pc:Int,val sp:Int,val r:Int,val i:Int,val ix:Int,val iy:Int,
                val af1:Int,val bc1:Int,val de1:Int,val hl1:Int) {
   def apply(regSymbolObj:RegSymbol):Int= {
-    //val regSymbolObj = Regs.fromString(regSymbolStr)
     regSymbolObj match {
       case Regs.A => a
       case Regs.F => f
@@ -31,13 +29,13 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
       case Regs.BC1 => bc1
       case Regs.DE1 => de1
       case Regs.HL1 => hl1
+      case Regs.NONE => throw new UnknownRegisterException("NONE rgister cannot be set")
     }
   }
 
   def apply(flag:FlagSymbol):Boolean=flag.extract(f)
 
   def set(regSymbolObj:RegSymbol,value:Int): Register= {
-    //val regSymbolObj=Regs.fromString(regSymbolStr)
     regSymbolObj match {
       case Regs.A => new Register(value,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
       case Regs.F => new Register(a,value,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
@@ -61,6 +59,7 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
       case Regs.BC1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,value,de1,hl1)
       case Regs.DE1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,value,hl1)
       case Regs.HL1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,value)
+      case Regs.NONE => this
     }
   }
 
@@ -180,3 +179,5 @@ object Flag {
     Z80Utils.setOrResetBit(prevValue,flagSymbol.bit,flag)
   }
 }
+
+class UnknownRegisterException(message : String) extends Exception(message)
