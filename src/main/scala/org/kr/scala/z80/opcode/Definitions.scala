@@ -5,7 +5,7 @@ import org.kr.scala.z80.system.Regs
 import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt}
 
 //Arithmetic 8b
-// generator for ADD A,x - TBC if this is an efficient and readable way of defining opcodes
+// generator for ADD A,x
 class Arithmetic8bDef(main:Int, supp:OptionInt, val destination:Location, val size:Int, val t:Int, val label:String)
   extends OpCode(main,supp) with HandleArithmetic8Bit with OpCodeDestLocation with OpCodeSize with OpCodeTCycles with Label
 

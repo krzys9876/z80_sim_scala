@@ -247,5 +247,3 @@ trait OpCodeInOut {
 }
 trait InOper extends OpCodeInOut {override val operation:InOutOperation=InOutOpType.In}
 trait OutOper extends OpCodeInOut {override val operation:InOutOperation=InOutOpType.Out}
-
-
