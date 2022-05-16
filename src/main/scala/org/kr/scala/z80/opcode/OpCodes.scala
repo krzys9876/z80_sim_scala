@@ -71,6 +71,5 @@ object OpCodes {
       mapMainSupp.getOrElse(code.mainSupp,
         mapMainSupp2.getOrElse(code,
           new UNKNOWN(code))))
-    //OpCodes.list.find(elem=>elem.matches(code)).getOrElse(new UNKNOWN_WITH_CODE(code))
   }
 }
