@@ -1,7 +1,8 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpCondition, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, EmptyJumpCondition, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, FlagJumpCondition, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpConditionBase, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RegisterJumpCondition, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
 import org.kr.scala.z80.system.{Flag, Regs}
+import org.kr.scala.z80.utils.IntValue
 
 trait Label {
   val label:String
@@ -232,14 +233,14 @@ trait CallOper extends OpCodeJump {override val operation:JumpOperation=JumpType
 trait ReturnOper extends OpCodeJump {override val operation:JumpOperation=JumpType.Return}
 
 trait OpCodeJumpCondition {
-  val condition:JumpCondition
+  val condition:JumpConditionBase
 }
-trait JumpUnconditional extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.empty}
-trait JumpC extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.C,value=true)}
-trait JumpNC extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.C,value=false)}
-trait JumpZ extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.Z,value=true)}
-trait JumpNZ extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.flag(Flag.Z,value=false)}
-trait JumpB0 extends OpCodeJumpCondition {override val condition:JumpCondition=JumpCondition.register(Regs.B,0)}
+trait JumpUnconditional extends OpCodeJumpCondition {override val condition:JumpConditionBase=EmptyJumpCondition()}
+trait JumpC extends OpCodeJumpCondition {override val condition:JumpConditionBase=FlagJumpCondition(Flag.C,boolValue=true)}
+trait JumpNC extends OpCodeJumpCondition {override val condition:JumpConditionBase=FlagJumpCondition(Flag.C,boolValue=false)}
+trait JumpZ extends OpCodeJumpCondition {override val condition:JumpConditionBase=FlagJumpCondition(Flag.Z,boolValue=true)}
+trait JumpNZ extends OpCodeJumpCondition {override val condition:JumpConditionBase=FlagJumpCondition(Flag.Z,boolValue=false)}
+trait JumpB0 extends OpCodeJumpCondition {override val condition:JumpConditionBase=RegisterJumpCondition(Regs.B,IntValue(0))}
 
 trait OpCodeInOut {
   val operation:InOutOperation

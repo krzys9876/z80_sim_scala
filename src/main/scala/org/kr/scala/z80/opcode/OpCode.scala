@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.JumpCondition
+import org.kr.scala.z80.opcode.handler.{FlagJumpCondition, JumpConditionBase}
 import org.kr.scala.z80.system.{Flag, Regs}
 
 case class OpCode(main:Int,supp:Int=OpCode.ANY,supp2:Int=OpCode.ANY) {
@@ -180,16 +180,16 @@ object OpCode {
 
   //TYPE6: decoding jump conditions by bits 3-5
   val baseCodeOffsetType7:List[Int]=List.range(0,8).map(_ << 3)
-  val baseJumpConditions:List[JumpCondition]=List(
-    JumpCondition.flag(Flag.Z,value=false),
-    JumpCondition.flag(Flag.Z,value=true),
-    JumpCondition.flag(Flag.C,value=false),
-    JumpCondition.flag(Flag.C,value=true),
-    JumpCondition.flag(Flag.P,value=false),
-    JumpCondition.flag(Flag.P,value=true),
-    JumpCondition.flag(Flag.S,value=false),
-    JumpCondition.flag(Flag.S,value=true))
-  def generateOpCodesType7(base:OpCode,size:Int):List[(OpCode,JumpCondition,Int)]= {
+  val baseJumpConditions:List[JumpConditionBase]=List(
+    FlagJumpCondition(Flag.Z,boolValue=false),
+    FlagJumpCondition(Flag.Z,boolValue=true),
+    FlagJumpCondition(Flag.C,boolValue=false),
+    FlagJumpCondition(Flag.C,boolValue=true),
+    FlagJumpCondition(Flag.P,boolValue=false),
+    FlagJumpCondition(Flag.P,boolValue=true),
+    FlagJumpCondition(Flag.S,boolValue=false),
+    FlagJumpCondition(Flag.S,boolValue=true))
+  def generateOpCodesType7(base:OpCode,size:Int):List[(OpCode,JumpConditionBase,Int)]= {
     val opCodes=baseCodeOffsetType7.map(offset=>OpCode(base.main+offset))
     opCodes.zip(baseJumpConditions).map({case(code,loc)=>(code,loc,size)})
   }

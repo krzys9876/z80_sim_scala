@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.JumpCondition
+import org.kr.scala.z80.opcode.handler.{EmptyJumpCondition, JumpConditionBase}
 import org.kr.scala.z80.system.Regs
 
 //Arithmetic 8b
@@ -262,19 +262,19 @@ object RRA extends OpCode(0x1F) with RotateShiftRra with SourceA with HandleRota
 //Jump
 //Z80 manual p.59
 // generator for jump group
-class JumpDef(main:Int, val condition:JumpCondition, val size:Int, val label:String)
+class JumpDef(main:Int, val condition:JumpConditionBase, val size:Int, val label:String)
   extends OpCode(main) with OpCodeJumpCondition with HandleJump with OpCodeSize with Label
 object JP_cond {
   val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC2),3).map(op=>
-    new JumpDef(op._1.main,op._2,op._3,f"JP ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol},nn") with T10 with JumpOper with SourceNw )
+    new JumpDef(op._1.main,op._2,op._3,f"JP ${if(op._2.value()==0) "N" else ""}${op._2.flag.symbol},nn") with T10 with JumpOper with SourceNw )
 }
 object CALL_cond {
   val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC4),3).map(op=>
-    new JumpDef(op._1.main,op._2,op._3,f"CALL ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol},nn") with T10T17 with CallOper with SourceNw)
+    new JumpDef(op._1.main,op._2,op._3,f"CALL ${if(op._2.value()==0) "N" else ""}${op._2.flag.symbol},nn") with T10T17 with CallOper with SourceNw)
 }
 object RET_cond {
   val codes:List[JumpDef] = OpCode.generateOpCodesType7(OpCode(0xC0),1).map(op=>
-    new JumpDef(op._1.main,op._2,op._3,f"RET ${if(op._2.value==0) "N" else ""}${op._2.flag.symbol}") with T5T11 with ReturnOper with SourceStack)
+    new JumpDef(op._1.main,op._2,op._3,f"RET ${if(op._2.value()==0) "N" else ""}${op._2.flag.symbol}") with T5T11 with ReturnOper with SourceStack)
 }
 object JP_nn extends OpCode(0xC3) with JumpUnconditional with JumpOper with SourceNw with HandleJump with Size3 with T10 with Label {override val label:String="JP nn"}
 object JR_n extends OpCode(0x18) with JumpUnconditional with JumpRelativeOper with SourceN with HandleJump with Size2 with T12 with Label {override val label:String="JR n"}
@@ -295,7 +295,7 @@ object RST_all {
     for(
       locCode<-List.range(0,8).map(_ << 3) // list of actual addresses to call
     ) yield {
-      new JumpDef(0xC7+locCode,JumpCondition.empty,1,f"RST ${OpCode.num2hex(locCode)}")
+      new JumpDef(0xC7+locCode,EmptyJumpCondition(),1,f"RST ${OpCode.num2hex(locCode)}")
         with T11 with HandleJump with CallOper with OpCodeSourceLocation {
         override val source: Location = ImmediateLocation(locCode)}
     }

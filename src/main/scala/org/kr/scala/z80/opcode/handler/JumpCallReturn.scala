@@ -2,7 +2,7 @@ package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system._
-import org.kr.scala.z80.utils.{IntValue, Z80Utils}
+import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt, Z80Utils}
 
 sealed abstract class JumpOperation(val name:String)
 
@@ -44,7 +44,7 @@ object JumpCallReturn extends OpCodeHandler {
   // Jump relative - relative operand is 2's complement and must be incremented by 2
   private def calcRelativeAddress(pc: Int, relative: Int): Int = Z80Utils.word2ComplToRaw(pc + 2 + Z80Utils.rawByteTo2Compl(relative))
 
-  private def handleJump(oper: JumpOperation, cond: JumpCondition, checker: JumpConditionChecker, location: Location, instrSize: Int)
+  private def handleJump(oper: JumpOperation, cond: JumpConditionBase, checker: JumpConditionChecker, location: Location, instrSize: Int)
                         (implicit system: Z80System): List[SystemChange] = {
     val prevPC = system.getRegValue(Regs.PC)
     val address = calcAddress(oper, system.getValueFromLocation(location), prevPC)
@@ -52,7 +52,7 @@ object JumpCallReturn extends OpCodeHandler {
     val newPC = chooseAddress(prevPC, address, checker)
     val changePC = List(new RegisterChange(Regs.PC, newPC + (if (!checker.isMet) instrSize else 0)))
     val changeReg = (oper, cond) match {
-      case (JumpType.DJumpR, c) if c.isRegister => List(new RegisterChange(c.register, registerDecrValue))
+      case (JumpType.DJumpR, c:RegisterJumpCondition) => List(new RegisterChange(c.register, registerDecrValue))
       case _ => List()
     }
     changePC ++ changeReg
@@ -74,35 +74,35 @@ object JumpCallReturn extends OpCodeHandler {
     }
 }
 
-case class JumpCondition(flag:FlagSymbol,register:RegSymbol,value:Int) {
-  lazy val flagValue:Boolean = value!=0
-  lazy val isFlag:Boolean = flag!=Flag.None
-  lazy val isRegister:Boolean = register!=Regs.NONE
-  lazy val isEmpty:Boolean = this.equals(JumpCondition.empty)
-
-  override def toString:String=if(isEmpty) "empty" else f"$flag/${if(register!=Regs.NONE) register else "-"}=$value"
+abstract class JumpConditionBase(val flag:FlagSymbol,val register:RegSymbol,val value:OptionInt) {
 }
 
-object JumpCondition {
-  def flag(flag:FlagSymbol,value:Boolean):JumpCondition=JumpCondition(flag,Regs.NONE,if(value) 1 else 0)
-  def register(register:RegSymbol,value:Int):JumpCondition=JumpCondition(Flag.None,register,value)
-  val empty:JumpCondition=JumpCondition(Flag.None,Regs.NONE,OpCode.ANY)
+case class EmptyJumpCondition() extends JumpConditionBase(Flag.None,Regs.NONE,AnyInt) {
+  override def toString:String="empty"
+}
+
+case class RegisterJumpCondition(override val register:RegSymbol,override val value:OptionInt) extends JumpConditionBase(Flag.None,register,value) {
+  override def toString:String=f"reg:$register=$value"
+}
+
+case class FlagJumpCondition(override val flag:FlagSymbol,boolValue:Boolean) extends JumpConditionBase(flag,Regs.NONE,IntValue(if(boolValue) 1 else 0)) {
+  override def toString:String=f"flag:$flag=$value"
 }
 
 class IncorrectJumpCondition(message : String) extends Exception(message) {}
 
-class JumpConditionChecker(val condition: JumpCondition)(implicit system: Z80System) {
+class JumpConditionChecker(val condition: JumpConditionBase)(implicit system: Z80System) {
   lazy val decRegValue:Int =
     condition match {
-      case c if c.isRegister => Z80Utils.add8bit(system.getRegValue(c.register),-1)
+      case c : RegisterJumpCondition => Z80Utils.add8bit(system.getRegValue(c.register),-1)
       case _ => OpCode.ANY
     }
 
   lazy val isMet: Boolean =
     condition match {
-      case c if c.isEmpty => true
-      case c if c.isFlag => system.getFlags.flagValue(condition.flag) == condition.value
-      case c if c.isRegister => decRegValue != c.value
+      case _ : EmptyJumpCondition => true
+      case c : FlagJumpCondition => system.getFlags.flagValue(c.flag) == c.value()
+      case c : RegisterJumpCondition => decRegValue != c.value()
       case _ => throw new IncorrectJumpCondition(f"unknown condition state: ${condition.toString}")
     }
 }
