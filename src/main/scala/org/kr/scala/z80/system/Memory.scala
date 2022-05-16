@@ -42,6 +42,8 @@ object Memory {
 
   // functions changing state (Memory=>Memory)
   def poke: (Int, Int) => Memory => Memory = (address, value) => memory => memory.poke(address, value)
+  def pokeW: (Int, Int) => Memory => Memory = (address, value) => memory =>
+    memory.poke(address, Z80Utils.getL(value)).poke(Z80Utils.add16bit(address,1), Z80Utils.getH(value))
   def pokeMulti: (Int, Vector[Int]) => Memory => Memory = (address, values) => memory => memory.pokeMulti(address, values)
   def loadHexLine:String => Memory => Memory = line => memory => memory.loadHexLine(line)
   def loadHexLines:List[String] => Memory => Memory = lines => memory => memory.loadHexLines(lines)

@@ -18,9 +18,9 @@ class OpBasicTest extends AnyFunSuite {
 
   test("run NOP with memory overflow") {
     //given
-    val sys1=StateWatcher[Z80System](Z80System.blank) >>== Z80System.changeRegister(debugger)(Regs.PC,65534)
+    val sys1=Z80System.blank.changeRegister(Regs.PC,65534)
     //when
-    val sys2=sys1 >>== Z80System.run(debugger)(3L)
+    val sys2=StateWatcher(sys1) >>== Z80System.run(debugger)(3L)
     //then
     assert(sys2.get.register(Regs.PC)==1)
   }

@@ -73,8 +73,8 @@ class OpInOutTest extends AnyFunSuite {
 
   def prepareTestWithInput(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,
                            steps:Int=1): StateWatcher[Z80System] = {
-    val blank=StateWatcher[Z80System](Z80System.blank) >>== Z80System.attachPort(debugger)(port,inputPort)
-    TestUtils.prepareTestWith(blank,regList,memList,steps)
+    val blank=Z80System.blank.attachPort(port,inputPort)
+    TestUtils.prepareTestWith(StateWatcher(blank),regList,memList,steps)
   }
 
   test("run IN A,(n)") {

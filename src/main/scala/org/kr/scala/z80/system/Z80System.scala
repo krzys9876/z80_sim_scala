@@ -39,11 +39,6 @@ class Z80System(val memory: Memory, val register: Register,
   private def getByte(address:Int):Int = memory(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memory(address+1),memory(address))
 
-  private def returnAfterChange(chgList:List[SystemChangeBase],forwardPC:Int=0,forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
-    val chgListAfterPC=chgList ++ (if(forwardPC!=0 || forwardTCycles!=0) List(new PCChange(forwardPC,forwardTCycles)) else List())
-    (StateWatcherSilent[Z80System](this) >>== Z80System.changeList(debugger)(chgListAfterPC)).get
-  }
-
   def readPort(port:Int):Int=input.read(port)
 
   def getValueFromLocation(loc:Location):Int =
@@ -63,11 +58,11 @@ class Z80System(val memory: Memory, val register: Register,
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
 
-  private def putValueToMemory(address:Int, value:Int, isWord:Boolean):SystemChangeBase =
+  private def putValueToMemory(address:Int, value:Int, isWord:Boolean):SystemChange =
     if(isWord) new MemoryChangeWord(address,value)
     else new MemoryChangeByte(address,value)
 
-  def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChangeBase =
+  def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChange =
     location match {
       case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => new RegisterChange(r,value)
       case Location(_,_,pco,_,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromMemoryAtPC(pco),value,isWord)
@@ -82,82 +77,79 @@ class Z80System(val memory: Memory, val register: Register,
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${location.toString}")
     }
 
-  def replaceRegister(newReg:Register):Z80System=
-    new Z80System(memory,newReg,output,input,elapsedTCycles)
+  // functions changing state
+  private def returnAfterChange(chgList:List[SystemChange], forwardPC:Int=0, forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
+    val chgListAfterPC=addPCAndTCyclesChange(chgList,forwardPC,forwardTCycles)
+    changeList(chgListAfterPC)
+  }
 
-  def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System=
-    new Z80System(memory,newReg,output,input,newTCycles)
+  private def addPCAndTCyclesChange(chgList:List[SystemChange], forwardPC:Int, forwardTCycles:Int):List[SystemChange] =
+    chgList ++ (if(forwardPC!=0 || forwardTCycles!=0) List(new PCChange(forwardPC,forwardTCycles)) else List())
 
-  def replaceMemory(newMem:Memory):Z80System=
-    new Z80System(newMem,register,output,input,elapsedTCycles)
+  def changeList(list:List[SystemChange]):Z80System =
+    list.foldLeft(this)((changedSystem,oneChange)=>oneChange.handle(changedSystem))
 
-  def replaceOutput(newOut:OutputFile):Z80System=
-    new Z80System(memory,register,newOut,input,elapsedTCycles)
+  def changeRegister(regSymbol:RegSymbol, value:Int):Z80System = {
+    val newReg=(StateWatcherSilent(register) >>== Register.set(regSymbol,value)).get
+    replaceRegister(newReg)
+  }
 
-  def replaceInput(newIn:InputFile):Z80System=
-    new Z80System(memory,register,output,newIn,elapsedTCycles)
+  def changeRegisterRelative(regSymbol:RegSymbol, value:Int):Z80System = {
+    val newReg=(StateWatcherSilent(register) >>== Register.setRelative(regSymbol,value)).get
+    replaceRegister(newReg)
+  }
+
+  def changePCAndCycles(pc:Int, cycles:Int):Z80System = {
+    val newReg=(StateWatcherSilent(register) >>== Register.setRelative(Regs.PC,pc)).get
+    replaceRegisterAndCycles(newReg,elapsedTCycles+cycles)
+  }
+
+  def changeMemoryByte(address:Int, value:Int):Z80System = {
+    val newMem=(StateWatcherSilent(memory) >>== Memory.poke(address,value)).get
+    replaceMemory(newMem)
+  }
+
+  def changeMemoryWord(address:Int, value:Int):Z80System = {
+    val newMem=StateWatcherSilent(memory) >>==
+      Memory.poke(address,Z80Utils.getL(value)) >>==
+      Memory.poke(address+1,Z80Utils.getH(value))
+    replaceMemory(newMem.get)
+  }
+
+  def outputByte(port:Int, value:Int):Z80System = {
+    val newOut=(StateWatcher(output) >>== OutputFile.out(debugger)(port,value)).get
+    replaceOutput(newOut)
+  }
+
+  def attachPort(port:Int, inPort:InputPort):Z80System = {
+    val newIn=(StateWatcherSilent(input) >>== InputFile.attachPort(port,inPort)).get
+    replaceInput(newIn)
+  }
+
+  def refreshInput(port:Int):Z80System = {
+    val newIn=(StateWatcherSilent(input) >>== InputFile.refreshPort(port)).get
+    replaceInput(newIn)
+  }
+
+  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles)
+  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles)
+  private def replaceMemory(newMem:Memory):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles)
+  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles)
+  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles)
 }
 
 object Z80System {
   def blank(implicit debugger:Debugger):Z80System=new Z80System(Memory.blank(0x10000),Register.blank,
     OutputFile.blank, InputFile.blank,0)
 
-  // functions changing state (Z80System=>Z80System)
-  def changeList(implicit debugger:Debugger):List[SystemChangeBase] => Z80System => Z80System = list => system =>
-    list.foldLeft(system)((changedSystem,oneChange)=>oneChange.handle(changedSystem))
-
-  def change(implicit debugger:Debugger):SystemChangeBase => Z80System => Z80System = change => system => change.handle(system)
-
-  def changeRegister(implicit debugger:Debugger):(RegSymbol,Int) => Z80System => Z80System = (regSymbol, value) => system => {
-    val newReg=(StateWatcherSilent(system.register) >>== Register.set(regSymbol,value)).get
-    system.replaceRegister(newReg)
-  }
-
-  def changeRegisterRelative(implicit debugger:Debugger):(RegSymbol,Int) => Z80System => Z80System = (regSymbol, value) => system => {
-    val newReg=(StateWatcherSilent(system.register) >>== Register.setRelative(regSymbol,value)).get
-    system.replaceRegister(newReg)
-  }
-
-  def changePCAndCycles(implicit debugger:Debugger):(Int,Int) => Z80System => Z80System = (pc,cycles) => system => {
-    val newReg=(StateWatcherSilent(system.register) >>== Register.setRelative(Regs.PC,pc)).get
-    system.replaceRegisterAndCycles(newReg,system.elapsedTCycles+cycles)
-  }
-
-  def changeMemoryByte(implicit debugger:Debugger):(Int,Int) => Z80System => Z80System = (address, value) => system => {
-    val newMem=(StateWatcherSilent(system.memory) >>== Memory.poke(address,value)).get
-    system.replaceMemory(newMem)
-  }
-
-  def changeMemoryWord(implicit debugger:Debugger):(Int,Int) => Z80System => Z80System = (address, value) => system => {
-    val newMem=StateWatcherSilent(system.memory) >>==
-      Memory.poke(address,Z80Utils.getL(value)) >>==
-      Memory.poke(address+1,Z80Utils.getH(value))
-    system.replaceMemory(newMem.get)
-  }
-
-  def outputByte(implicit debugger:Debugger):(Int,Int) => Z80System => Z80System = (port, value) => system => {
-    val newOut=(StateWatcher(system.output) >>== OutputFile.out(debugger)(port,value)).get
-    system.replaceOutput(newOut)
-  }
-
-  def attachPort(implicit debugger:Debugger):(Int,InputPort) => Z80System => Z80System = (port,inPort) => system => {
-    val newIn=(StateWatcherSilent(system.input) >>== InputFile.attachPort(port,inPort)).get
-    system.replaceInput(newIn)
-  }
-
-  def refreshInput(implicit debugger:Debugger):Int => Z80System => Z80System = port => system => {
-    val newIn=(StateWatcherSilent(system.input) >>== InputFile.refreshPort(port)).get
-    system.replaceInput(newIn)
-  }
-
-  // run - main functions changing state of the system
+  // run - main function changing state of the system
   def run(implicit debug:Debugger):Long=>Z80System=>Z80System=
-    toGo=>system=>steps(StateWatcher[Z80System](system),toGo).state
+    toGo=>system=>steps(StateWatcher(system),toGo).state
 
   @tailrec
   private def steps(start:StateWatcher[Z80System], toGo:Long)(implicit debugger: Debugger):StateWatcher[Z80System]={
     toGo match {
-      case 0 => StateWatcher[Z80System](start.state)
+      case 0 => StateWatcher(start.state)
       case _ => steps(start >>== Z80System.step(debugger)(),toGo-1)
     }
   }

@@ -40,6 +40,25 @@ class MemoryTest extends AnyFunSuite {
     assert(afterState.get.mem.equals(Vector[Int](0,34,56,78,0)))
   }
 
+  test("poke word") {
+    //given
+    val memoryController=StateWatcher[Memory](Memory.blank(5))
+    //when
+    val afterState=memoryController >>== Memory.pokeW(2,0x1234)
+    //then
+    assert(afterState.get.mem.equals(Vector[Int](0,0,0x34,0x12,0)))
+  }
+
+  test("poke word with overflow (16bit)") {
+    //given
+    val memoryController=StateWatcher[Memory](Memory.blank(0x10000))
+    //when
+    val afterState=memoryController >>== Memory.pokeW(0xFFFF,0x1234)
+    //then
+    assert(afterState.get.mem(0xFFFF)==0x34)
+    assert(afterState.get.mem(0x0000)==0x12)
+  }
+
   test("poke memory direct function declaration") {
     //given
     val memoryController=StateWatcher[Memory](Memory.blank(5))

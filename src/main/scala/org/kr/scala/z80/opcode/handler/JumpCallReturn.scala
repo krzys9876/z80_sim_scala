@@ -16,7 +16,7 @@ object JumpType {
 }
 
 object JumpCallReturn extends OpCodeHandler {
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChangeBase], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
     val actualCode=castType[OpCode with OpCodeJump with OpCodeJumpCondition with OpCodeSourceLocation with OpCodeSize with OpCodeTCycles](code)
 
     val oper = actualCode.operation
@@ -45,7 +45,7 @@ object JumpCallReturn extends OpCodeHandler {
   private def calcRelativeAddress(pc: Int, relative: Int): Int = Z80Utils.word2ComplToRaw(pc + 2 + Z80Utils.rawByteTo2Compl(relative))
 
   private def handleJump(oper: JumpOperation, cond: JumpCondition, checker: JumpConditionChecker, location: Location, instrSize: Int)
-                        (implicit system: Z80System): List[SystemChangeBase] = {
+                        (implicit system: Z80System): List[SystemChange] = {
     val prevPC = system.getRegValue(Regs.PC)
     val address = calcAddress(oper, system.getValueFromLocation(location), prevPC)
     val registerDecrValue = checker.decRegValue
@@ -61,7 +61,7 @@ object JumpCallReturn extends OpCodeHandler {
   private def chooseAddress(prevPC: Int, address: Int, checker: JumpConditionChecker): Int =
     if (checker.isMet) address else prevPC
 
-  private def handleStack(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(implicit system: Z80System): List[SystemChangeBase] =
+  private def handleStack(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(implicit system: Z80System): List[SystemChange] =
     (shouldJump, oper) match {
       case (true, JumpType.Call) => List(
         new MemoryChangeWord(system.getRegValue(Regs.SP) - 2, system.getRegValue(Regs.PC) + instrSize),

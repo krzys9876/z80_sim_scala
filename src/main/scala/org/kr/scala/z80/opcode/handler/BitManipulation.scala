@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode.{OpCode, OpCodeBitManipulation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
-import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChangeBase, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 sealed abstract class BitOperation(val name: String)
@@ -15,7 +15,7 @@ object BitOpType {
 
 object BitManipulation extends OpCodeHandler {
   //Z80 manual p.55 - NOTE error in opCode: 0xCB, not 0xC8!
-  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChangeBase],Int, Int) = {
+  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChange],Int, Int) = {
     val actualCode=castType[OpCode with OpCodeBitManipulation with OpCodeSourceLocation with OpCodeSize with OpCodeTCycles](code)
     val loc=actualCode.source
 

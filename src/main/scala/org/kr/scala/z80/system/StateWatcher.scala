@@ -15,9 +15,8 @@ object StateWatcherBase {
 class StateWatcher[StateType](override val state:StateType)(override implicit val debugger: Debugger) extends StateWatcherBase(state) {
   // equivalent to map
   override def >>== (fChangeState: StateType=>StateType):StateWatcher[StateType]={
-    debugger.before(state)
     val after=StateWatcher(fChangeState(state))
-    debugger.after(after.state)
+    debugger.info(state,after.state)
     after
   }
 }
