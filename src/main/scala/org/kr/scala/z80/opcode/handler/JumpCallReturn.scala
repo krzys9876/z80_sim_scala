@@ -73,18 +73,23 @@ object JumpCallReturn extends OpCodeHandler {
     }
 }
 
-abstract class JumpConditionBase(val flag:FlagSymbol,val register:RegSymbol,val value:OptionInt) {
+abstract class JumpConditionBase {
+  val symbol:String
 }
 
-case object EmptyJumpCondition extends JumpConditionBase(Flag.None,Regs.NONE,AnyInt) {
+case object EmptyJumpCondition extends JumpConditionBase {
+  override val symbol:String="empty"
   override def toString:String="empty"
 }
 
-case class RegisterJumpCondition(override val register:RegSymbol,override val value:OptionInt) extends JumpConditionBase(Flag.None,register,value) {
+case class RegisterJumpCondition(register:RegSymbol,value:OptionInt) extends JumpConditionBase {
+  override val symbol:String=register.symbol
   override def toString:String=f"reg:$register=$value"
 }
 
-case class FlagJumpCondition(override val flag:FlagSymbol,boolValue:Boolean) extends JumpConditionBase(flag,Regs.NONE,IntValue(if(boolValue) 1 else 0)) {
+case class FlagJumpCondition(flag:FlagSymbol,boolValue:Boolean) extends JumpConditionBase {
+  val value:OptionInt=IntValue(if(boolValue) 1 else 0)
+  override val symbol:String=flag.symbol
   override def toString:String=f"flag:$flag=$value"
 }
 

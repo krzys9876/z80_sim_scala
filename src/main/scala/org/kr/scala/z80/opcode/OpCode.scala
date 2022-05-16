@@ -145,7 +145,7 @@ object OpCode {
 
   //TYPE6: decoding jump conditions by bits 3-5
   val baseCodeOffsetType7:List[Int]=List.range(0,8).map(_ << 3)
-  val baseJumpConditions:List[JumpConditionBase]=List(
+  val baseJumpConditions:List[FlagJumpCondition]=List(
     FlagJumpCondition(Flag.Z,boolValue=false),
     FlagJumpCondition(Flag.Z,boolValue=true),
     FlagJumpCondition(Flag.C,boolValue=false),
