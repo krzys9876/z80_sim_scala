@@ -296,7 +296,7 @@ object RST_all {
     for(
       locCode<-List.range(0,8).map(_ << 3) // list of actual addresses to call
     ) yield {
-      new JumpDef(0xC7+locCode,EmptyJumpCondition(),1,f"RST ${OpCode.num2hex(locCode)}")
+      new JumpDef(0xC7+locCode,EmptyJumpCondition,1,f"RST ${OpCode.num2hex(locCode)}")
         with T11 with HandleJump with CallOper with OpCodeSourceLocation {
         override val source: Location = ImmediateLocation(locCode)}
     }

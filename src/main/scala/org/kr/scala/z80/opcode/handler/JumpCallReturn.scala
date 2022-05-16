@@ -76,7 +76,7 @@ object JumpCallReturn extends OpCodeHandler {
 abstract class JumpConditionBase(val flag:FlagSymbol,val register:RegSymbol,val value:OptionInt) {
 }
 
-case class EmptyJumpCondition() extends JumpConditionBase(Flag.None,Regs.NONE,AnyInt) {
+case object EmptyJumpCondition extends JumpConditionBase(Flag.None,Regs.NONE,AnyInt) {
   override def toString:String="empty"
 }
 
@@ -99,7 +99,7 @@ class JumpConditionChecker(val condition: JumpConditionBase)(implicit system: Z8
 
   lazy val isMet: Boolean =
     condition match {
-      case _ : EmptyJumpCondition => true
+      case EmptyJumpCondition => true
       case c : FlagJumpCondition => system.getFlags.flagValue(c.flag) == c.value()
       case c : RegisterJumpCondition => decRegValue() != c.value()
       case _ => throw new IncorrectJumpCondition(f"unknown condition state: ${condition.toString}")

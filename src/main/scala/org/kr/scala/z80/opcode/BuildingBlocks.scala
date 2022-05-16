@@ -235,7 +235,7 @@ trait ReturnOper extends OpCodeJump {override val operation:JumpOperation=JumpTy
 trait OpCodeJumpCondition {
   val condition:JumpConditionBase
 }
-trait JumpUnconditional extends OpCodeJumpCondition {override val condition:JumpConditionBase=EmptyJumpCondition()}
+trait JumpUnconditional extends OpCodeJumpCondition {override val condition:JumpConditionBase=EmptyJumpCondition}
 trait JumpC extends OpCodeJumpCondition {override val condition:JumpConditionBase=FlagJumpCondition(Flag.C,boolValue=true)}
 trait JumpNC extends OpCodeJumpCondition {override val condition:JumpConditionBase=FlagJumpCondition(Flag.C,boolValue=false)}
 trait JumpZ extends OpCodeJumpCondition {override val condition:JumpConditionBase=FlagJumpCondition(Flag.Z,boolValue=true)}
