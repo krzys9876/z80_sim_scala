@@ -165,7 +165,7 @@ object Flag {
   case object P extends FlagSymbol("P",2)
   case object N extends FlagSymbol("N",1)
   case object C extends FlagSymbol("C",0)
-  case object None extends FlagSymbol("",OpCode.ANY)
+  case object None extends FlagSymbol("",0)
 
   def set(s:Boolean,z:Boolean,h:Boolean,p:Boolean,n:Boolean,c:Boolean):Int={
     (if(s) 1 << 7 else 0) |

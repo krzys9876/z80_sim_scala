@@ -15,7 +15,7 @@ class Z80System(val memory: Memory, val register: Register,
 
   private def getCurrentOpCode:OpCode={
     val pc=register(Regs.PC)
-    OpCode(
+    OpCode.c3(
       memory(pc),
       memory(pc,1),
       memory(pc,3))

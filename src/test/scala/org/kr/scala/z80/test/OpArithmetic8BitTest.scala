@@ -1,8 +1,7 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger, RegSymbol, Regs}
-import org.kr.scala.z80.utils.{AnyInt, IntValue}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, RegSymbol, Regs}
+import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpArithmetic8BitTest extends AnyFunSuite {
@@ -19,7 +18,7 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     val sysTest = TestUtils.prepareTest(regList, memList)
     //then
     assert(sysTest.get.register(Regs.PC) == pcAfter)
-    assert(sysTest.get.register(Regs.A) == result || result == OpCode.ANY)
+    assert(sysTest.get.register(Regs.A) == result)
     TestUtils.testFlags(sysTest.get.register, flagsAsString)
     //println(sysTest.get.memoryController.get.mem.slice(0,300))
     //println(sysTest.get.register.reg)
