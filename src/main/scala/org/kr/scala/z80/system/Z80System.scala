@@ -54,13 +54,13 @@ class Z80System(val memory: Memory, val register: Register,
   def getValueFromLocation(location:Location):Int =
     location match {
       case loc:RegisterLocation => getRegValue(loc.register)
-      case loc:ImmediateLocation => loc.immediate()
+      case loc:ImmediateLocation => loc.immediate
       case loc:IndirectAddrLocation =>
-        getByteOrWord(getWordFromMemoryAtPC(loc.offsetPC()),loc.isWord)
+        getByteOrWord(getWordFromMemoryAtPC(loc.offsetPC),loc.isWord)
       case loc:RegisterAddrLocation => getFromMemoryAtReg(loc.addressReg,0,loc.isWord)
-      case loc:RegisterAddrDirOffsetLocation => getFromMemoryAtReg(loc.addressReg,loc.directOffset(),loc.isWord)
+      case loc:RegisterAddrDirOffsetLocation => getFromMemoryAtReg(loc.addressReg,loc.directOffset,loc.isWord)
       case loc:RegisterAddrIndirOffsetLocation =>
-        getByteFromMemoryAtReg(loc.addressReg,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl())))
+        getByteFromMemoryAtReg(loc.addressReg,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl)))
       case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
 
@@ -71,11 +71,11 @@ class Z80System(val memory: Memory, val register: Register,
   def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChange = {
     location match {
       case loc:RegisterLocation => new RegisterChange(loc.register, value)
-      case loc:IndirectAddrLocation => putValueToMemory(getWordFromMemoryAtPC(loc.offsetPC()), value, isWord)
+      case loc:IndirectAddrLocation => putValueToMemory(getWordFromMemoryAtPC(loc.offsetPC), value, isWord)
       case loc:RegisterAddrLocation => putValueToMemory(getAddressFromReg(loc.addressReg, 0), value, isWord)
-      case loc:RegisterAddrDirOffsetLocation => putValueToMemory(getAddressFromReg(loc.addressReg, loc.directOffset()), value, isWord)
+      case loc:RegisterAddrDirOffsetLocation => putValueToMemory(getAddressFromReg(loc.addressReg, loc.directOffset), value, isWord)
       case loc:RegisterAddrIndirOffsetLocation =>
-        putValueToMemory(getAddressFromReg(loc.addressReg, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl()))), value, isWord)
+        putValueToMemory(getAddressFromReg(loc.addressReg, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl))), value, isWord)
       case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
   }
