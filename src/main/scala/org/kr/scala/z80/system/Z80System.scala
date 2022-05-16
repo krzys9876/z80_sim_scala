@@ -1,7 +1,7 @@
 package org.kr.scala.z80.system
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.utils.Z80Utils
+import org.kr.scala.z80.utils.{IntValue, Z80Utils}
 
 import scala.annotation.tailrec
 

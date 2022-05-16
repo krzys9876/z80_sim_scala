@@ -2,6 +2,7 @@ package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{Debugger, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.utils.{IntValue, OptionInt}
 
 object RotateDigit extends OpCodeHandler {
   override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
@@ -19,7 +20,7 @@ object RotateDigit extends OpCodeHandler {
         system.getFlags))
     val change = List(
       new RegisterChange(Regs.A, result.valueOut),
-      system.putValueToLocation(loc, result.valueAux),
+      system.putValueToLocation(loc, result.valueAux()),
       new RegisterChange(Regs.F, newF()))
 
     (change, actualCode.size, actualCode.t)
@@ -36,11 +37,11 @@ class RotateDigitBase(override val name:String) extends ArithmeticOperation(name
 }
 
 object RotateDL extends RotateDigitBase("RLD") {
-  override def calcAux(input: ArithmeticOpInput): Int = (digit2R(input) << 4) + digit2A(input)
+  override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((digit2R(input) << 4) + digit2A(input))
   override def calcUnsigned(input: ArithmeticOpInput): Int = unchangedDigit1A(input) + digit1R(input)
 }
 
 object RotateDR extends RotateDigitBase("RLD") {
-  override def calcAux(input: ArithmeticOpInput): Int = (digit2A(input) << 4) + digit1R(input)
+  override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((digit2A(input) << 4) + digit1R(input))
   override def calcUnsigned(input: ArithmeticOpInput): Int = unchangedDigit1A(input) + digit2R(input)
 }

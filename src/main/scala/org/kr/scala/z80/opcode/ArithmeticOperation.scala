@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode
 
 import org.kr.scala.z80.system.Flag
-import org.kr.scala.z80.utils.Z80Utils
+import org.kr.scala.z80.utils.{AnyInt, OptionInt, Z80Utils}
 
 abstract class ArithmeticOperation(val name:String) extends ArithmeticCalculatorBase with FlagCalculatorBase {
   def calcAll(input:ArithmeticOpInput):(ArithmeticOpResult,Flag)={
@@ -16,20 +16,20 @@ object None16b extends ArithmeticOperation("NONE_16B") with ArithmeticCalculator
 
 case class ArithmeticOpInput(value:Int, operand:Int, flags:Flag)
 
-class ArithmeticOpResult(val valueUnsigned:Int, val valueSigned:Int, val valueAux:Int, val isWord:Boolean=false) {
+class ArithmeticOpResult(val valueUnsigned:Int, val valueSigned:Int, val valueAux:OptionInt, val isWord:Boolean=false) {
   lazy val valueOut:Int=valueUnsigned & (if(isWord) 0xFFFF else 0xFF)
 }
 
-class ArithmeticOpResultByte(override val valueUnsigned:Int, override val valueSigned:Int, override val valueAux:Int)
+class ArithmeticOpResultByte(override val valueUnsigned:Int, override val valueSigned:Int, override val valueAux:OptionInt)
   extends ArithmeticOpResult(valueUnsigned,valueSigned,valueAux,false)
 
-class ArithmeticOpResultWord(override val valueUnsigned:Int, override val valueSigned:Int, override val valueAux:Int)
+class ArithmeticOpResultWord(override val valueUnsigned:Int, override val valueSigned:Int, override val valueAux:OptionInt)
   extends ArithmeticOpResult(valueUnsigned,valueSigned,valueAux,true)
 
 trait ArithmeticCalculatorBase {
   def calcUnsigned(input:ArithmeticOpInput):Int=OpCode.ANY
   def calcSigned(input:ArithmeticOpInput):Int=calcUnsigned(input)
-  def calcAux(input:ArithmeticOpInput):Int=OpCode.ANY
+  def calcAux(input:ArithmeticOpInput):OptionInt=AnyInt
 
   def calc(input:ArithmeticOpInput):ArithmeticOpResult
 
@@ -77,13 +77,13 @@ trait FlagZZero extends FlagCalculatorBase {
   override def calcZ(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueOut==0
 }
 trait FlagHCarryByte extends FlagCalculatorBase {
-  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux>0x0F
+  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux() > 0x0F
 }
 trait FlagHCarryWord extends FlagCalculatorBase {
-  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux > 0x0FFF
+  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux() > 0x0FFF
 }
 trait FlagHBorrow extends FlagCalculatorBase {
-  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux<0
+  override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=res.valueAux() < 0
 }
 trait FlagHSet extends FlagCalculatorBase {
   override def calcH(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=true

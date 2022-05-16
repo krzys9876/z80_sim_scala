@@ -2,6 +2,7 @@ package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode.{Location, OpCode, OpCodeExchangeLocation, OpCodeSize, OpCodeTCycles}
 import org.kr.scala.z80.system.{Debugger, MemoryChangeWord, RegSymbol, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.utils.IntValue
 
 class ExchangeLocationBase(val reg1: RegSymbol, val reg2: RegSymbol)
 

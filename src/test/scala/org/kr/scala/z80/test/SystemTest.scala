@@ -1,6 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.system.{Debugger, DummyDebugger, MemoryChangeByte, MemoryChangeWord, RegisterChange, RegisterChangeRelative, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.utils.IntValue
 import org.scalatest.funsuite.AnyFunSuite
 
 class SystemTest extends AnyFunSuite {

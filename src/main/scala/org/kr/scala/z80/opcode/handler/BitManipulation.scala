@@ -2,7 +2,7 @@ package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode.{OpCode, OpCodeBitManipulation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
 import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChange, Z80System}
-import org.kr.scala.z80.utils.Z80Utils
+import org.kr.scala.z80.utils.{IntValue, Z80Utils}
 
 sealed abstract class BitOperation(val name: String)
 
