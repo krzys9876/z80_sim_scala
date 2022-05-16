@@ -17,8 +17,7 @@ object Main extends App {
 
   val CONTROL_PORT=0xB1
   val DATA_PORT=0xB0
-  //val MEMORY_TOP="65536"
-  val MEMORY_TOP="\n"
+  val MEMORY_TOP="65536"
   val MAX_STEPS=if(args.length==3) args(2).toLong else Long.MaxValue
 
   //debugger
