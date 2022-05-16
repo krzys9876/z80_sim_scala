@@ -1,7 +1,7 @@
 package org.kr.scala.z80.system
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.utils.{IntValue, Z80Utils}
+import org.kr.scala.z80.utils.{AnyInt, Z80Utils}
 
 import scala.annotation.tailrec
 
@@ -45,14 +45,14 @@ class Z80System(val memory: Memory, val register: Register,
     loc match {
       case l if l==Location.empty => OpCode.ANY
       case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => getRegValue(r)
-      case Location(_,i,_,_,_,_,_) if i!=OpCode.ANY => i
-      case Location(_,_,pco,_,_,_,isWord) if pco!=OpCode.ANY =>
-        if(isWord) getWord(getWordFromMemoryAtPC(pco)) else getByte(getWordFromMemoryAtPC(pco))
+      case Location(_,i,_,_,_,_,_) if i!=AnyInt => i()
+      case Location(_,_,pco,_,_,_,isWord) if pco!=AnyInt =>
+        if(isWord) getWord(getWordFromMemoryAtPC(pco())) else getByte(getWordFromMemoryAtPC(pco()))
       case Location(_,_,_,r,dirO,indirO,isWord) if r!=Regs.NONE =>
         (dirO,indirO,isWord) match {
-          case (OpCode.ANY,OpCode.ANY,_) => if(isWord) getWordFromMemoryAtReg(r,0) else getByteFromMemoryAtReg(r,0)
-          case (o,OpCode.ANY,isWord) => if(isWord) getWordFromMemoryAtReg(r,o) else getByteFromMemoryAtReg(r,o)
-          case (OpCode.ANY,off2Compl,_) => getByteFromMemoryAtReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(off2Compl)))
+          case (AnyInt,AnyInt,_) => if(isWord) getWordFromMemoryAtReg(r,0) else getByteFromMemoryAtReg(r,0)
+          case (o,AnyInt,isWord) => if(isWord) getWordFromMemoryAtReg(r,o()) else getByteFromMemoryAtReg(r,o())
+          case (AnyInt,off2Compl,_) => getByteFromMemoryAtReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(off2Compl())))
           case (_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
         }
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
@@ -65,13 +65,13 @@ class Z80System(val memory: Memory, val register: Register,
   def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChange =
     location match {
       case Location(r,_,_,_,_,_,_) if r!=Regs.NONE => new RegisterChange(r,value)
-      case Location(_,_,pco,_,_,_,_) if pco!=OpCode.ANY => putValueToMemory(getWordFromMemoryAtPC(pco),value,isWord)
+      case Location(_,_,pco,_,_,_,_) if pco!=AnyInt => putValueToMemory(getWordFromMemoryAtPC(pco()),value,isWord)
       case Location(_,_,_,r,dirO,indirO,_) if r!=Regs.NONE =>
         (dirO,indirO) match {
-          case (dirO,OpCode.ANY) if dirO!=OpCode.ANY => putValueToMemory(getAddressFromReg(r,dirO),value,isWord)
-          case (OpCode.ANY,OpCode.ANY) => putValueToMemory(getAddressFromReg(r,0),value,isWord)
-          case (OpCode.ANY,indirOff2Compl) =>
-            putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl))),value,isWord)
+          case (dirO,AnyInt) if dirO!=AnyInt => putValueToMemory(getAddressFromReg(r,dirO()),value,isWord)
+          case (AnyInt,AnyInt) => putValueToMemory(getAddressFromReg(r,0),value,isWord)
+          case (AnyInt,indirOff2Compl) =>
+            putValueToMemory(getAddressFromReg(r,Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(indirOff2Compl()))),value,isWord)
         }
       case l if l==Location.empty => new DummyChange
       case Location(_,_,_,_,_,_,_) => throw new IncorrectLocation(f"incorrect location: ${location.toString}")
