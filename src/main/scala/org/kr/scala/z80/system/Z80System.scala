@@ -47,7 +47,7 @@ class Z80System(val memory: Memory, val register: Register,
 
   def getOptionalValueFromLocation(location:Location):OptionInt =
     location match {
-      case _:EmptyLocation => AnyInt
+      case EmptyLocation => AnyInt
       case loc => IntValue(getValueFromLocation(loc))
     }
 

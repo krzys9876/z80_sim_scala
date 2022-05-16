@@ -78,7 +78,7 @@ trait DestinationIY extends OpCodeDestLocation {override val destination:Locatio
 trait DestinationIXd extends OpCodeDestLocation {override val destination:Location=RegisterAddrIndirOffsetLocation(Regs.IX, 2)}
 trait DestinationIYd extends OpCodeDestLocation {override val destination:Location=RegisterAddrIndirOffsetLocation(Regs.IY, 2)}
 trait DestinationN extends OpCodeDestLocation {override val destination:Location=RegisterAddrDirOffsetLocation(Regs.PC, 1)}
-trait DestinationEmpty extends OpCodeDestLocation {override val destination:Location=EmptyLocation()}
+trait DestinationEmpty extends OpCodeDestLocation {override val destination:Location=EmptyLocation}
 
 trait SourceDestA extends SourceA with DestinationA
 trait SourceDestB extends SourceB with DestinationB

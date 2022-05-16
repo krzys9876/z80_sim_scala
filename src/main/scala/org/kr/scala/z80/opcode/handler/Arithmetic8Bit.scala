@@ -22,7 +22,7 @@ object Arithmetic8Bit extends OpCodeHandler {
 
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))
     val chgList = destLocation match {
-      case _:EmptyLocation => List(new DummyChange())
+      case EmptyLocation => List(new DummyChange())
       case _ => List(system.putValueToLocation(destLocation, result.valueOut))
     }
     (chgList ++ List(new RegisterChange(Regs.F, flags())), actualCode.size, actualCode.t)
@@ -87,7 +87,7 @@ object Comp8b extends ArithmeticOperation("COMP_8B") with ArithmeticCalculatorBy
   override def calcAux(input: ArithmeticOpInput): OptionInt =
     IntValue((input.value & 0x0F)-(input.operand() & 0x0F))
 
-  override def getDestination(source:Location):Location=EmptyLocation()
+  override def getDestination(source:Location):Location=EmptyLocation
 }
 
 object Inc8b extends ArithmeticOperation("INC_8B") with ArithmeticCalculatorByte
@@ -121,11 +121,11 @@ object Neg8b extends ArithmeticOperation("NEG_8B") with ArithmeticCalculatorByte
 object Ccf8b extends ArithmeticOperation("CCF_8B") with ArithmeticCalculatorByte
   with FlagHCopyC with FlagNReset with FlagCInvert {
 
-  override def getDestination(source:Location):Location=EmptyLocation()
+  override def getDestination(source:Location):Location=EmptyLocation
 }
 
 object Scf8b extends ArithmeticOperation("SCF_8B") with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCSet {
 
-  override def getDestination(source:Location):Location=EmptyLocation()
+  override def getDestination(source:Location):Location=EmptyLocation
 }

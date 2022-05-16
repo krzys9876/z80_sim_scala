@@ -10,7 +10,7 @@ abstract class Location(val isWord:Boolean=false) {
 
 class IncorrectLocation(message : String) extends Exception(message)
 
-case class EmptyLocation() extends Location() {
+case object EmptyLocation extends Location() {
   override lazy val label:String="empty"
 }
 
