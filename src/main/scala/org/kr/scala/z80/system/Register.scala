@@ -152,9 +152,12 @@ class Flag(val value:Int) {
   def apply():Int=value
   def apply(symbol:FlagSymbol):Boolean=Z80Utils.getBit(value,symbol.bit)
   def flagValue(symbol:FlagSymbol):Int=if(Z80Utils.getBit(value,symbol.bit)) 1 else 0
-  def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=Flag.setFlag(value,flagSymbol,flag)
-  def set(flagSymbol:FlagSymbol):Flag=Flag.setFlag(value,flagSymbol,flag=true)
-  def reset(flagSymbol:FlagSymbol):Flag=Flag.setFlag(value,flagSymbol,flag=false)
+  def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=setFlag(flagSymbol,flag)
+  def set(flagSymbol:FlagSymbol):Flag=setFlag(flagSymbol,flag=true)
+  def reset(flagSymbol:FlagSymbol):Flag=setFlag(flagSymbol,flag=false)
+
+  private def setFlag(flagSymbol:FlagSymbol,flag:Boolean):Flag=
+    new Flag(Z80Utils.setOrResetBit(value,flagSymbol.bit,flag))
 }
 
 object Flag {
@@ -166,18 +169,15 @@ object Flag {
   case object C extends FlagSymbol("C",0)
   case object None extends FlagSymbol("",0)
 
-  def set(s:Boolean,z:Boolean,h:Boolean,p:Boolean,n:Boolean,c:Boolean):Int={
-    (if(s) 1 << 7 else 0) |
-    (if(z) 1 << 6 else 0) |
-    (if(h) 1 << 4 else 0) |
-    (if(p) 1 << 2 else 0) |
-    (if(n) 1 << 1 else 0) |
-    (if(c) 1 << 0 else 0)
-  }
-
-  def setFlag(prevValue:Int,flagSymbol:FlagSymbol,flag:Boolean):Flag={
-    new Flag(Z80Utils.setOrResetBit(prevValue,flagSymbol.bit,flag))
-  }
+  def of(s:Boolean, z:Boolean, h:Boolean, p:Boolean, n:Boolean, c:Boolean):Flag=
+    new Flag(
+      (if(s) 1 << 7 else 0) |
+      (if(z) 1 << 6 else 0) |
+      (if(h) 1 << 4 else 0) |
+      (if(p) 1 << 2 else 0) |
+      (if(n) 1 << 1 else 0) |
+      (if(c) 1 << 0 else 0)
+    )
 }
 
 class UnknownRegisterException(message : String) extends Exception(message)

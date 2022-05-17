@@ -57,13 +57,13 @@ trait FlagCalculatorBase {
   def calcC(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean=input.flags(Flag.C)
 
   def flags(res:ArithmeticOpResult,input:ArithmeticOpInput):Flag={
-    new Flag(Flag.set(
+    Flag.of(
       calcS(res,input),
       calcZ(res,input),
       calcH(res,input),
       calcP(res,input),
       calcN(res,input),
-      calcC(res,input)))
+      calcC(res,input))
   }
 }
 
