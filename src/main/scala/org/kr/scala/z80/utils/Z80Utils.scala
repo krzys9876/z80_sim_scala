@@ -1,5 +1,7 @@
 package org.kr.scala.z80.utils
 
+import scala.annotation.tailrec
+
 object Z80Utils {
   def add8bit(val1: Int, val2: Int): Int = byteEnsureRange((val1 + val2) % 0x100)
   def add16bit(val1: Int, val2: Int): Int = wordEnsureRange((val1 + val2) % 0x10000)
@@ -27,7 +29,12 @@ object Z80Utils {
   def resetBit(value:Int,bit:Int):Int=value & (~(1 << bit))
   def setOrResetBit(value:Int,bit:Int,bitVal:Boolean):Int=if(bitVal) setBit(value,bit) else resetBit(value,bit)
 
-  def countBits(byte:Int,bitNum:Int=8):Int = List.range(0,bitNum).foldLeft(0)((bits,bit)=>bits + (if((byte & (1 << bit))>0) 1 else 0))
+  @tailrec
+  private def countBits(byte:Int,bitNum:Int=8,cnt:Int=0):Int =
+    bitNum match {
+      case 0 => cnt+byte
+      case _ => countBits(byte >> 1,bitNum-1,cnt+(byte & 1))
+    }
   def isEven(value:Int):Boolean=(value & 1)==0
   def isEvenBits(byte:Int):Boolean=isEven(countBits(byte))
 
