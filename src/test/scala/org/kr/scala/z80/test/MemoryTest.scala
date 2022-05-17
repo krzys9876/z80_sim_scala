@@ -59,6 +59,16 @@ class MemoryTest extends AnyFunSuite {
     assert(afterState.get.mem(0x0000)==0x12)
   }
 
+  test("poke multi wih lock and overflow (16bit)") {
+    //given
+    val memoryController=StateWatcher[Memory](Memory.blank(10))
+    //when
+    val afterState=memoryController >>== Memory.lockTo(4) >>== Memory.pokeMulti(8,Vector(1,2,3,4,5,6,7,8,9))
+    //then
+    println(afterState.get.mem)
+    assert(afterState.get.mem.equals(Vector[Int](0,0,0,0,7,8,9,0,1,2)))
+  }
+
   test("poke memory direct function declaration") {
     //given
     val memoryController=StateWatcher[Memory](Memory.blank(5))

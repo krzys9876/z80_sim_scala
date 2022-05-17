@@ -112,10 +112,8 @@ class Z80System(val memory: Memory, val register: Register,
   }
 
   def changeMemoryWord(address:Int, value:Int):Z80System = {
-    val newMem=StateWatcherSilent(memory) >>==
-      Memory.poke(address,Z80Utils.getL(value)) >>==
-      Memory.poke(address+1,Z80Utils.getH(value))
-    replaceMemory(newMem.get)
+    val newMem=(StateWatcherSilent(memory) >>== Memory.pokeW(address,value)).get
+    replaceMemory(newMem)
   }
 
   def outputByte(port:Int, value:Int):Z80System = {

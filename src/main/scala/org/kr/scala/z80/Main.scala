@@ -27,7 +27,7 @@ object Main extends App {
   // input keys sequence
   val input=prepareInput(args(1))
   //whole system
-  val initSystem=new Z80System(memory.get,Register.blank,OutputFile.blank,input.get,0)
+  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0)
 
   println("START")
   val startTime=LocalDateTime.now()
@@ -63,19 +63,21 @@ object Main extends App {
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList
 
-  private def prepareMemory(hexFile:String):StateWatcher[Memory]={
+  private def prepareMemory(hexFile:String):Memory={
     val hexLines=readFile(hexFile)
-    StateWatcher[Memory](Memory.blank(0x10000)) >>== Memory.loadHexLines(hexLines) >>== Memory.lockTo(0x4000)
+    Memory.blank(0x10000)
+      .loadHexLines(hexLines)
+      .lockTo(0x4000)
   }
 
-  private def prepareInput(inputFile:String):StateWatcher[InputFile]={
+  private def prepareInput(inputFile:String):InputFile={
     // add initial "memory top" answer to skip long-lasting memory test
     val inputLines=List(MEMORY_TOP) ++ readFile(inputFile)
     val inputList:List[Int]=InputFile.linesList2Ints(inputLines)
     val inputPortKeys=new InputPortMultiple(inputList)
     val inputPortControl=new InputPortMultiple(List.fill(inputList.length)(1))
-    StateWatcher[InputFile](InputFile.blank) >>==
-      InputFile.attachPort(CONTROL_PORT,inputPortControl) >>==
-      InputFile.attachPort(DATA_PORT,inputPortKeys)
+    InputFile.blank
+      .attachPort(CONTROL_PORT,inputPortControl)
+      .attachPort(DATA_PORT,inputPortKeys)
   }
 }
