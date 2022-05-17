@@ -29,7 +29,7 @@ object Arithmetic8Bit extends OpCodeHandler {
   }
 }
 
-object Add8b extends ArithmeticOperation("ADD_8B") with ArithmeticCalculatorByte
+object Add8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHCarryByte with FlagPOverflowByte with FlagNReset with FlagCCarry {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value + input.operand())
   override def calcSigned(input: ArithmeticOpInput): OptionInt =
@@ -37,7 +37,7 @@ object Add8b extends ArithmeticOperation("ADD_8B") with ArithmeticCalculatorByte
   override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((input.value & 0x0F)+(input.operand() & 0x0F))
 }
 
-object AddC8b extends ArithmeticOperation("ADD_8B_CARRY") with ArithmeticCalculatorByte
+object AddC8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHCarryByte with FlagPOverflowByte with FlagNReset with FlagCCarry {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value + input.operand() + input.flags.flagValue(Flag.C))
   override def calcSigned(input: ArithmeticOpInput): OptionInt =
@@ -46,7 +46,7 @@ object AddC8b extends ArithmeticOperation("ADD_8B_CARRY") with ArithmeticCalcula
     IntValue((input.value & 0x0F)+(input.operand() & 0x0F)+input.flags.flagValue(Flag.C))
 }
 
-object Sub8b extends ArithmeticOperation("SUB_8B") with ArithmeticCalculatorByte
+object Sub8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHBorrow with FlagPOverflowByte with FlagNSet with FlagCBorrow {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value - input.operand())
   override def calcSigned(input: ArithmeticOpInput): OptionInt =
@@ -55,7 +55,7 @@ object Sub8b extends ArithmeticOperation("SUB_8B") with ArithmeticCalculatorByte
     IntValue((input.value & 0x0F)-(input.operand() & 0x0F))
 }
 
-object SubC8b extends ArithmeticOperation("SUB_8B_CARRY") with ArithmeticCalculatorByte
+object SubC8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHBorrow with FlagPOverflowByte with FlagNSet with FlagCBorrow {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value - input.operand() - input.flags.flagValue(Flag.C))
   override def calcSigned(input: ArithmeticOpInput): OptionInt =
@@ -64,22 +64,22 @@ object SubC8b extends ArithmeticOperation("SUB_8B_CARRY") with ArithmeticCalcula
     IntValue((input.value & 0x0F) - (input.operand() & 0x0F) - input.flags.flagValue(Flag.C))
 }
 
-object And8b extends ArithmeticOperation("AND_8B") with ArithmeticCalculatorByte
+object And8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHSet with FlagPParity with FlagNReset with FlagCReset {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value & input.operand())
 }
 
-object Xor8b extends ArithmeticOperation("XOR_8B") with ArithmeticCalculatorByte
+object Xor8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCReset {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value ^ input.operand())
 }
 
-object Or8b extends ArithmeticOperation("OR_8B") with ArithmeticCalculatorByte
+object Or8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCReset {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value | input.operand())
 }
 
-object Comp8b extends ArithmeticOperation("COMP_8B") with ArithmeticCalculatorByte
+object Comp8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHBorrow with FlagPOverflowByte with FlagNSet with FlagCBorrow {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value - input.operand())
   override def calcSigned(input: ArithmeticOpInput): OptionInt =
@@ -90,15 +90,7 @@ object Comp8b extends ArithmeticOperation("COMP_8B") with ArithmeticCalculatorBy
   override def getDestination(source:Location):Location=EmptyLocation
 }
 
-object Inc8b extends ArithmeticOperation("INC_8B") with ArithmeticCalculatorByte
-  with FlagSSignByte with FlagZZero with FlagHCarryByte with FlagPOverflowByte with FlagNReset {
-  override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value + 1)
-  override def calcSigned(input: ArithmeticOpInput): OptionInt =
-    IntValue(Z80Utils.rawByteTo2Compl(input.value) + 1)
-  override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((input.value & 0x0F)+1)
-}
-
-object Dec8b extends ArithmeticOperation("INC_8B") with ArithmeticCalculatorByte
+object Dec8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHBorrow with FlagPOverflowByte with FlagNSet {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value - 1)
   override def calcSigned(input: ArithmeticOpInput): OptionInt =
@@ -106,25 +98,33 @@ object Dec8b extends ArithmeticOperation("INC_8B") with ArithmeticCalculatorByte
   override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((input.value & 0x0F)-1)
 }
 
-object Cpl8b extends ArithmeticOperation("CPL_8B") with ArithmeticCalculatorByte
+object Inc8b extends ArithmeticOperation with ArithmeticCalculatorByte
+  with FlagSSignByte with FlagZZero with FlagHCarryByte with FlagPOverflowByte with FlagNReset {
+  override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(input.value + 1)
+  override def calcSigned(input: ArithmeticOpInput): OptionInt =
+    IntValue(Z80Utils.rawByteTo2Compl(input.value) + 1)
+  override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((input.value & 0x0F)+1)
+}
+
+object Cpl8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagHSet with FlagNSet {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(~input.value)
 }
 
-object Neg8b extends ArithmeticOperation("NEG_8B") with ArithmeticCalculatorByte
+object Neg8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHBorrow with FlagPOverflowByte with FlagNSet with FlagCBorrow {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(0 - input.value)
   override def calcSigned(input: ArithmeticOpInput): OptionInt = IntValue(0 - Z80Utils.rawByteTo2Compl(input.value))
   override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue(0 - (input.value & 0x0F))
 }
 
-object Ccf8b extends ArithmeticOperation("CCF_8B") with ArithmeticCalculatorByte
+object Ccf8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagHCopyC with FlagNReset with FlagCInvert {
 
   override def getDestination(source:Location):Location=EmptyLocation
 }
 
-object Scf8b extends ArithmeticOperation("SCF_8B") with ArithmeticCalculatorByte
+object Scf8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCSet {
 
   override def getDestination(source:Location):Location=EmptyLocation

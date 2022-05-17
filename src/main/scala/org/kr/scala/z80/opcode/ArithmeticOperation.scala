@@ -3,7 +3,7 @@ package org.kr.scala.z80.opcode
 import org.kr.scala.z80.system.Flag
 import org.kr.scala.z80.utils.{AnyInt, OptionInt, Z80Utils}
 
-abstract class ArithmeticOperation(val name:String) extends ArithmeticCalculatorBase with FlagCalculatorBase {
+abstract class ArithmeticOperation extends ArithmeticCalculatorBase with FlagCalculatorBase {
   def calcAll(input:ArithmeticOpInput):(ArithmeticOpResult,Flag)={
     val calcResult=calc(input)
     val calcFlags=flags(calcResult,input)
@@ -11,8 +11,8 @@ abstract class ArithmeticOperation(val name:String) extends ArithmeticCalculator
   }
 }
 
-object None8b extends ArithmeticOperation("NONE_8B") with ArithmeticCalculatorByte
-object None16b extends ArithmeticOperation("NONE_16B") with ArithmeticCalculatorWord
+object None8b extends ArithmeticOperation with ArithmeticCalculatorByte
+object None16b extends ArithmeticOperation with ArithmeticCalculatorWord
 
 case class ArithmeticOpInput(value:Int, operand:OptionInt, flags:Flag)
 

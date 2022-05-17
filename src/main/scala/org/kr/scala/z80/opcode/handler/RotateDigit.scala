@@ -27,7 +27,7 @@ object RotateDigit extends OpCodeHandler {
   }
 }
 
-class RotateDigitBase(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
+class RotateDigitBase extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset {
 
   def unchangedDigit1A(input:ArithmeticOpInput):Int = input.value & 0xF0
@@ -36,12 +36,12 @@ class RotateDigitBase(override val name:String) extends ArithmeticOperation(name
   def digit2R(input:ArithmeticOpInput):Int = input.operand() & 0x0F
 }
 
-object RotateDL extends RotateDigitBase("RLD") {
+object RotateDL extends RotateDigitBase {
   override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((digit2R(input) << 4) + digit2A(input))
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(unchangedDigit1A(input) + digit1R(input))
 }
 
-object RotateDR extends RotateDigitBase("RLD") {
+object RotateDR extends RotateDigitBase {
   override def calcAux(input: ArithmeticOpInput): OptionInt = IntValue((digit2A(input) << 4) + digit1R(input))
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue(unchangedDigit1A(input) + digit2R(input))
 }

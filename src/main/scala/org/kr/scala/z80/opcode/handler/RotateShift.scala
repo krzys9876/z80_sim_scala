@@ -23,63 +23,63 @@ object RotateShift extends OpCodeHandler {
   }
 }
 
-class RotateLeftBase(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
+class RotateLeftBase extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit7
 
-class RotateLeftBaseAccum(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
+class RotateLeftBaseAccum extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCBit7
 
-class RotateRightBase(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
+class RotateRightBase extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagSSignByte with FlagZZero with FlagHReset with FlagPParity with FlagNReset with FlagCBit0
 
-class RotateRightBaseAccum(override val name:String) extends ArithmeticOperation(name) with ArithmeticCalculatorByte
+class RotateRightBaseAccum extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCBit0
 
-object RotShRlc extends RotateLeftBase("RLC") {
+object RotShRlc extends RotateLeftBase {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt =
     IntValue(((input.value << 1) & 0xFF) + (if(Z80Utils.getBit(input.value,7)) 1 else 0))
 }
 
-object RotShRlca extends RotateLeftBaseAccum("RLCA") {
+object RotShRlca extends RotateLeftBaseAccum {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = RotShRlc.calcUnsigned(input)
 }
 
-object RotShRrc extends RotateRightBase("RRC") {
+object RotShRrc extends RotateRightBase {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt =
     IntValue(((input.value >> 1) & 0xFF) + (if(Z80Utils.getBit(input.value,0)) 0x80 else 0))
 }
 
-object RotShRrca extends RotateRightBaseAccum("RRCA") {
+object RotShRrca extends RotateRightBaseAccum {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = RotShRrc.calcUnsigned(input)
 }
 
-object RotShRl extends RotateLeftBase("RL") {
+object RotShRl extends RotateLeftBase {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt =
     IntValue(((input.value << 1) & 0xFF) + input.flags.flagValue(Flag.C))
 }
 
-object RotShRla extends RotateLeftBaseAccum("RL") {
+object RotShRla extends RotateLeftBaseAccum {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = RotShRl.calcUnsigned(input)
 }
 
-object RotShRr extends RotateRightBase("RR") {
+object RotShRr extends RotateRightBase {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt =
     IntValue(((input.value >> 1) & 0xFF) + (input.flags.flagValue(Flag.C) << 7))
 }
 
-object RotShRra extends RotateRightBaseAccum("RRA") {
+object RotShRra extends RotateRightBaseAccum {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = RotShRr.calcUnsigned(input)
 }
 
-object RotShSla extends RotateLeftBase("SLA") {
+object RotShSla extends RotateLeftBase {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue((input.value << 1) & 0xFF)
 }
 
-object RotShSra extends RotateRightBase("SRA") {
+object RotShSra extends RotateRightBase {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt =
     IntValue(((input.value >> 1) & 0xFF) + (if(Z80Utils.getBit(input.value,7)) 0x80 else 0))
 }
 
-object RotShSrl extends RotateRightBase("SRL") {
+object RotShSrl extends RotateRightBase {
   override def calcUnsigned(input: ArithmeticOpInput): OptionInt = IntValue((input.value >> 1) & 0xFF)
 }
