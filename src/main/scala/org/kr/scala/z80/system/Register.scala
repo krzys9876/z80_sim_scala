@@ -152,9 +152,9 @@ class Flag(val value:Int) {
   def apply():Int=value
   def apply(symbol:FlagSymbol):Boolean=Z80Utils.getBit(value,symbol.bit)
   def flagValue(symbol:FlagSymbol):Int=if(Z80Utils.getBit(value,symbol.bit)) 1 else 0
-  def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag))
-  def set(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=true))
-  def reset(flagSymbol:FlagSymbol):Flag=new Flag(Flag.setFlag(value,flagSymbol,flag=false))
+  def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=Flag.setFlag(value,flagSymbol,flag)
+  def set(flagSymbol:FlagSymbol):Flag=Flag.setFlag(value,flagSymbol,flag=true)
+  def reset(flagSymbol:FlagSymbol):Flag=Flag.setFlag(value,flagSymbol,flag=false)
 }
 
 object Flag {
@@ -175,8 +175,8 @@ object Flag {
     (if(c) 1 << 0 else 0)
   }
 
-  def setFlag(prevValue:Int,flagSymbol:FlagSymbol,flag:Boolean):Int={
-    Z80Utils.setOrResetBit(prevValue,flagSymbol.bit,flag)
+  def setFlag(prevValue:Int,flagSymbol:FlagSymbol,flag:Boolean):Flag={
+    new Flag(Z80Utils.setOrResetBit(prevValue,flagSymbol.bit,flag))
   }
 }
 
