@@ -73,12 +73,11 @@ I remember well that the power operator (^) in Basic was really slow, therefore 
 The whole code initially needed ~40 seconds to complete and ~0.5 million steps (11th gen i5) - without initial memory test, 
 which I skip by entering "65536" at start of the Basic interpreter.
 
+Profiler showed that most of the program time was spent looking up opcodes in various list (from OpCodes). 
+After removing most of the lookup operations the reference program took ~4 seconds to complete - 10x improvement. 
 
-Profiler showed that most of the program time is spent looking up opcodes in various list (from OpCodes). 
-After removing most of the lookup operations the reference program takes ~4 seconds to complete - this is 10x improvement. 
-
-Another optimization was to replace costly map handling in register file. After replacing it with simple vals 
-the reference program finishes in ~3 seconds.
+Another optimization was to replace costly map handling in register file. After replacing it with just vals
+(which added some complexity to the code) the reference program finishes in ~3 seconds.
 
 I've added tracking of T cycles throughout the program so it is possible to compare timings to actual Z80 performance @ 3.6864MHz. 
 That's the clock speed I use in my Z80 projects as it allows serial communication @ 57600 / 115200.
