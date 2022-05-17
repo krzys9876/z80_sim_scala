@@ -4,13 +4,13 @@ import org.kr.scala.z80.opcode.{OpCode, OpCodeBitManipulation, OpCodeSize, OpCod
 import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
-sealed abstract class BitOperation(val name: String)
+sealed abstract class BitOperation
 
 object BitOpType {
-  case object Test extends BitOperation("TEST")
-  case object Reset extends BitOperation("RESET")
-  case object Set extends BitOperation("SET")
-  case object None extends BitOperation("NONE")
+  case object Test extends BitOperation
+  case object Reset extends BitOperation
+  case object Set extends BitOperation
+  case object None extends BitOperation
 }
 
 object BitManipulation extends OpCodeHandler {
