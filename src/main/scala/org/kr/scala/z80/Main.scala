@@ -53,10 +53,11 @@ object Main extends App {
   // cons: still uses list lookup
   //3. runtime type conversion from OpCodes.list to type required by handler - same or little slower than limiting lists
   // pros: simpifies code
-  // cons: users runtime type casting which may resuly in runtime exception, not compile time exception
+  // cons: uses runtime type casting which may result in runtime exception, not compile time exception
   //4. as 3. but simplify Z80System.handle (do not lookup twice) ~ 14 sec. - best option so far
   //5. reduce all list lookups to one per step ~4-5 seconds
   //6. replace register map with vals ~3-4 seconds
+  //7. remove unncessary state watchers ~10-15%
 
 
   private def readFile(fullFileWithPath:String):List[String]=
