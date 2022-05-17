@@ -67,7 +67,7 @@ object Main extends App {
     val hexLines=readFile(hexFile)
     Memory.blank(0x10000)
       .loadHexLines(hexLines)
-      .lockTo(0x4000)
+      .lockTo(0x2000)
   }
 
   private def prepareInput(inputFile:String):InputFile={
