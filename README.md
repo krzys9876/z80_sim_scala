@@ -77,10 +77,12 @@ Profiler showed that most of the program time was spent looking up opcodes in va
 After removing most of the lookup operations the reference program took ~4 seconds to complete - 10x improvement. 
 
 Another optimization was to replace costly map handling in register file. After replacing it with just vals
-(which added some complexity to the code) the reference program finishes in ~3 seconds.
+(which added some complexity to the code) the reference program finishes in <3 seconds. 
+This highly depends on whether it is run from IntelliJ or directly from command prompt.
 
 I've added tracking of T cycles throughout the program so it is possible to compare timings to actual Z80 performance @ 3.6864MHz. 
 That's the clock speed I use in my Z80 projects as it allows serial communication @ 57600 / 115200.
 
-The best I could get for a reference program (and others) was ~50-75%. 
-Note that extensive use of console degrades performance because of scrolling.
+The best I could normally get for a reference program (and others) was ~50-75%. However, for the **arithmetic.txt** 
+program (see input-files folder - no loops, just calculations) the ratio peeked as high as almost 250%. 
+Note that extensive use of console may degrade performance due to scrolling.
