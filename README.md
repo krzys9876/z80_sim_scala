@@ -87,4 +87,4 @@ The best I could normally get for a reference program (and others) was ~50-75%. 
 program (see input-files folder - no loops, just calculations) the ratio peeked as high as almost 250%. 
 Note that extensive use of console may degrade performance due to scrolling.
 
-[![asciicast](https://asciinema.org/a/j7jkUTOZWHqy3BQEU71rbwC1W.svg)](https://asciinema.org/a/j7jkUTOZWHqy3BQEU71rbwC1W)
+[![asciicast](https://asciinema.org/a/j7jkUTOZWHqy3BQEU71rbwC1W.svg)](https://asciinema.org/a/j7jkUTOZWHqy3BQEU71rbwC1W?autoplay=1&t=2&loop=1)
