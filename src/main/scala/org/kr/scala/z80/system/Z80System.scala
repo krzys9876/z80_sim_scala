@@ -10,7 +10,7 @@ class Z80System(val memory: Memory, val register: Register,
                 val elapsedTCycles:Long)(implicit debugger:Debugger) {
   lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(getCurrentOpCode)
 
-  def step(implicit debugger:Debugger):Z80System=
+  private def step(implicit debugger:Debugger):Z80System=
     handleCurrent
 
   private def getCurrentOpCode:OpCode={
@@ -43,7 +43,7 @@ class Z80System(val memory: Memory, val register: Register,
   private def getByte(address:Int):Int = memory(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memory(address+1),memory(address))
 
-  def readPort(port:Int):Int=input.read(port)
+  def readPort(port:PortID):Int=input.read(port)
 
   def getOptionalValueFromLocation(location:Location):OptionInt =
     location match {
@@ -116,17 +116,17 @@ class Z80System(val memory: Memory, val register: Register,
     replaceMemory(newMem)
   }
 
-  def outputByte(port:Int, value:Int):Z80System = {
+  def outputByte(port:PortID, value:Int):Z80System = {
     val newOut=(StateWatcher(output) >>== OutputFile.out(debugger)(port,value)).get
     replaceOutput(newOut)
   }
 
-  def attachPort(port:Int, inPort:InputPort):Z80System = {
+  def attachPort(port:PortID, inPort:InputPort):Z80System = {
     val newIn=(StateWatcherSilent(input) >>== InputFile.attachPort(port,inPort)).get
     replaceInput(newIn)
   }
 
-  def refreshInput(port:Int):Z80System = {
+  def refreshInput(port:PortID):Z80System = {
     val newIn=(StateWatcherSilent(input) >>== InputFile.refreshPort(port)).get
     replaceInput(newIn)
   }

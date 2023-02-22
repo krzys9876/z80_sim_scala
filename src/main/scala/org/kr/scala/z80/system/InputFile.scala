@@ -36,30 +36,31 @@ class InputPortMultiple(val valueList:List[Int], val defaultValue:Int=0) extends
     }, defaultValue)
 }
 
-class InputFile(val ports:Map[Int,InputPort]=Map()) {
-  def read(port:Int)(implicit debugger:Debugger):Int={
+class InputFile(val ports:Map[PortID,InputPort]=Map()) {
+  def read(port:PortID)(implicit debugger:Debugger):Int={
     ports.getOrElse(port,InputPortConstant.blank).read()
   }
-  def attachPort(port:Int, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
+  def attachPort(port:PortID, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
 }
 
 object InputFile {
-  val CR:Int=0x0D
+  private val CR:Int=0x0D
   def blank:InputFile=new InputFile(Map())
 
-  def keys2Ints(line:String,cr:Int=CR):List[Int]=line.chars().toArray.toList ++ List(cr)
+  private def keys2Ints(line:String, cr:Int=CR):List[Int]=line.chars().toArray.toList ++ List(cr)
   def linesList2Ints(lines:List[String],cr:Int=CR):List[Int]=
     lines
     .foldLeft(List[Int]())((list,line)=>list ++ keys2Ints(line.strip(),cr))
-  def lines2Ints(lines:String,cr:Int=CR):List[Int]=linesList2Ints(lines.strip().split("\r\n").toList,cr)
 
   // functions changing state (InputFile=>InputFile)
-  val attachPort: (Int, InputPort) => InputFile => InputFile = (port, inPort) => inputFile => inputFile.attachPort(port,inPort)
-  val refreshPort: Int => InputFile => InputFile = port => inputFile => {
+  val attachPort: (PortID, InputPort) => InputFile => InputFile = (port, inPort) => inputFile => inputFile.attachPort(port,inPort)
+  val refreshPort: PortID => InputFile => InputFile = port => inputFile => {
     val inputPort:InputPort=inputFile.ports.getOrElse(port,InputPortConstant.blank)
     val inputPortRefreshed:InputPort=inputPort.refresh()
     inputFile.attachPort(port,inputPortRefreshed)
   }
 
 }
+
+case class PortID(num:Int)
 

@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{StateWatcher, CharFormatter, ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, OutputFormatter, Outputter, PrintOutputter, Register, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, PortID, Register, StateWatcher, Z80System}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -15,8 +15,8 @@ object Main extends App {
   }
   println("INIT")
 
-  val CONTROL_PORT=0xB1
-  val DATA_PORT=0xB0
+  val CONTROL_PORT=PortID(0xB1)
+  val DATA_PORT=PortID(0xB0)
   val MEMORY_TOP="65536"
   val MAX_STEPS=if(args.length==3) args(2).toLong else Long.MaxValue
 

@@ -10,28 +10,28 @@ object OutputPort {
   val empty:OutputPort=new OutputPort(Vector())
 }
 
-class OutputFile(val files:Map[Int,OutputPort], val lastPort:Int=0, val lastValue:Int=0) {
-  def apply(port:Int,pos:Int):Int={
+class OutputFile(val files:Map[PortID,OutputPort], val lastPort:PortID=PortID(0), val lastValue:Int=0) {
+  def apply(port:PortID,pos:Int):Int={
     val file=getFile(port)
     if(file.size>pos) file(pos)
     else 0
   }
-  def write(port:Int, value:Int)(implicit debugger: Debugger):OutputFile={
+  def write(port:PortID, value:Int)(implicit debugger: Debugger):OutputFile={
     val file=getFile(port).put(value)
     new OutputFile(files ++ Map(port->file),port,value)
   }
 
-  def show(port:Int, limit:Int=9999)(implicit formatter:OutputFormatter, outputter:Outputter):Unit =
+  def show(port:PortID, limit:Int=9999)(implicit formatter:OutputFormatter, outputter:Outputer):Unit =
     getFile(port).data.slice(0,limit).foreach(value=>outputter.out(formatter.format(value)))
 
-  private def getFile(port:Int):OutputPort=files.getOrElse(port,OutputPort.empty)
+  private def getFile(port:PortID):OutputPort=files.getOrElse(port,OutputPort.empty)
 }
 
 object OutputFile {
   def blank:OutputFile= new OutputFile(Map())
 
   // functions changing state (OutputFile=>OutputFile)
-  def out(implicit debugger:Debugger): (Int, Int) => OutputFile => OutputFile = (port, value) => outputFile =>
+  def out(implicit debugger:Debugger): (PortID, Int) => OutputFile => OutputFile = (port, value) => outputFile =>
     outputFile.write(port,value)
 
 }
@@ -48,15 +48,15 @@ object CharFormatter extends OutputFormatter {
   override def format:Int=>String = value=>f"${value.toChar}"
 }
 
-trait Outputter {
+trait Outputer {
   def out:String=>Unit
 }
 
-object PrintOutputter extends Outputter {
+object PrintOutputer extends Outputer {
   override def out:String=>Unit=text=>print(text)
 }
 
-object PrintlnOutputter extends Outputter {
+object PrintlnOutputer extends Outputer {
   override def out:String=>Unit=text=>print(text)
 }
 

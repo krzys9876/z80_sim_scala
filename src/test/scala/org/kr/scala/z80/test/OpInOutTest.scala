@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{StateWatcher, ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, InputPortSequential, RegSymbol, Regs, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, InputPort, InputPortConstant, InputPortSequential, PortID, RegSymbol, Regs, StateWatcher, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
@@ -13,8 +13,8 @@ class OpInOutTest extends AnyFunSuite {
     val systemC=TestUtils.prepareTest(List((Regs.A,0x41)),List((0x0000,0xD3),(0x0001,0x01)))
     //then
     assert(systemC.get.register(Regs.PC)==2)
-    assert(systemC.get.output(1,0)==0x41)
-    assert(systemC.get.output(111,112)==0)
+    assert(systemC.get.output(PortID(1),0)==0x41)
+    assert(systemC.get.output(PortID(111),112)==0)
     //systemC.get.output.print(1)
   }
 
@@ -32,10 +32,10 @@ class OpInOutTest extends AnyFunSuite {
       ),6)
     //then
     assert(systemC.get.register(Regs.PC)==0x000C)
-    assert(systemC.get.output(0xFF,0)==0x41)
-    assert(systemC.get.output(0xFF,1)==0x42)
-    assert(systemC.get.output(0xFF,2)==0x43)
-    assert(systemC.get.output(111,112)==0)
+    assert(systemC.get.output(PortID(0xFF),0)==0x41)
+    assert(systemC.get.output(PortID(0xFF),1)==0x42)
+    assert(systemC.get.output(PortID(0xFF),2)==0x43)
+    assert(systemC.get.output(PortID(111),112)==0)
 
     //systemC.get.output.print(0xFF)
   }
@@ -61,17 +61,17 @@ class OpInOutTest extends AnyFunSuite {
       ),13)
     //then
     assert(systemC.get.register(Regs.PC)==0x001A)
-    assert(systemC.get.output(0x80,0)==0x41)
-    assert(systemC.get.output(0x80,1)==0x42)
-    assert(systemC.get.output(0x80,2)==0x43)
-    assert(systemC.get.output(0x80,3)==0x44)
-    assert(systemC.get.output(0x80,4)==0x45)
-    assert(systemC.get.output(0x80,5)==0x46)
+    assert(systemC.get.output(PortID(0x80),0)==0x41)
+    assert(systemC.get.output(PortID(0x80),1)==0x42)
+    assert(systemC.get.output(PortID(0x80),2)==0x43)
+    assert(systemC.get.output(PortID(0x80),3)==0x44)
+    assert(systemC.get.output(PortID(0x80),4)==0x45)
+    assert(systemC.get.output(PortID(0x80),5)==0x46)
 
     //systemC.get.output.print(0xFF)
   }
 
-  def prepareTestWithInput(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], port:Int, inputPort:InputPort,
+  def prepareTestWithInput(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], port:PortID, inputPort:InputPort,
                            steps:Int=1): StateWatcher[Z80System] = {
     val blank=Z80System.blank.attachPort(port,inputPort)
     TestUtils.prepareTestWith(StateWatcher(blank),regList,memList,steps)
@@ -83,7 +83,7 @@ class OpInOutTest extends AnyFunSuite {
     val systemC=prepareTestWithInput(List(),
       List(
         (0x0000,0xDB),(0x0001,0x40), // IN A,(0x40)
-      ), 0x40,new InputPortConstant(0xAB))
+      ), PortID(0x40),new InputPortConstant(0xAB))
     //then
     assert(systemC.get.register(Regs.PC)==2)
     assert(systemC.get.register(Regs.A)==0xAB)
@@ -98,7 +98,7 @@ class OpInOutTest extends AnyFunSuite {
         (0x0002,0xED),(0x0003,0x58), // IN E,(C)
         (0x0004,0xED),(0x0005,0x60), // IN H,(C)
         (0x0006,0xED),(0x0007,0x68), // IN L,(C)
-      ),0x20, new InputPortSequential(0xF0,2,0,0x0F),
+      ),PortID(0x20), new InputPortSequential(0xF0,2,0,0x0F),
       4)
     //then
     assert(systemC.get.register(Regs.PC)==8)

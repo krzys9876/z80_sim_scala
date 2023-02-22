@@ -20,7 +20,7 @@ object ConsoleDebugger extends Debugger {
 object ConsoleDetailedDebugger extends Debugger {
   override def info[Watched](before:Watched,after:Watched):Unit= {
     (before,after) match {
-      case (_:OutputFile,aft:OutputFile) =>print(f" | OUT port: 0x${aft.lastPort}%02X value: 0x${aft.lastValue}%02X |")
+      case (_:OutputFile,aft:OutputFile) =>print(f" | OUT port: 0x${aft.lastPort.num}%02X value: 0x${aft.lastValue}%02X |")
       case (bef:Z80System,aft:Z80System) =>
         println(f"PC:0x${bef.register(Regs.PC)}%04X | ${bef.currentOpCode} | before: ${bef.register.toString}")
         println(f" after: ${aft.register.toString}")
