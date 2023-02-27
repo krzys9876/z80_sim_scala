@@ -88,3 +88,11 @@ program (see input-files folder - no loops, just calculations) the ratio peeked 
 Note that extensive use of console may degrade performance due to scrolling.
 
 ![demo](z80_sim_sample.gif)
+
+## Run sample programs ##
+
+In the main project directory you will find the _run.bat_ script with some examples. The first with only one parameter (the ROM file)
+is ineractive - you can play with Basic, write programs and run them. 
+
+If you want to measure the performance, run the program in batch mode - specify 3 parameters (mandatory ROM file, than keys file 
+and number of instructions to execute). 

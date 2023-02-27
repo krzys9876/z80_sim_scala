@@ -1,16 +1,19 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortMultiple, Memory, OutputFile, PortID, Register, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, OutputFile, PortID, Register, StateWatcher, Z80System}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
 import java.time.temporal.ChronoUnit
 import java.time.LocalDateTime
+import scala.concurrent.ExecutionContext
 
 object Main extends App {
 
-  if(args.length<2 || args.length>3) {
-    println("Incorrect input parameters: hex_file input_file [steps]")
+  import ExecutionContext.Implicits._
+
+  if(args.length<1 || args.length>3) {
+    println("Incorrect input parameters: hex_file [input_file [steps]]")
     System.exit(1)
   }
   println("INIT")
@@ -25,7 +28,7 @@ object Main extends App {
   // memory
   val memory=prepareMemory(args(0))
   // input keys sequence
-  val input=prepareInput(args(1))
+  val input= if(args.length>=2) prepareInputFromFile(args(1)) else prepareConsoleInput()
   //whole system
   val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0)
 
@@ -70,7 +73,7 @@ object Main extends App {
       .lockTo(0x2000)
   }
 
-  private def prepareInput(inputFile:String):InputFile={
+  private def prepareInputFromFile(inputFile:String):InputFile={
     // add initial "memory top" answer to skip long-lasting memory test
     val inputLines=List(MEMORY_TOP) ++ readFile(inputFile)
     val inputList:List[Int]=InputFile.linesList2Ints(inputLines)
@@ -79,5 +82,13 @@ object Main extends App {
     InputFile.blank
       .attachPort(CONTROL_PORT,inputPortControl)
       .attachPort(DATA_PORT,inputPortKeys)
+  }
+
+  private def prepareConsoleInput():InputFile={
+    val consolePort=new InputPortConsole()
+    val controlPort=new InputPortControlConsole(consolePort)
+    InputFile.blank
+      .attachPort(CONTROL_PORT,controlPort)
+      .attachPort(DATA_PORT,consolePort)
   }
 }

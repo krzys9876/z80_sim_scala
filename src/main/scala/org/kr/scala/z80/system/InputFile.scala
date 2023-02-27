@@ -1,5 +1,10 @@
 package org.kr.scala.z80.system
 
+import jline.console.ConsoleReader
+
+import java.util.concurrent.{ArrayBlockingQueue, FutureTask}
+import scala.concurrent.{ExecutionContext, blocking}
+
 abstract class InputPort {
   def read():Int
   def refresh():InputPort
@@ -36,6 +41,40 @@ class InputPortMultiple(val valueList:List[Int], val defaultValue:Int=0) extends
     }, defaultValue)
 }
 
+class InputPortConsole(implicit val executionContext: ExecutionContext) extends InputPort {
+  private val reader = new ConsoleReader()
+  private val keys = new ArrayBlockingQueue[Key](128)
+
+  def read():Int= {
+    val k = keys.peek()
+    if (k == null) 0 else keys.peek().code
+  }
+  def refresh():InputPort={
+    keys.poll()
+    this
+  }
+
+  //https://stackoverflow.com/questions/16009837/how-to-cancel-future-in-scala
+  def stop(): Unit = inputHandler.cancel(true)
+  private val inputHandler = new FutureTask[Unit](() => {
+    while (true) {
+      blocking {
+        val r = reader.readCharacter()
+        if (r != -1) keys.add(Key(r))
+      }
+    }
+  })
+  executionContext.execute(inputHandler)
+}
+
+case class Key(code:Int)
+
+class InputPortControlConsole(consolePort:InputPortConsole) extends InputPort {
+  override def read(): Int = if(consolePort.read()!=0) 1 else 0
+
+  override def refresh(): InputPortControlConsole = this
+}
+
 class InputFile(val ports:Map[PortID,InputPort]=Map()) {
   def read(port:PortID)(implicit debugger:Debugger):Int={
     ports.getOrElse(port,InputPortConstant.blank).read()
@@ -59,7 +98,6 @@ object InputFile {
     val inputPortRefreshed:InputPort=inputPort.refresh()
     inputFile.attachPort(port,inputPortRefreshed)
   }
-
 }
 
 case class PortID(num:Int)
