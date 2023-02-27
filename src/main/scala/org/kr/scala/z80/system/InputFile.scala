@@ -100,5 +100,5 @@ object InputFile {
   }
 }
 
-case class PortID(num:Int)
+case class PortID(num:Int,upperNum:Int=0)
 

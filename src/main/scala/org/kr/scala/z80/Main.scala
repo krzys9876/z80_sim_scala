@@ -30,7 +30,7 @@ object Main extends App {
   // input keys sequence
   val input= if(args.length>=2) prepareInputFromFile(args(1)) else prepareConsoleInput()
   //whole system
-  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0)
+  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, Z80System.use8BitIOPorts)
 
   println("START")
   val startTime=LocalDateTime.now()

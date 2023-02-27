@@ -1,6 +1,5 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.opcode.OpCode
 import org.kr.scala.z80.system.{Debugger, Flag, Memory, RegSymbol, Register, Regs, StateWatcher, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
@@ -19,6 +18,11 @@ object TestUtils {
     prepareTestWith(StateWatcher[Z80System](Z80System.blank),regList,memList,steps)
   }
 
+  def prepareTest8BitIO(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps: Int = 1)
+                 (implicit debugger: Debugger): StateWatcher[Z80System] = {
+    prepareTestWith(StateWatcher[Z80System](Z80System.blank8BitIO), regList, memList, steps)
+  }
+
   def prepareTestWith(sysBlank:StateWatcher[Z80System], regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int)
                      (implicit debugger:Debugger): StateWatcher[Z80System] = {
     //given
@@ -30,7 +34,7 @@ object TestUtils {
       (memC, entry) => memC >>== Memory.poke(entry._1, entry._2)
     )
     //when
-    val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.output, sysBlank.get.input,0))
+    val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.output, sysBlank.get.input,0, sysBlank.get.portMapping))
     sysInit >>== Z80System.run(debugger)(steps.toLong)
   }
 

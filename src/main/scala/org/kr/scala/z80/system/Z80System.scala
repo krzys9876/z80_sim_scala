@@ -7,7 +7,8 @@ import scala.annotation.tailrec
 
 class Z80System(val memory: Memory, val register: Register,
                 val output: OutputFile, val input: InputFile,
-                val elapsedTCycles:Long)(implicit debugger:Debugger) {
+                val elapsedTCycles:Long,
+                val portMapping: PortID=>PortID)(implicit debugger:Debugger) {
   lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(getCurrentOpCode)
 
   private def step(implicit debugger:Debugger):Z80System=
@@ -131,16 +132,19 @@ class Z80System(val memory: Memory, val register: Register,
     replaceInput(newIn)
   }
 
-  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles)
-  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles)
-  private def replaceMemory(newMem:Memory):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles)
-  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles)
-  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles)
+  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,portMapping)
+  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,portMapping)
+  private def replaceMemory(newMem:Memory):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles,portMapping)
+  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles,portMapping)
+  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles,portMapping)
 }
 
 object Z80System {
   def blank(implicit debugger:Debugger):Z80System=new Z80System(Memory.blank(0x10000),Register.blank,
-    OutputFile.blank, InputFile.blank,0)
+    OutputFile.blank, InputFile.blank,0, use16BitIOPorts)
+
+  def blank8BitIO(implicit debugger: Debugger): Z80System = new Z80System(Memory.blank(0x10000), Register.blank,
+    OutputFile.blank, InputFile.blank, 0, use8BitIOPorts)
 
   // run - main function changing state of the system
   def run(implicit debug:Debugger):Long=>Z80System=>Z80System=
@@ -155,4 +159,7 @@ object Z80System {
   }
 
   private def step(implicit debugger:Debugger): () => Z80System => Z80System = () => system => system.step
+
+  val use8BitIOPorts:PortID=>PortID = port=>PortID(port.num)
+  val use16BitIOPorts:PortID=>PortID = port=>port
 }

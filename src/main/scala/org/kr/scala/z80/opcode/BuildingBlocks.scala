@@ -247,3 +247,9 @@ trait OpCodeInOut {
 }
 trait InOper extends OpCodeInOut {override val operation:InOutOperation=InOutOpType.In}
 trait OutOper extends OpCodeInOut {override val operation:InOutOperation=InOutOpType.Out}
+
+trait UpperAddressRegister {
+  val upperAddressSource:Location
+}
+trait UpperAddressA extends UpperAddressRegister {override val upperAddressSource:Location=RegisterLocation(Regs.A)}
+trait UpperAddressB extends UpperAddressRegister {override val upperAddressSource:Location=RegisterLocation(Regs.B)}
