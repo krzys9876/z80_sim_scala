@@ -35,6 +35,8 @@ object OpCodes {
         //IO
         IN_A_n,IN_A_C,IN_B_C,IN_D_C,IN_E_C,IN_H_C,IN_L_C,
         OUT_n_A,OUT_C_A,OUT_C_B,OUT_C_D,OUT_C_E,OUT_C_H,OUT_C_L,
+        //Control / INT
+        EI, DI, IM0, IM1, IM2,
         //NOP
         NOP
       )

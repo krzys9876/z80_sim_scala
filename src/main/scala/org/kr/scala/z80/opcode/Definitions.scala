@@ -321,6 +321,14 @@ object OUT_C_E extends OpCode(0xED,IntValue(0x59)) with DestinationC with Source
 object OUT_C_H extends OpCode(0xED,IntValue(0x61)) with DestinationC with SourceH with OutOper with HandleInOut with UpperAddressB with Size2 with T12 with Label {override val label:String="OUT (C),H"}
 object OUT_C_L extends OpCode(0xED,IntValue(0x69)) with DestinationC with SourceL with OutOper with HandleInOut with UpperAddressB with Size2 with T12 with Label {override val label:String="OUT (C),L"}
 
+//Control / INT
+// set interrupt flag and mode - this is very similar to load from immediate source
+object EI extends Load8bitDef(0xFB,AnyInt,ImmediateLocation(1),RegisterLocation(Regs.IFF),1,4,"EI")
+object DI extends Load8bitDef(0xF3,AnyInt,ImmediateLocation(0),RegisterLocation(Regs.IFF),1,4,"DI")
+object IM0 extends Load8bitDef(0xED,IntValue(0x46),ImmediateLocation(0),RegisterLocation(Regs.IM),2,8,"IM 0")
+object IM1 extends Load8bitDef(0xED,IntValue(0x56),ImmediateLocation(1),RegisterLocation(Regs.IM),2,8,"IM 1")
+object IM2 extends Load8bitDef(0xED,IntValue(0x5E),ImmediateLocation(2),RegisterLocation(Regs.IM),2,8,"IM 2")
+
 //NOP
 object NOP extends  OpCode(0x00) with Size1 with T4 with HandleNop with Label {override val label:String="NOP"}
 

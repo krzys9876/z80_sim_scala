@@ -1,7 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.opcode.OpCode
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, DummyDebugger, Regs}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, Regs}
 import org.kr.scala.z80.utils.{AnyInt, IntValue}
 import org.scalatest.funsuite.AnyFunSuite
 
