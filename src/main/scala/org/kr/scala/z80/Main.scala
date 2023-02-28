@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, OutputFile, PortID, Register, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, NoInterrupt, OutputFile, PortID, Register, StateWatcher, Z80System}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -30,7 +30,7 @@ object Main extends App {
   // input keys sequence
   val input= if(args.length>=2) prepareInputFromFile(args(1)) else prepareConsoleInput()
   //whole system
-  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, Z80System.use8BitIOPorts)
+  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, Z80System.use8BitIOPorts,NoInterrupt())
 
   println("START")
   val startTime=LocalDateTime.now()
@@ -40,12 +40,12 @@ object Main extends App {
   val endTime=LocalDateTime.now()
   val seconds=ChronoUnit.MILLIS.between(startTime,endTime).toDouble/1000
   val cycles=after.get.elapsedTCycles
-  val refmhz=3686400
-  val refseconds=cycles.toDouble/refmhz.toDouble
+  val refhz=Z80System.REFERENCE_HZ
+  val refseconds=cycles.toDouble/refhz.toDouble
   val speed=refseconds/seconds // assuming CPU @ 3.6468MHZ
   println(f"elapsed seconds: $seconds%1.2f")
   println(f"elapsed T cycles: $cycles")
-  println(f"reference clock ${refmhz.toDouble/1000000}%1.4f MHz")
+  println(f"reference clock ${refhz.toDouble/1000000}%1.4f MHz")
   println(f"reference seconds: $refseconds%1.2f")
   println(f"relative speed: ${speed*100}%2.2f %%")
   println("END")

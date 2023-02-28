@@ -34,7 +34,8 @@ object TestUtils {
       (memC, entry) => memC >>== Memory.poke(entry._1, entry._2)
     )
     //when
-    val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.output, sysBlank.get.input,0, sysBlank.get.portMapping))
+    val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.output, sysBlank.get.input,
+      0, sysBlank.get.portMapping, sysBlank.state.interrupt))
     sysInit >>== Z80System.run(debugger)(steps.toLong)
   }
 

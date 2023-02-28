@@ -74,7 +74,7 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
   override def toString:String=
     f"A:$a%02X|F:$f%02X|B:$b%02X|C:$c%02X|D:$d%02X|E:$e%02X|H:$h%02X|L:$l%02X|"+
       f"PC:$pc%04X|SP:$sp%02X|R:$r%02X|I:$i%02X|IX:$ix%02X|IY:$iy%02X|"+
-        f"AF1:$af1%04X|BC1:$bc1%04X|DE1:$de1%04X|HL1:$hl1%04X|IM:$im"
+        f"AF1:$af1%04X|BC1:$bc1%04X|DE1:$de1%04X|HL1:$hl1%04X||IFF:$iff|IM:$im"
 }
 
 object Register {

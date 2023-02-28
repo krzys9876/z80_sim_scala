@@ -8,11 +8,11 @@ import scala.annotation.tailrec
 class Z80System(val memory: Memory, val register: Register,
                 val output: OutputFile, val input: InputFile,
                 val elapsedTCycles:Long,
-                val portMapping: PortID=>PortID)(implicit debugger:Debugger) {
+                val portMapping: PortID=>PortID,
+                val interrupt: InterruptInfo)(implicit debugger:Debugger) {
   lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(getCurrentOpCode)
 
-  private def step(implicit debugger:Debugger):Z80System=
-    handleCurrent
+  private def step(implicit debugger:Debugger):Z80System= handleCurrent
 
   private def getCurrentOpCode:OpCode={
     val pc=register(Regs.PC)
@@ -84,7 +84,25 @@ class Z80System(val memory: Memory, val register: Register,
   private def returnAfterChange(chgList:List[SystemChange], forwardPC:Int=0, forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
     val chgListAfterPC=addPCAndTCyclesChange(chgList,forwardPC,forwardTCycles)
     changeList(chgListAfterPC)
+      .handleInterrupt
   }
+
+  private def handleInterrupt:Z80System = {
+    (if(interrupt.trigger(this)) doHandleInterrupt() else this)
+      .refreshInterrupt
+  }
+
+  private def doHandleInterrupt(): Z80System = {
+    assume(getRegValue(Regs.IM) == 1) // handle ONLY IM 1
+    changeList(interruptIM1)
+  }
+
+  private lazy val interruptIM1: List[SystemChange] = List(
+    new RegisterChange(Regs.PC, 0x0038),                         // IM1: call static address 0x0038
+    new MemoryChangeWord(getRegValue(Regs.SP)-2, getRegValue(Regs.PC)), // put PC on stack
+    new RegisterChangeRelative(Regs.SP, -2),                     // decrease stack
+    new PCChange(0, 11 + 2)                           // add T cycles (11 for RST 38 + 2 extra wait cycles)
+  )
 
   private def addPCAndTCyclesChange(chgList:List[SystemChange], forwardPC:Int, forwardTCycles:Int):List[SystemChange] =
     chgList ++ (if(forwardPC!=0 || forwardTCycles!=0) List(new PCChange(forwardPC,forwardTCycles)) else List())
@@ -132,19 +150,22 @@ class Z80System(val memory: Memory, val register: Register,
     replaceInput(newIn)
   }
 
-  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,portMapping)
-  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,portMapping)
-  private def replaceMemory(newMem:Memory):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles,portMapping)
-  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles,portMapping)
-  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles,portMapping)
+  def refreshInterrupt:Z80System = replaceInterrupt(interrupt.refresh(this))
+
+  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,portMapping,interrupt)
+  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,portMapping,interrupt)
+  private def replaceMemory(newMem:Memory):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles,portMapping,interrupt)
+  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles,portMapping,interrupt)
+  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles,portMapping,interrupt)
+  private def replaceInterrupt(newInterrupt:InterruptInfo):Z80System= new Z80System(memory,register,output,input,elapsedTCycles,portMapping,newInterrupt)
 }
 
 object Z80System {
   def blank(implicit debugger:Debugger):Z80System=new Z80System(Memory.blank(0x10000),Register.blank,
-    OutputFile.blank, InputFile.blank,0, use16BitIOPorts)
+    OutputFile.blank, InputFile.blank,0, use16BitIOPorts,NoInterrupt())
 
   def blank8BitIO(implicit debugger: Debugger): Z80System = new Z80System(Memory.blank(0x10000), Register.blank,
-    OutputFile.blank, InputFile.blank, 0, use8BitIOPorts)
+    OutputFile.blank, InputFile.blank, 0, use8BitIOPorts,NoInterrupt())
 
   // run - main function changing state of the system
   def run(implicit debug:Debugger):Long=>Z80System=>Z80System=
@@ -160,6 +181,36 @@ object Z80System {
 
   private def step(implicit debugger:Debugger): () => Z80System => Z80System = () => system => system.step
 
+  // IO mapping
   val use8BitIOPorts:PortID=>PortID = port=>PortID(port.num)
   val use16BitIOPorts:PortID=>PortID = port=>port
+  // clock parameters
+  val REFERENCE_HZ:Long=3686400
+  val REFERENCE_CYCLES_20ms:Long=REFERENCE_HZ / 50
+}
+
+trait InterruptInfo {
+  def trigger(system:Z80System):Boolean
+  def refresh(system:Z80System):InterruptInfo
+}
+
+case class NoInterrupt() extends InterruptInfo {
+  override def trigger(system: Z80System): Boolean = false
+  override def refresh(system: Z80System): NoInterrupt = this
+}
+
+case class CyclicInterrupt(everyTCycles:Long,toGo:Long,lastTCycles:Long) extends InterruptInfo {
+  // trigger only if interrupts are enabled
+  override def trigger(system:Z80System):Boolean = system.getRegValue(Regs.IFF)==1 && toGo<0
+  // always cycle - even if interrupts are disabled (normally interrupts are generated externally to the system)
+  override def refresh(system:Z80System):CyclicInterrupt = {
+    val step=system.elapsedTCycles - lastTCycles
+    val newToGo = if(toGo<0) toGo - step + everyTCycles else toGo - step
+    new CyclicInterrupt(everyTCycles,newToGo,system.elapsedTCycles)
+  }
+}
+
+object CyclicInterrupt {
+  def apply(everyTCycles:Long):CyclicInterrupt = new CyclicInterrupt(everyTCycles, everyTCycles, 0)
+  def every20ms:CyclicInterrupt = apply(Z80System.REFERENCE_CYCLES_20ms)
 }
