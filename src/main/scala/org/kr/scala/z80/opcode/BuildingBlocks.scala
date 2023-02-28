@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, EmptyJumpCondition, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, FlagJumpCondition, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpConditionBase, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RegisterJumpCondition, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, EmptyJumpCondition, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, FlagJumpCondition, Halt, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpConditionBase, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RegisterJumpCondition, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
 import org.kr.scala.z80.system.{Flag, Regs}
 import org.kr.scala.z80.utils.IntValue
 
@@ -23,6 +23,7 @@ trait HandleRotateDigit extends OpCodeHandledBy {override val handler:OpCodeHand
 trait HandleBitManipulation extends OpCodeHandledBy {override val handler:OpCodeHandler=BitManipulation}
 trait HandleJump extends OpCodeHandledBy {override val handler:OpCodeHandler=JumpCallReturn}
 trait HandleInOut extends OpCodeHandledBy {override val handler:OpCodeHandler=InputOutput}
+trait HandleHalt extends OpCodeHandledBy {override val handler:OpCodeHandler=Halt}
 trait HandleUnknown extends OpCodeHandledBy {override val handler:OpCodeHandler=Unknown}
 
 

@@ -37,8 +37,8 @@ object OpCodes {
         OUT_n_A,OUT_C_A,OUT_C_B,OUT_C_C,OUT_C_D,OUT_C_E,OUT_C_H,OUT_C_L,
         //Control / INT
         EI, DI, IM0, IM1, IM2,
-        //NOP
-        NOP
+        //NOP, HALT
+        NOP, HALT
       )
 
   //Separate maps to find opcodes 1-, 2- and 3-bytes long

@@ -330,8 +330,9 @@ object IM0 extends Load8bitDef(0xED,IntValue(0x46),ImmediateLocation(0),Register
 object IM1 extends Load8bitDef(0xED,IntValue(0x56),ImmediateLocation(1),RegisterLocation(Regs.IM),2,8,"IM 1")
 object IM2 extends Load8bitDef(0xED,IntValue(0x5E),ImmediateLocation(2),RegisterLocation(Regs.IM),2,8,"IM 2")
 
-//NOP
-object NOP extends  OpCode(0x00) with Size1 with T4 with HandleNop with Label {override val label:String="NOP"}
+//NOP, HALT
+object NOP extends OpCode(0x00) with Size1 with T4 with HandleNop with Label {override val label:String="NOP"}
+object HALT extends OpCode(0x76) with T4 with HandleHalt with Label {override val label:String="HALT"}
 
 //UNKNOWN
 class UNKNOWN(opcode:OpCode) extends OpCode(opcode.main,opcode.supp,opcode.supp2) with HandleUnknown

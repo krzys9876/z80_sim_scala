@@ -34,17 +34,19 @@ class InterruptTest extends AnyFunSuite {
       Regs.IM, AnyInt, IntValue(0x02), "00_0_000", 0x0102)
   }
 
-  test("trigger interrupt") {
+  private def interruptTestProgram:List[(Int,Int)] = List(
+    (0x0000, 0x00), (0x0001, 0x00), (0x0002, 0x00), (0x0003, 0x00), (0x0004, 0x00), // NOP 5 x 4T
+    (0x0005, 0x00), (0x0006, 0x00), (0x0007, 0x00), (0x0008, 0x00), (0x0009, 0x00), // NOP 5 x 4T
+    (0x000A, 0xC3), (0x000B, 0x00), (0x000C, 0x00), //JP 0x0000 10T
+    // interrupt vector for IM 1, interrupt takes 11T+2T (RST is 11T plus two extra wait cycles)
+    (0x0038, 0x3C), //INC A 4T
+    (0x0039, 0xED), (0x003A, 0x4D)) //RETI 14T
+
+  test("trigger interrupt (IM 1)") {
     //given
     val sysBlank=new Z80System(Memory.blank(0x0100),Register.blank,OutputFile.blank,InputFile.blank,
       0,Z80System.use8BitIOPorts,CyclicInterrupt(50))
-    val memList=List(
-      (0x0000, 0x00),(0x0001, 0x00),(0x0002, 0x00),(0x0003, 0x00),(0x0004, 0x00), // NOP 5 x 4T
-      (0x0005, 0x00),(0x0006, 0x00),(0x0007, 0x00),(0x0008, 0x00),(0x0009, 0x00), // NOP 5 x 4T
-      (0x000A, 0xC3),(0x000B, 0x00),(0x000C, 0x00), //JP 0x0000 10T
-      // interrupt vector for IM 1, interrupt takes 11T+2T (RST is 11T plus two extra wait cycles)
-      (0x0038,0x3C), //INC A 4T
-      (0x0039,0xED),(0x003A,0x4D)) //RETI 14T
+    val memList=interruptTestProgram
     val regList=List((Regs.IFF,1),(Regs.IM,1),(Regs.SP,0x00FF),(Regs.A,0x00))
     // run to interrupt routine, before RETI
     // full loop: 10x4T + 10T + 2 x 4T, but probing value is set before instruction (it originates from the previous run)
@@ -64,5 +66,28 @@ class InterruptTest extends AnyFunSuite {
     // then
     assert(run3.state.getRegValue(Regs.PC) == 0x0039) //inside interrupt routine, after INC A
     assert(run3.state.getRegValue(Regs.A) == 0x02) // accumulator increased inside interrupt routine
+  }
+  test("trigger interrupt (IM 0) - unsupported") {
+    //given
+    val sysBlank = new Z80System(Memory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+      0, Z80System.use8BitIOPorts, CyclicInterrupt(50))
+    val memList = interruptTestProgram
+    val regList = List((Regs.IFF, 1), (Regs.IM, 0), (Regs.SP, 0x00FF), (Regs.A, 0x00))
+    // when
+    // then
+    assertThrows[AssertionError](TestUtils.prepareTestWith(StateWatcher(sysBlank), regList, memList, 14))
+  }
+  test("do not trigger interrupt when IFF is 0") {
+    //given
+    val sysBlank = new Z80System(Memory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+      0, Z80System.use8BitIOPorts, CyclicInterrupt(50))
+    val memList = interruptTestProgram
+    val regList = List((Regs.IFF, 0), (Regs.IM, 1), (Regs.SP, 0x00FF), (Regs.A, 0x00))
+    // when
+    // when interrupts are disabled the program will not enter the interrupt routine
+    // and accumulator will always be 0 (it is increased in the interrupt routine)
+    val run = TestUtils.prepareTestWith(StateWatcher(sysBlank), regList, memList, 100)
+    // then
+    assert(run.state.getRegValue(Regs.A)==0)
   }
 }

@@ -9,3 +9,10 @@ object Nop extends OpCodeHandler {
     (List[SystemChange](), actualCode.size, actualCode.t)
   }
 }
+
+object Halt extends OpCodeHandler {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
+    val actualCode=castType[OpCode with OpCodeTCycles](code)
+    (List[SystemChange](), 0, actualCode.t) // Halt is like NOP, but does not move PC until interrupt
+  }
+}

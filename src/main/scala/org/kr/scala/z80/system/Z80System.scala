@@ -97,12 +97,18 @@ class Z80System(val memory: Memory, val register: Register,
     changeList(interruptIM1)
   }
 
-  private lazy val interruptIM1: List[SystemChange] = List(
-    new RegisterChange(Regs.PC, 0x0038),                         // IM1: call static address 0x0038
-    new MemoryChangeWord(getRegValue(Regs.SP)-2, getRegValue(Regs.PC)), // put PC on stack
-    new RegisterChangeRelative(Regs.SP, -2),                     // decrease stack
-    new PCChange(0, 11 + 2)                           // add T cycles (11 for RST 38 + 2 extra wait cycles)
-  )
+  private lazy val interruptIM1: List[SystemChange] = {
+    val isInHalt = currentOpCode.mainOnly == HALT.mainOnly
+    // Note: PC is already set to the return address
+    // only for Halt the return address is the next instruction
+    val returnPC = getRegValue(Regs.PC) + (if(isInHalt) 1 else 0)
+    List(
+      new RegisterChange(Regs.PC, 0x0038),             // IM1: call static address 0x0038
+      new MemoryChangeWord(getRegValue(Regs.SP)-2, returnPC), // put PC on stack
+      new RegisterChangeRelative(Regs.SP, -2),         // decrease stack
+      new PCChange(0, 11 + 2)               // add T cycles (11 for RST 38 + 2 extra wait cycles)
+    )
+  }
 
   private def addPCAndTCyclesChange(chgList:List[SystemChange], forwardPC:Int, forwardTCycles:Int):List[SystemChange] =
     chgList ++ (if(forwardPC!=0 || forwardTCycles!=0) List(new PCChange(forwardPC,forwardTCycles)) else List())
