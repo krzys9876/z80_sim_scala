@@ -24,32 +24,24 @@ And here it is :slightly_smiling_face:
 ### Instruction set ###
 
 <img src="https://img.shields.io/badge/Load%208--bit-Done-green.svg"/></a>
-
 <img src="https://img.shields.io/badge/Load%2016--bit-Done-green.svg"/></a>
-
 <img src="https://img.shields.io/badge/Exchange-Done-green.svg"/></a>
-
 <img src="https://img.shields.io/badge/Block%20transfer-Skipped-white.svg"/></a>
-
 <img src="https://img.shields.io/badge/8--bit%20arithmetic-Done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/16--bit%20arithmetic-Done-green.svg"/></a>
-
 <img src="https://img.shields.io/badge/Control%20incl. INT-Done-green.svg"/></a>
-
 <img src="https://img.shields.io/badge/Rotate%20and%20shift-Done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/Bit%20manipulation-Done-green.svg"/></a>
-
 <img src="https://img.shields.io/badge/Jump%20call%20return-Done-green.svg"/></a>
-
 <img src="https://img.shields.io/badge/Input%20and%20output-Done-green.svg"/></a> 
-IN A,(n) | IN A,(C) | OUT (n),A | OUT (C),r
 
 ### Skipped instructions ###
-RETN - I will not use non-maskable interrupts 
+I will not use non-maskable interrupts so I do not need <code>RETN</code>.
 
-Most of IO operations except for those mentioned above. Actually I did not see many uses of other IOs, 
+Most of IO operations except for: <code> IN A,(n) IN A,(C) OUT (n),A OUT (C),r</code>.
+Actually I did not see many uses of other IOs, 
 so it is not a great loss anyway.
 
 ## The goal ##
@@ -80,11 +72,11 @@ Another optimization was to replace costly map handling in register file. After 
 (which added some complexity to the code) the reference program finishes in <3 seconds. 
 This highly depends on whether it is run from IntelliJ or directly from command prompt.
 
-I've added tracking of T cycles throughout the program so it is possible to compare timings to actual Z80 performance @ 3.6864MHz. 
+I've added tracking of T cycles throughout the program, so it is possible to compare timings to actual Z80 performance @ 3.6864MHz. 
 That's the clock speed I use in my Z80 projects as it allows serial communication @ 57600 / 115200.
 
 The best I could normally get for a reference program (and others) was ~50-75%. However, for the **arithmetic.txt** 
-program (see input-files folder - no loops, just calculations) the ratio peeked as high as almost 250%. 
+program (see _input-files_ folder - no loops, just calculations) the ratio peeked as high as almost 250%. 
 Note that extensive use of console may degrade performance due to scrolling.
 
 ![demo](z80_sim_sample.gif)
@@ -92,7 +84,7 @@ Note that extensive use of console may degrade performance due to scrolling.
 ## Run sample programs ##
 
 In the main project directory you will find the _run.bat_ script with some examples. The first with only one parameter (the ROM file)
-is ineractive - you can play with Basic, write programs and run them. 
+is interactive - you can play with Basic, write programs and run them. 
 
 If you want to measure the performance, run the program in batch mode - specify 3 parameters (mandatory ROM file, than keys file 
 and number of instructions to execute). 
