@@ -35,7 +35,7 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/16--bit%20arithmetic-Done-green.svg"/></a>
 
-<img src="https://img.shields.io/badge/Control%20incl. INT-in progress-blue.svg"/></a>
+<img src="https://img.shields.io/badge/Control%20incl. INT-Done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/Rotate%20and%20shift-Done-green.svg"/></a>
 
@@ -47,9 +47,9 @@ And here it is :slightly_smiling_face:
 IN A,(n) | IN A,(C) | OUT (n),A | OUT (C),r
 
 ### Skipped instructions ###
-RETN, EI, DI. At the moment I do not implement interrupts as the version of Basic does not need it.
+RETN - I will not use non-maskable interrupts 
 
-I skipped most of IO operations except for those mentioned above. Actually I did not see many uses of other IOs, 
+Most of IO operations except for those mentioned above. Actually I did not see many uses of other IOs, 
 so it is not a great loss anyway.
 
 ## The goal ##
