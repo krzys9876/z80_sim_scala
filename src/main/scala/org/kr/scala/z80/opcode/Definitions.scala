@@ -289,6 +289,7 @@ object JP_IY extends OpCode(0xFD,IntValue(0xE9)) with JumpUnconditional with Jum
 object CALL_nn extends OpCode(0xCD) with JumpUnconditional with CallOper with SourceNw with HandleJump with Size3 with T17 with Label {override val label:String="CALL nn"}
 object DJNZ extends OpCode(0x10) with JumpB0 with DecrJumpRelativeOper with SourceN with HandleJump with Size2 with T13T8 with Label {override val label:String="DJNZ"}
 object RET extends OpCode(0xC9) with JumpUnconditional with ReturnOper with SourceStack with HandleJump with Size1 with T10 with Label {override val label:String="RET"}
+// apart from real CPU signals RETI is the same as RET
 object RETI extends OpCode(0xED,IntValue(0x4D)) with JumpUnconditional with ReturnOper with HandleJump with SourceStack with Size2 with T14 with Label {override val label:String="RETI"}
 
 object RST_all {
