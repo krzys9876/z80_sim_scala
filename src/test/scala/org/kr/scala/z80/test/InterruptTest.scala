@@ -90,4 +90,34 @@ class InterruptTest extends AnyFunSuite {
     // then
     assert(run.state.getRegValue(Regs.A)==0)
   }
+  test("run HALT w/o interrupts") {
+    //given
+    val sysBlank = new Z80System(Memory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+      0, Z80System.use8BitIOPorts, CyclicInterrupt(50))
+    val memList = List((0x0000,0x76)) // HALT
+    val regList = List((Regs.IFF, 0), (Regs.IM, 0), (Regs.SP, 0x00FF), (Regs.A, 0x00))
+    // when
+    // when interrupts are disabled the program will not enter the interrupt routine
+    // and stay in HALT instruction indefinitely
+    val run = TestUtils.prepareTestWith(StateWatcher(sysBlank), regList, memList, 100)
+    // then
+    assert(run.state.getRegValue(Regs.PC) == 0x0000)
+  }
+  test("run HALT with interrupts") {
+    //given
+    val sysBlank = new Z80System(Memory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+      0, Z80System.use8BitIOPorts, CyclicInterrupt(40))
+    val memList = List((0x0000, 0x76),(0x0038, 0xED), (0x0039, 0x4D)) // HALT + RETI (the whole interrupt routine is RETI)
+    val regList = List((Regs.IFF, 1), (Regs.IM, 1), (Regs.SP, 0x00FF), (Regs.A, 0x00))
+    // when
+    // when interrupts are enabled the program will escape from HALT when interrupt is triggered
+    val run1 = TestUtils.prepareTestWith(StateWatcher(sysBlank), regList, memList, 12)
+    // then
+    assert(run1.state.getRegValue(Regs.PC) == 0x0038)
+    // when
+    // after interrupt routine is finished the program returns after HALT
+    val run2 = TestUtils.prepareTestWith(StateWatcher(sysBlank), regList, memList, 13)
+    // then
+    assert(run2.state.getRegValue(Regs.PC) == 0x0001)
+  }
 }
