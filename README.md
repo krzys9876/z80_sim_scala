@@ -35,7 +35,7 @@ And here it is :slightly_smiling_face:
 
 <img src="https://img.shields.io/badge/16--bit%20arithmetic-Done-green.svg"/></a>
 
-<img src="https://img.shields.io/badge/Control%20incl INT-Skipped-white.svg"/></a>
+<img src="https://img.shields.io/badge/Control%20incl. INT-in progress-blue.svg"/></a>
 
 <img src="https://img.shields.io/badge/Rotate%20and%20shift-Done-green.svg"/></a>
 

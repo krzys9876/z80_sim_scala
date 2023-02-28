@@ -4,7 +4,7 @@ import org.kr.scala.z80.utils.Z80Utils
 
 class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h:Int,val l:Int,
                val pc:Int,val sp:Int,val r:Int,val i:Int,val ix:Int,val iy:Int,
-               val af1:Int,val bc1:Int,val de1:Int,val hl1:Int) {
+               val af1:Int,val bc1:Int,val de1:Int,val hl1:Int, val im:Int) {
   def apply(regSymbolObj:RegSymbol):Int= {
     regSymbolObj match {
       case Regs.A => a
@@ -29,7 +29,8 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
       case Regs.BC1 => bc1
       case Regs.DE1 => de1
       case Regs.HL1 => hl1
-      case Regs.NONE => throw new UnknownRegisterException("NONE rgister cannot be set")
+      case Regs.IM => im
+      case Regs.NONE => throw new UnknownRegisterException("NONE register cannot be set")
     }
   }
 
@@ -37,48 +38,47 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
 
   def set(regSymbolObj:RegSymbol,value:Int): Register= {
     regSymbolObj match {
-      case Regs.A => new Register(value,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.F => new Register(a,value,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.AF => new Register(Z80Utils.getH(value),Z80Utils.getL(value),b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.B => new Register(a,f,value,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.C => new Register(a,f,b,value,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.BC => new Register(a,f,Z80Utils.getH(value),Z80Utils.getL(value),d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.D => new Register(a,f,b,c,value,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.E => new Register(a,f,b,c,d,value,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.DE => new Register(a,f,b,c,Z80Utils.getH(value),Z80Utils.getL(value),h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.H => new Register(a,f,b,c,d,e,value,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.L => new Register(a,f,b,c,d,e,h,value,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.HL => new Register(a,f,b,c,d,e,Z80Utils.getH(value),Z80Utils.getL(value),pc,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.PC => new Register(a,f,b,c,d,e,h,l,value,sp,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.SP => new Register(a,f,b,c,d,e,h,l,pc,value,r,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.R => new Register(a,f,b,c,d,e,h,l,pc,sp,value,i,ix,iy,af1,bc1,de1,hl1)
-      case Regs.I => new Register(a,f,b,c,d,e,h,l,pc,sp,r,value,ix,iy,af1,bc1,de1,hl1)
-      case Regs.IX => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,value,iy,af1,bc1,de1,hl1)
-      case Regs.IY => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,value,af1,bc1,de1,hl1)
-      case Regs.AF1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,value,bc1,de1,hl1)
-      case Regs.BC1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,value,de1,hl1)
-      case Regs.DE1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,value,hl1)
-      case Regs.HL1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,value)
+      case Regs.A => new Register(value,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.F => new Register(a,value,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.AF => new Register(Z80Utils.getH(value),Z80Utils.getL(value),b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.B => new Register(a,f,value,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.C => new Register(a,f,b,value,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.BC => new Register(a,f,Z80Utils.getH(value),Z80Utils.getL(value),d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.D => new Register(a,f,b,c,value,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.E => new Register(a,f,b,c,d,value,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.DE => new Register(a,f,b,c,Z80Utils.getH(value),Z80Utils.getL(value),h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.H => new Register(a,f,b,c,d,e,value,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.L => new Register(a,f,b,c,d,e,h,value,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.HL => new Register(a,f,b,c,d,e,Z80Utils.getH(value),Z80Utils.getL(value),pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.PC => new Register(a,f,b,c,d,e,h,l,value,sp,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.SP => new Register(a,f,b,c,d,e,h,l,pc,value,r,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.R => new Register(a,f,b,c,d,e,h,l,pc,sp,value,i,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.I => new Register(a,f,b,c,d,e,h,l,pc,sp,r,value,ix,iy,af1,bc1,de1,hl1,im)
+      case Regs.IX => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,value,iy,af1,bc1,de1,hl1,im)
+      case Regs.IY => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,value,af1,bc1,de1,hl1,im)
+      case Regs.AF1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,value,bc1,de1,hl1,im)
+      case Regs.BC1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,value,de1,hl1,im)
+      case Regs.DE1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,value,hl1,im)
+      case Regs.HL1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,value,im)
+      case Regs.IM => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,value)
       case Regs.NONE => this
     }
   }
 
   def setRelative(regSymbol:RegSymbol,relativeValue:Int): Register=
     set(regSymbol,Z80Utils.add16bit(apply(regSymbol),relativeValue))
-  def movePC(forward:Int): Register=
-    setRelative(Regs.PC,forward)
 
   override def toString:String=
     f"A:$a%02X|F:$f%02X|B:$b%02X|C:$c%02X|D:$d%02X|E:$e%02X|H:$h%02X|L:$l%02X|"+
       f"PC:$pc%04X|SP:$sp%02X|R:$r%02X|I:$i%02X|IX:$ix%02X|IY:$iy%02X|"+
-        f"AF1:$af1%04X|BC1:$bc1%04X|DE1:$de1%04X|HL1:$hl1%04X"
+        f"AF1:$af1%04X|BC1:$bc1%04X|DE1:$de1%04X|HL1:$hl1%04X|IM:$im"
 }
 
 object Register {
-  def blank:Register=new Register(0,0xFF,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+  def blank:Register=new Register(0,0xFF,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   def apply(register: Register):Register=new Register(register.a,register.f,register.b,register.c,
     register.d,register.e,register.h,register.l,register.pc,register.sp,register.r,register.i,register.ix,register.iy,
-    register.af1,register.bc1,register.de1,register.hl1)
+    register.af1,register.bc1,register.de1,register.hl1,register.im)
 
   // functions changing state (Register=>Register)
   val set: (RegSymbol, Int) => Register => Register = (regSymbol, value) => register => register.set(regSymbol, value)
@@ -113,32 +113,8 @@ object Regs {
   case object BC1 extends RegSymbol("BC1")
   case object DE1 extends RegSymbol("DE1")
   case object HL1 extends RegSymbol("HL1")
+  case object IM extends RegSymbol("IM")
   case object NONE extends RegSymbol("NONE")
-
-  val fromString:String=>RegSymbol={
-    case "A" => A
-    case "B" => B
-    case "C" => C
-    case "D" => D
-    case "E" => E
-    case "H" => H
-    case "L" => L
-    case "F" => F
-    case "AF" => AF
-    case "BC" => BC
-    case "DE" => DE
-    case "HL" => HL
-    case "PC" => PC
-    case "SP" => SP
-    case "R" => R
-    case "I" => I
-    case "IX" => IX
-    case "IY" => IY
-    case "AF1" => AF1
-    case "BC1" => BC1
-    case "DE1" => DE1
-    case "HL1" => HL1
-  }
 }
 
 sealed abstract class FlagSymbol(val symbol:String, val bit:Int) {
