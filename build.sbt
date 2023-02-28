@@ -1,5 +1,5 @@
 name := "z80_sim"
-version := "0.3"
+version := "0.4"
 scalaVersion := "2.13.10"
 
 val coreDependencies = Seq("jline" % "jline" % "2.14.6")

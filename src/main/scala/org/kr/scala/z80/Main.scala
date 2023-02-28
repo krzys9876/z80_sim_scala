@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, NoInterrupt, OutputFile, PortID, Register, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, CyclicInterrupt, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, NoInterrupt, OutputFile, PortID, Register, StateWatcher, Z80System}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -30,7 +30,7 @@ object Main extends App {
   // input keys sequence
   val input= if(args.length>=2) prepareInputFromFile(args(1)) else prepareConsoleInput()
   //whole system
-  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, Z80System.use8BitIOPorts,NoInterrupt())
+  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, Z80System.use8BitIOPorts,CyclicInterrupt.every20ms)
 
   println("START")
   val startTime=LocalDateTime.now()
