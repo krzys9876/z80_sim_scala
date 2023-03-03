@@ -41,9 +41,10 @@ class InputPortMultiple(val valueList:List[Int], val defaultValue:Int=0) extends
     }, defaultValue)
 }
 
-class InputPortConsole(implicit val executionContext: ExecutionContext) extends InputPort {
+class InputPortConsole(initialChars:Array[Char])(implicit val executionContext: ExecutionContext) extends InputPort {
   private val reader = new ConsoleReader()
-  private val keys = new ArrayBlockingQueue[Key](128)
+  private val keys = new ArrayBlockingQueue[Key](65536)
+  initialChars.foreach(ch=>keys.add(Key(ch)))
 
   def read():Int= {
     val k = keys.peek()

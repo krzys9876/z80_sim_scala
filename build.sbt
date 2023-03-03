@@ -1,10 +1,12 @@
 name := "z80_sim"
-version := "0.4"
+version := "0.5"
 scalaVersion := "2.13.10"
 
-val coreDependencies = Seq("jline" % "jline" % "2.14.6")
-val testDependencies = Seq("org.scalatest" %% "scalatest" % "3.2.15" % Test)
-libraryDependencies ++= coreDependencies ++ testDependencies
+libraryDependencies ++= Seq(
+    "jline" % "jline" % "2.14.6",
+    "io.github.krzys9876" %% "command-line-reader" % "1.0.0",
+    "org.scalatest" %% "scalatest" % "3.2.15" % Test
+)
 
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature")
 

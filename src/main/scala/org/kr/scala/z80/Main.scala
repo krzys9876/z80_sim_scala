@@ -1,6 +1,7 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{ConsoleDebugger, CyclicInterrupt, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, NoInterrupt, OutputFile, PortID, Register, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, NoInterrupt, OutputFile, PortID, Register, StateWatcher, Z80System}
+import org.kr.scala.z80.utils.Args
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 import java.nio.file.{Files, Path}
@@ -12,25 +13,29 @@ object Main extends App {
 
   import ExecutionContext.Implicits._
 
-  if(args.length<1 || args.length>3) {
-    println("Incorrect input parameters: hex_file [input_file [steps]]")
-    System.exit(1)
-  }
+  val clArgs=new Args(args)
   println("INIT")
 
-  val CONTROL_PORT=PortID(0xB1)
-  val DATA_PORT=PortID(0xB0)
-  val MEMORY_TOP="65536"
-  val MAX_STEPS=if(args.length==3) args(2).toLong else Long.MaxValue
+  println(f"mode: ${clArgs.mode()}")
+
+  val CONTROL_PORT = PortID(0xB1)
+  val DATA_PORT = PortID(0xB0)
+  val MEMORY_TOP = "65529" // 65536 does not work in interactive mode, it must be a little less than that
+  val MAX_STEPS = clArgs.steps
 
   //debugger
   implicit val debugger:Debugger=ConsoleDebugger
   // memory
-  val memory=prepareMemory(args(0))
+  val memory=prepareMemory(clArgs.hexFile())
   // input keys sequence
-  val input= if(args.length>=2) prepareInputFromFile(args(1)) else prepareConsoleInput()
+  val input =  clArgs.mode().toLowerCase match {
+    case "interactive" | "i" => prepareConsoleInput(clArgs.basicFile())
+    case "batch" | "b" => prepareInputFromFile(clArgs.basicFile())
+  }
   //whole system
-  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, Z80System.use8BitIOPorts,CyclicInterrupt.every20ms)
+  val interrupts=if(clArgs.interrupts()) system.CyclicInterrupt.every20ms else NoInterrupt()
+  val ioMappingMode=if(clArgs.ioPorts16Bit()) Z80System.use16BitIOPorts else Z80System.use8BitIOPorts
+  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, ioMappingMode,interrupts)
 
   println("START")
   val startTime=LocalDateTime.now()
@@ -55,13 +60,12 @@ object Main extends App {
   // pros: lists as shorter, maintains compile time type checking
   // cons: still uses list lookup
   //3. runtime type conversion from OpCodes.list to type required by handler - same or little slower than limiting lists
-  // pros: simpifies code
+  // pros: simplifies code
   // cons: uses runtime type casting which may result in runtime exception, not compile time exception
   //4. as 3. but simplify Z80System.handle (do not lookup twice) ~ 14 sec. - best option so far
   //5. reduce all list lookups to one per step ~4-5 seconds
   //6. replace register map with vals ~3-4 seconds
-  //7. remove unncessary state watchers ~10-15%
-
+  //7. remove unnecessary state watchers ~10-15%
 
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList
@@ -73,9 +77,9 @@ object Main extends App {
       .lockTo(0x2000)
   }
 
-  private def prepareInputFromFile(inputFile:String):InputFile={
+  private def prepareInputFromFile(inputTextFile:String):InputFile={
     // add initial "memory top" answer to skip long-lasting memory test
-    val inputLines=List(MEMORY_TOP) ++ readFile(inputFile)
+    val inputLines=readTextFile(inputTextFile)
     val inputList:List[Int]=InputFile.linesList2Ints(inputLines)
     val inputPortKeys=new InputPortMultiple(inputList)
     val inputPortControl=new InputPortMultiple(List.fill(inputList.length)(1))
@@ -84,8 +88,15 @@ object Main extends App {
       .attachPort(DATA_PORT,inputPortKeys)
   }
 
-  private def prepareConsoleInput():InputFile={
-    val consolePort=new InputPortConsole()
+  private def readTextFile(inputTextFile: String):List[String] = {
+    if(inputTextFile.nonEmpty) List(MEMORY_TOP) ++ readFile(inputTextFile)
+    else List()
+  }
+
+  private def prepareConsoleInput(inputTextFile:String):InputFile = prepareConsoleInput(readTextFile(inputTextFile))
+  private def prepareConsoleInput(initialLines:List[String]=List()):InputFile={
+    val chars=if(initialLines.nonEmpty) initialLines.foldLeft("")((fullString,line)=>fullString+line+"\r") else ""
+    val consolePort=new InputPortConsole(chars.toCharArray)
     val controlPort=new InputPortControlConsole(consolePort)
     InputFile.blank
       .attachPort(CONTROL_PORT,controlPort)
