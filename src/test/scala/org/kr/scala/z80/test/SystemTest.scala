@@ -1,12 +1,12 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger, MemoryChangeByte, MemoryChangeWord, RegisterChange, RegisterChangeRelative, Regs, StateWatcher, Z80System}
-import org.kr.scala.z80.utils.IntValue
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemory, MemoryChangeByte, MemoryChangeWord, MemoryHandler, RegisterChange, RegisterChangeRelative, Regs, StateWatcher, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class SystemTest extends AnyFunSuite {
 
   implicit val debugger:Debugger=DummyDebugger
+  implicit val memoryHander:MemoryHandler=ImmutableMemory
 
   test("change memory (byte)") {
     //given

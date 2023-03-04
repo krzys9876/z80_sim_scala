@@ -6,6 +6,7 @@ class Args(args: Array[String]) extends ArgsAsClass(args) {
   val mode:Argument[String] = Argument.required
   val hexFile:Argument[String] = Argument.required
   val basicFile:Argument[String] = Argument.optional("")
+  val memoryType:Argument[String] = Argument.optional("fast")
   val interrupts:Argument[Boolean] = Argument.optional(true)
   val ioPorts16Bit:Argument[Boolean] = Argument.optional(false)
   private val stepsM:Argument[Double] = Argument.optional(-1.0)

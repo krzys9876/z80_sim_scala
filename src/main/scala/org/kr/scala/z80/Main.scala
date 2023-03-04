@@ -1,6 +1,6 @@
 package org.kr.scala.z80
 
-import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, Memory, NoInterrupt, OutputFile, PortID, Register, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, Debugger, ImmutableMemory, InputFile, InputPortConsole, InputPortControlConsole, InputPortMultiple, MemoryContents, MemoryHandler, MutableMemory, NoInterrupt, OutputFile, PortID, Register, StateWatcher, Z80System}
 import org.kr.scala.z80.utils.Args
 
 import scala.jdk.CollectionConverters.ListHasAsScala
@@ -17,6 +17,8 @@ object Main extends App {
   println("INIT")
 
   println(f"mode: ${clArgs.mode()}")
+  println(f"memory: ${clArgs.memoryType()}")
+  println(f"steps: ${if(clArgs.steps==Long.MaxValue) "infinite" else clArgs.steps}")
 
   val CONTROL_PORT = PortID(0xB1)
   val DATA_PORT = PortID(0xB0)
@@ -26,6 +28,10 @@ object Main extends App {
   //debugger
   implicit val debugger:Debugger=ConsoleDebugger
   // memory
+  implicit val memoryHandler:MemoryHandler = clArgs.memoryType().toLowerCase match {
+    case "slow" | "s" => ImmutableMemory
+    case _ => MutableMemory
+  }
   val memory=prepareMemory(clArgs.hexFile())
   // input keys sequence
   val input =  clArgs.mode().toLowerCase match {
@@ -70,12 +76,11 @@ object Main extends App {
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList
 
-  private def prepareMemory(hexFile:String):Memory={
-    val hexLines=readFile(hexFile)
-    Memory.blank(0x10000)
-      .loadHexLines(hexLines)
-      .lockTo(0x2000)
-  }
+  private def prepareMemory(hexFile: String)(implicit memoryHandler:MemoryHandler): MemoryContents =
+    (StateWatcher(memoryHandler.blank(0x10000)) >>==
+      ImmutableMemory.loadHexLines(readFile(hexFile)) >>==
+      ImmutableMemory.lockTo(0x2000))
+      .state
 
   private def prepareInputFromFile(inputTextFile:String):InputFile={
     // add initial "memory top" answer to skip long-lasting memory test
