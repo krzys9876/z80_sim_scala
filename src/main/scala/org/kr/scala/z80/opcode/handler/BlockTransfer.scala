@@ -1,8 +1,8 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{FlagCalculatorBase, OpCode, OpCodeExchangeLocation, OpCodeSize, OpCodeTCycles, RegisterAddrLocation, RegisterLocation, TransferDirection, TransferRepeatable}
-import org.kr.scala.z80.system.{Debugger, Flag, MemoryChangeByte, MemoryChangeWord, RegSymbol, RegisterChange, Regs, SystemChange, Z80System}
-import org.kr.scala.z80.utils.{IntValue, Z80Utils}
+import org.kr.scala.z80.opcode.{OpCode, OpCodeSize, OpCodeTCycles, RegisterAddrLocation, RegisterLocation, TransferDirection, TransferRepeatable}
+import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.utils.Z80Utils
 
 object BlockTransfer extends OpCodeHandler {
   override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChange],Int, Int) = {
@@ -22,15 +22,17 @@ object BlockTransfer extends OpCodeHandler {
     val baseFlags=system.getFlags.reset(Flag.H).reset(Flag.N)
     val newFlags=if(newCounterValue==0) baseFlags.set(Flag.P) else baseFlags.reset(Flag.P)
 
-
-    //TODO: repeat
     val chgList=
       List(system.putValueToLocation(destValueLoc,sourceValue),
         new RegisterChange(Regs.HL,newSource),
         new RegisterChange(Regs.DE,newDest),
         new RegisterChange(Regs.BC, newCounterValue),
         new RegisterChange(Regs.F, newFlags.value))
-
-    (chgList,actualCode.size,actualCode.t)
+    //NOTE: returning forwardPC=0 effectively means repeating the same instruction, which is what is required here
+    val forwardPC=if(actualCode.repeat && newCounterValue>0) 0 else actualCode.size
+    //NOTE: for last iteration (or single execution) it takes 16 cycles, otherwise 21 cycles. t=21, tConditional=-5
+    val tCycles=actualCode.t + (if(newCounterValue==0) actualCode.tConditional else 0)
+    (chgList,forwardPC,tCycles)
   }
+
 }

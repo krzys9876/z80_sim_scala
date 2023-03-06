@@ -225,9 +225,9 @@ object LD_IY_i extends Load16bitDef(0xFD,IntValue(0x21),RegisterAddrDirOffsetLoc
 //Block transfer
 // Z80 manual page 47
 object LDI extends OpCode(0xED,IntValue(0xA0)) with HandleBlockTransfer with TransferUp with TransferOnce with Size2 with T16 with Label {override val label:String="LDI"}
-object LDIR extends OpCode(0xED,IntValue(0xB0)) with HandleBlockTransfer with TransferUp with TransferRepeat with Size2 with T16 with Label {override val label:String="LDIR"}
+object LDIR extends OpCode(0xED,IntValue(0xB0)) with HandleBlockTransfer with TransferUp with TransferRepeat with Size2 with T2116 with Label {override val label:String="LDIR"}
 object LDD extends OpCode(0xED,IntValue(0xA8)) with HandleBlockTransfer with TransferDown with TransferOnce with Size2 with T16 with Label {override val label:String="LDD"}
-object LDDR extends OpCode(0xED,IntValue(0xB8)) with HandleBlockTransfer with TransferDown with TransferRepeat with Size2 with T16 with Label {override val label:String="LDDR"}
+object LDDR extends OpCode(0xED,IntValue(0xB8)) with HandleBlockTransfer with TransferDown with TransferRepeat with Size2 with T2116 with Label {override val label:String="LDDR"}
 
 //Rotate and shift
 // Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))

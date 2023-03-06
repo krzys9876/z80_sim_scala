@@ -7,7 +7,6 @@ class BlockTransferTest extends AnyFunSuite {
 
   implicit val debugger: Debugger = DummyDebugger
 
-  //LDDR LDIR CPDR
   test("run LDI (no overflow)") {
     //given
     //when
@@ -67,5 +66,46 @@ class BlockTransferTest extends AnyFunSuite {
     assert(sysTest.get.register(Regs.DE) == 0x001F)
     assert(sysTest.get.register(Regs.BC) == 0x0000)
     TestUtils.testFlags(sysTest.get.register,"11_0_101")
+  }
+
+  test("run LDIR") {
+    //given
+    //when
+    val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0003), (Regs.F, 0xFF)),
+      List((0x0000, 0xED), (0x0001, 0xB0), //LDIR
+        (0x0010, 0xAB),(0x0011, 0xCD),(0x0012, 0xEF), (0x0020, 0x12),(0x0020, 0x34),(0x0020, 0x56)), //from / to locations
+      3)
+    //then
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.memory(0x0020) == 0xAB)
+    assert(sysTest.get.memory(0x0021) == 0xCD)
+    assert(sysTest.get.memory(0x0022) == 0xEF)
+    assert(sysTest.get.memory(0x0010) == 0xAB)
+    assert(sysTest.get.memory(0x0011) == 0xCD)
+    assert(sysTest.get.memory(0x0012) == 0xEF)
+    assert(sysTest.get.register(Regs.HL) == 0x0013)
+    assert(sysTest.get.register(Regs.DE) == 0x0023)
+    assert(sysTest.get.register(Regs.BC) == 0x0000)
+    TestUtils.testFlags(sysTest.get.register, "11_0_101")
+  }
+  test("run LDDR") {
+    //given
+    //when
+    val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0012), (Regs.DE, 0x0022), (Regs.BC, 0x0003), (Regs.F, 0xFF)),
+      List((0x0000, 0xED), (0x0001, 0xB8), //LDDR
+        (0x0010, 0xAB), (0x0011, 0xCD), (0x0012, 0xEF), (0x0020, 0x12), (0x0020, 0x34), (0x0020, 0x56)), //from / to locations
+      3)
+    //then
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.memory(0x0020) == 0xAB)
+    assert(sysTest.get.memory(0x0021) == 0xCD)
+    assert(sysTest.get.memory(0x0022) == 0xEF)
+    assert(sysTest.get.memory(0x0010) == 0xAB)
+    assert(sysTest.get.memory(0x0011) == 0xCD)
+    assert(sysTest.get.memory(0x0012) == 0xEF)
+    assert(sysTest.get.register(Regs.HL) == 0x000F)
+    assert(sysTest.get.register(Regs.DE) == 0x001F)
+    assert(sysTest.get.register(Regs.BC) == 0x0000)
+    TestUtils.testFlags(sysTest.get.register, "11_0_101")
   }
 }

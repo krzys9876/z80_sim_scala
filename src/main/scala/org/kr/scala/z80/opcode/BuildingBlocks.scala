@@ -163,6 +163,10 @@ trait T13T8 extends OpCodeTCycles {
 trait T14 extends OpCodeTCycles {override val t:Int=14}
 trait T15 extends OpCodeTCycles {override val t:Int=15}
 trait T16 extends OpCodeTCycles {override val t:Int=16}
+trait T2116 extends OpCodeTCycles {
+  override val t:Int=21
+  override val tConditional:Int= -5
+}
 trait T17 extends OpCodeTCycles {override val t:Int=17}
 trait T18 extends OpCodeTCycles {override val t:Int=18}
 trait T19 extends OpCodeTCycles {override val t:Int=19}
