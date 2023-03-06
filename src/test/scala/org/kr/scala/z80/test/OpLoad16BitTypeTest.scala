@@ -5,19 +5,19 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class OpLoad16BitTypeTest extends AnyFunSuite {
 
-  implicit val debugger:Debugger=DummyDebugger
+  implicit val debugger: Debugger = DummyDebugger
 
   test("run LD dd,nn") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.H,0x01),(Regs.L,0x02)),
-      List((0,0x01),(1,0x01),(2,0x02), //LD BC,nn
-        (3,0x11),(4,0x03),(5,0x04), //LD DE,nn
-        (6,0x21),(7,0x05),(8,0x06), //LD HL,nn
-        (9,0x31),(10,0x07),(11,0x08), //LD SP,nn
-        (12,0xDD),(13,0x21),(14,0x09),(15,0x0A), //LD IX,nn
-        (16,0xFD),(17,0x21),(18,0x0B),(19,0x0C), //LD IY,nn
-        ),6)
+    val sysTest = TestUtils.prepareTest(List((Regs.H, 0x01), (Regs.L, 0x02)),
+      List((0, 0x01), (1, 0x01), (2, 0x02), //LD BC,nn
+        (3, 0x11), (4, 0x03), (5, 0x04), //LD DE,nn
+        (6, 0x21), (7, 0x05), (8, 0x06), //LD HL,nn
+        (9, 0x31), (10, 0x07), (11, 0x08), //LD SP,nn
+        (12, 0xDD), (13, 0x21), (14, 0x09), (15, 0x0A), //LD IX,nn
+        (16, 0xFD), (17, 0x21), (18, 0x0B), (19, 0x0C), //LD IY,nn
+      ), 6)
     //then
     assert(sysTest.get.register(Regs.PC) == 20)
     assert(sysTest.get.register(Regs.B) == 2)
@@ -34,20 +34,20 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run LD dd,(nn)") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List(),
-      List((0,0xED),(1,0x4B),(2,0x01),(3,0x02), //LD BC,(nn)
-        (4,0xED),(5,0x5B),(6,0x03),(7,0x04), //LD DE,(nn)
-        (8,0x2A),(9,0x05),(10,0x06), //LD HL,(nn)
-        (11,0xED),(12,0x7B),(13,0x07),(14,0x08), //LD SP,(nn)
-        (15,0xDD),(16,0x2A),(17,0x09),(18,0x0A), //LD IX,(nn)
-        (19,0xFD),(20,0x2A),(21,0x0B),(22,0x0C), //LD IY,(nn)
-        (0x0201,0x10),(0x0202,0x11),
-        (0x0403,0x12),(0x0404,0x13),
-        (0x0605,0x14),(0x0606,0x15),
-        (0x0807,0x16),(0x0808,0x17),
-        (0x0A09,0x18),(0x0A0A,0x19),
-        (0x0C0B,0x1A),(0x0C0C,0x1B)
-      ),6)
+    val sysTest = TestUtils.prepareTest(List(),
+      List((0, 0xED), (1, 0x4B), (2, 0x01), (3, 0x02), //LD BC,(nn)
+        (4, 0xED), (5, 0x5B), (6, 0x03), (7, 0x04), //LD DE,(nn)
+        (8, 0x2A), (9, 0x05), (10, 0x06), //LD HL,(nn)
+        (11, 0xED), (12, 0x7B), (13, 0x07), (14, 0x08), //LD SP,(nn)
+        (15, 0xDD), (16, 0x2A), (17, 0x09), (18, 0x0A), //LD IX,(nn)
+        (19, 0xFD), (20, 0x2A), (21, 0x0B), (22, 0x0C), //LD IY,(nn)
+        (0x0201, 0x10), (0x0202, 0x11),
+        (0x0403, 0x12), (0x0404, 0x13),
+        (0x0605, 0x14), (0x0606, 0x15),
+        (0x0807, 0x16), (0x0808, 0x17),
+        (0x0A09, 0x18), (0x0A0A, 0x19),
+        (0x0C0B, 0x1A), (0x0C0C, 0x1B)
+      ), 6)
     //then
     assert(sysTest.get.register(Regs.PC) == 23)
     assert(sysTest.get.register(Regs.B) == 0x11)
@@ -64,8 +64,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run LD SP,HL") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.H,0x01),(Regs.L,0x02)),
-      List((0,0xF9)))
+    val sysTest = TestUtils.prepareTest(List((Regs.H, 0x01), (Regs.L, 0x02)),
+      List((0, 0xF9)))
     //then
     assert(sysTest.get.register(Regs.PC) == 1)
     assert(sysTest.get.register(Regs.SP) == 0x0102)
@@ -74,8 +74,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run LD SP,IX") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.IX,0x0304)),
-      List((0,0xDD),(1,0xF9)))
+    val sysTest = TestUtils.prepareTest(List((Regs.IX, 0x0304)),
+      List((0, 0xDD), (1, 0xF9)))
     //then
     assert(sysTest.get.register(Regs.PC) == 2)
     assert(sysTest.get.register(Regs.IX) == 0x0304)
@@ -84,8 +84,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run LD SP,IY") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.IY,0x0405)),
-      List((0,0xFD),(1,0xF9)))
+    val sysTest = TestUtils.prepareTest(List((Regs.IY, 0x0405)),
+      List((0, 0xFD), (1, 0xF9)))
     //then
     assert(sysTest.get.register(Regs.PC) == 2)
     assert(sysTest.get.register(Regs.IY) == 0x0405)
@@ -94,8 +94,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run POP AF") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.SP,0x0102)),
-      List((0,0xF1),(0x0102,0xF1),(0x0103,0xF2)))
+    val sysTest = TestUtils.prepareTest(List((Regs.SP, 0x0102)),
+      List((0, 0xF1), (0x0102, 0xF1), (0x0103, 0xF2)))
     //then
     assert(sysTest.get.register(Regs.PC) == 1)
     assert(sysTest.get.register(Regs.A) == 0xF2)
@@ -106,8 +106,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run POP BC") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.SP,0x0102)),
-      List((0,0xC1),(0x0102,0xF3),(0x0103,0xF4)))
+    val sysTest = TestUtils.prepareTest(List((Regs.SP, 0x0102)),
+      List((0, 0xC1), (0x0102, 0xF3), (0x0103, 0xF4)))
     //then
     assert(sysTest.get.register(Regs.PC) == 1)
     assert(sysTest.get.register(Regs.B) == 0xF4)
@@ -118,8 +118,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run POP DE") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.SP,0x0102)),
-      List((0,0xD1),(0x0102,0xF5),(0x0103,0xF6)))
+    val sysTest = TestUtils.prepareTest(List((Regs.SP, 0x0102)),
+      List((0, 0xD1), (0x0102, 0xF5), (0x0103, 0xF6)))
     //then
     assert(sysTest.get.register(Regs.PC) == 1)
     assert(sysTest.get.register(Regs.D) == 0xF6)
@@ -130,8 +130,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run POP HL") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.SP,0x0102)),
-      List((0,0xE1),(0x0102,0xF7),(0x0103,0xF8)))
+    val sysTest = TestUtils.prepareTest(List((Regs.SP, 0x0102)),
+      List((0, 0xE1), (0x0102, 0xF7), (0x0103, 0xF8)))
     //then
     assert(sysTest.get.register(Regs.PC) == 1)
     assert(sysTest.get.register(Regs.H) == 0xF8)
@@ -142,8 +142,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run POP IX") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.SP,0x0102)),
-      List((0,0xDD),(1,0xE1),(0x0102,0xF9),(0x0103,0xFA)))
+    val sysTest = TestUtils.prepareTest(List((Regs.SP, 0x0102)),
+      List((0, 0xDD), (1, 0xE1), (0x0102, 0xF9), (0x0103, 0xFA)))
     //then
     assert(sysTest.get.register(Regs.PC) == 2)
     assert(sysTest.get.register(Regs.IX) == 0xFAF9)
@@ -153,8 +153,8 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run POP IY") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.SP,0x0102)),
-      List((0,0xFD),(1,0xE1),(0x0102,0xFB),(0x0103,0xFC)))
+    val sysTest = TestUtils.prepareTest(List((Regs.SP, 0x0102)),
+      List((0, 0xFD), (1, 0xE1), (0x0102, 0xFB), (0x0103, 0xFC)))
     //then
     assert(sysTest.get.register(Regs.PC) == 2)
     assert(sysTest.get.register(Regs.IY) == 0xFCFB)
@@ -164,15 +164,15 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run LD (nn),dd") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.B,0x11),(Regs.C,0x12),(Regs.D,0x13),(Regs.E,0x14),(Regs.H,0x15),(Regs.L,0x16),
-      (Regs.SP,0x1817),(Regs.IX,0x1A19),(Regs.IY,0x1C1B)),
-      List((0,0xED),(1,0x43),(2,0x02),(3,0x01),
-        (4,0xED),(5,0x53),(6,0x04),(7,0x03),
-        (8,0x22),(9,0x06),(10,0x05),
-        (11,0xED),(12,0x73),(13,0x08),(14,0x07),
-        (15,0xDD),(16,0x22),(17,0x0A),(18,0x09),
-        (19,0xFD),(20,0x22),(21,0x0C),(22,0x0B)
-      ),6)
+    val sysTest = TestUtils.prepareTest(List((Regs.B, 0x11), (Regs.C, 0x12), (Regs.D, 0x13), (Regs.E, 0x14), (Regs.H, 0x15), (Regs.L, 0x16),
+      (Regs.SP, 0x1817), (Regs.IX, 0x1A19), (Regs.IY, 0x1C1B)),
+      List((0, 0xED), (1, 0x43), (2, 0x02), (3, 0x01),
+        (4, 0xED), (5, 0x53), (6, 0x04), (7, 0x03),
+        (8, 0x22), (9, 0x06), (10, 0x05),
+        (11, 0xED), (12, 0x73), (13, 0x08), (14, 0x07),
+        (15, 0xDD), (16, 0x22), (17, 0x0A), (18, 0x09),
+        (19, 0xFD), (20, 0x22), (21, 0x0C), (22, 0x0B)
+      ), 6)
     //then
     assert(sysTest.get.register(Regs.PC) == 23)
     assert(sysTest.get.memory(0x0102) == 0x12)
@@ -192,16 +192,16 @@ class OpLoad16BitTypeTest extends AnyFunSuite {
   test("run PUSH qq") {
     //given
     //when
-    val sysTest=TestUtils.prepareTest(List((Regs.SP,0x0100),
-      (Regs.A,0x02),(Regs.F,0x03),(Regs.B,0x04),(Regs.C,0x05),(Regs.D,0x06),(Regs.E,0x07),
-      (Regs.H,0x08),(Regs.L,0x09),(Regs.IX,0x0A0B),(Regs.IY,0x00C0D)),
-      List((0,0xF5), // PUSH AF
-        (1,0xC5), // PUSH BC
-        (2,0xD5), // PUSH DE
-        (3,0xE5), // PUSH HL
-        (4,0xDD),(5,0xE5), // PUSH IX
-        (6,0xFD),(7,0xE5) // PUSH IY
-      ),6)
+    val sysTest = TestUtils.prepareTest(List((Regs.SP, 0x0100),
+      (Regs.A, 0x02), (Regs.F, 0x03), (Regs.B, 0x04), (Regs.C, 0x05), (Regs.D, 0x06), (Regs.E, 0x07),
+      (Regs.H, 0x08), (Regs.L, 0x09), (Regs.IX, 0x0A0B), (Regs.IY, 0x00C0D)),
+      List((0, 0xF5), // PUSH AF
+        (1, 0xC5), // PUSH BC
+        (2, 0xD5), // PUSH DE
+        (3, 0xE5), // PUSH HL
+        (4, 0xDD), (5, 0xE5), // PUSH IX
+        (6, 0xFD), (7, 0xE5) // PUSH IY
+      ), 6)
     //then
     assert(sysTest.get.register(Regs.PC) == 8)
     assert(sysTest.get.memory(0x00FF) == 0x02)

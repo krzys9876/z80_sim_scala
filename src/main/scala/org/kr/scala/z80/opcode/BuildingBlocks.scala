@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, EmptyJumpCondition, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, FlagJumpCondition, Halt, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpConditionBase, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RegisterJumpCondition, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, BlockTransfer, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, EmptyJumpCondition, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, FlagJumpCondition, Halt, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpConditionBase, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RegisterJumpCondition, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
 import org.kr.scala.z80.system.{Flag, Regs}
 import org.kr.scala.z80.utils.IntValue
 
@@ -16,6 +16,7 @@ trait HandleNop extends OpCodeHandledBy {override val handler:OpCodeHandler=Nop}
 trait HandleLoad8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Load8Bit}
 trait HandleLoad16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Load16Bit}
 trait HandleExchange extends OpCodeHandledBy {override val handler:OpCodeHandler=Exchange}
+trait HandleBlockTransfer extends OpCodeHandledBy {override val handler:OpCodeHandler=BlockTransfer}
 trait HandleArithmetic8Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic8Bit}
 trait HandleArithmetic16Bit extends OpCodeHandledBy {override val handler:OpCodeHandler=Arithmetic16Bit}
 trait HandleRotateShift extends OpCodeHandledBy {override val handler:OpCodeHandler=RotateShift}
@@ -161,6 +162,7 @@ trait T13T8 extends OpCodeTCycles {
 }
 trait T14 extends OpCodeTCycles {override val t:Int=14}
 trait T15 extends OpCodeTCycles {override val t:Int=15}
+trait T16 extends OpCodeTCycles {override val t:Int=16}
 trait T17 extends OpCodeTCycles {override val t:Int=17}
 trait T18 extends OpCodeTCycles {override val t:Int=18}
 trait T19 extends OpCodeTCycles {override val t:Int=19}
@@ -248,3 +250,15 @@ trait UpperAddressRegister {
 }
 trait UpperAddressA extends UpperAddressRegister {override val upperAddressSource:Location=RegisterLocation(Regs.A)}
 trait UpperAddressB extends UpperAddressRegister {override val upperAddressSource:Location=RegisterLocation(Regs.B)}
+
+trait TransferDirection {
+  val increase:Boolean
+}
+trait TransferUp extends TransferDirection {override val increase:Boolean=true}
+trait TransferDown extends TransferDirection {override val increase:Boolean=false}
+
+trait TransferRepeatable {
+  val repeat:Boolean
+}
+trait TransferOnce extends TransferRepeatable {override val repeat:Boolean=false}
+trait TransferRepeat extends TransferRepeatable {override val repeat:Boolean=true}

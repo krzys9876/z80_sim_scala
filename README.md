@@ -26,7 +26,7 @@ And here it is :slightly_smiling_face:
 <img src="https://img.shields.io/badge/Load%208--bit-Done-green.svg"/></a>
 <img src="https://img.shields.io/badge/Load%2016--bit-Done-green.svg"/></a>
 <img src="https://img.shields.io/badge/Exchange-Done-green.svg"/></a>
-<img src="https://img.shields.io/badge/Block%20transfer-Skipped-white.svg"/></a>
+<img src="https://img.shields.io/badge/Block%20transfer-In progress-blue.svg"/></a>
 <img src="https://img.shields.io/badge/8--bit%20arithmetic-Done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/16--bit%20arithmetic-Done-green.svg"/></a>

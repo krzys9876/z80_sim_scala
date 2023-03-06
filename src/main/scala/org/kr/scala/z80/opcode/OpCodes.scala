@@ -24,6 +24,8 @@ object OpCodes {
         DEC_BC,DEC_DE,DEC_HL_16,DEC_SP,DEC_IX,DEC_IY,
         //Exchange
         EX_DE_HL, EX_AF_AF1, EXX, EX_SP_HL, EX_SP_IX, EX_SP_IY,
+        //Block transfer
+        LDI,LDIR,LDD,LDDR,
         //Load 8 bit
         LD_A_I,LD_A_R,LD_I_A,LD_R_A,LD_A_BC,LD_A_DE,LD_BC_A,LD_DE_A,LD_A_nn,LD_nn_A,
         //Load 16 bit
