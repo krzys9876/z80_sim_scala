@@ -256,10 +256,10 @@ trait UpperAddressA extends UpperAddressRegister {override val upperAddressSourc
 trait UpperAddressB extends UpperAddressRegister {override val upperAddressSource:Location=RegisterLocation(Regs.B)}
 
 trait TransferDirection {
-  val increase:Boolean
+  val increment:Int
 }
-trait TransferUp extends TransferDirection {override val increase:Boolean=true}
-trait TransferDown extends TransferDirection {override val increase:Boolean=false}
+trait TransferUp extends TransferDirection {override val increment:Int = 1}
+trait TransferDown extends TransferDirection {override val increment:Int = -1}
 
 trait TransferRepeatable {
   val repeat:Boolean
