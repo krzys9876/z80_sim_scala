@@ -76,15 +76,35 @@ I've added tracking of T cycles throughout the program, so it is possible to com
 That's the clock speed I use in my Z80 projects as it allows serial communication @ 57600 / 115200.
 
 The best I could normally get for a reference program (and others) was ~50-75%. However, for the **arithmetic.txt** 
-program (see _input-files_ folder - no loops, just calculations) the ratio peeked as high as almost 250%. 
+program (see _input-files_ folder - no loops, just calculations) the ratio once peeked as high as almost 250%. 
 Note that extensive use of console may degrade performance due to scrolling.
 
 ![demo](z80_sim_sample.gif)
 
+## How much faster are mutable collections? ##
+
+The initial idea was to use purely immutable data structures, including array/vector for the memory.
+I verified the performance several times with _visualvm_ and the results were clear - the application spent ~50% of time
+to manipulate the memory. So why not test the mutable memory for comparison?
+
+I used native java array (to avoid boxing of integer values) and the same mutable-like interface (every function
+returns an instance of the memory, which in case of mutable memory is just the same instance
+every time). The boost in performance was quite substantial - for **arithmetic2.txt** it was x2 - x3 (from ~80% to ~200% or more).
+
 ## Run sample programs ##
 
-In the main project directory you will find the _run.bat_ script with some examples. The first with only one parameter (the ROM file)
-is interactive - you can play with Basic, write programs and run them. 
+In the main project directory you will find the _run.bat_ script with some examples. 
+The parameters are:
 
-If you want to measure the performance, run the program in batch mode - specify 3 parameters (mandatory ROM file, than keys file 
-and number of instructions to execute). 
+     --mode         : batch (no user interaction)/
+                      interactive (use console to interact with the program and Esc to break execution))
+     --hex-file     : the ROM file to run
+    [--basic-file]  : a file with Basic proram, 
+                      actually this is just to simulate user input
+    [--steps-m]     : steps to be executed in millions (real number) or -1 for infinity
+    [--memory-type] : fast/slow (default: fast)
+    [--interrupts]  : true/false (default: true) - should the program use interrupts to read user input
+    [--ioPorts16Bit]: should the simulator use 16-bit IO ports (i.e. accumulator value on upper 8 bits).
+                      This is a reserved feature for future use.
+
+b
