@@ -107,4 +107,3 @@ The parameters are:
     [--ioPorts16Bit]: should the simulator use 16-bit IO ports (i.e. accumulator value on upper 8 bits).
                       This is a reserved feature for future use.
 
-b
