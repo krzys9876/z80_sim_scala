@@ -20,101 +20,30 @@ class SearchTest extends AnyFunSuite {
   }
   test("run CPD") {
     //value not found, counter>0
-    testCPx(0xA9, 0xAB, 0x0010, 0xAC, 0x0002, "10_1_111", -1)
+    testCPx(0xA9, 0xAB, 0x0011, 0xAC, 0x0002, "10_1_111", -1)
     //value not found, counter=0
-    testCPx(0xA9, 0xAC, 0x0010, 0xAB, 0x0001, "00_0_011", -1)
+    testCPx(0xA9, 0xAC, 0x0011, 0xAB, 0x0001, "00_0_011", -1)
     //value found, counter>0
-    testCPx(0xA9, 0xAC, 0x0010, 0xAC, 0x0002, "01_0_111", -1)
+    testCPx(0xA9, 0xAC, 0x0011, 0xAC, 0x0002, "01_0_111", -1)
     //value found, counter=0
-    testCPx(0xA9, 0xAC, 0x0010, 0xAC, 0x0001, "01_0_011", -1)
+    testCPx(0xA9, 0xAC, 0x0011, 0xAC, 0x0001, "01_0_011", -1)
   }
-
-  /*test("run LDI (overflow)") {
-    //given
-    //when
-    val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0001)),
-      List((0x0000, 0xED), (0x0001, 0xA0), //LDI
-        (0x0010, 0xAB), (0x0020, 0x89))) //from / to locations
-    //then
-    assert(sysTest.get.register(Regs.PC) == 2)
-    assert(sysTest.get.memory(0x0020) == 0xAB)
-    assert(sysTest.get.memory(0x0010) == 0xAB)
-    assert(sysTest.get.register(Regs.HL) == 0x0011)
-    assert(sysTest.get.register(Regs.DE) == 0x0021)
-    assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register,"11_0_101")
+  test("run CPIR") {
+    //value not found
+    testCPxR(0xB1,0xBB,0x0010,List(0x12,0x34,0x56),0x0003,"00_0_011",1,3)
+    //value found before end
+    testCPxR(0xB1,0xBB,0x0010,List(0x12,0xBB,0xAA),0x0003,"01_0_111",1,2)
+    //value found at end
+    testCPxR(0xB1,0xAA,0x0010,List(0x12,0x12,0xAA),0x0003,"01_0_011",1,3)
   }
-  test("run LDD (no overflow)") {
-    //given
-    //when
-    val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0002)),
-      List((0x0000, 0xED), (0x0001, 0xA8), //LDD
-        (0x0010, 0xAB), (0x0020, 0x89))) //from / to locations
-    //then
-    assert(sysTest.get.register(Regs.PC) == 2)
-    assert(sysTest.get.memory(0x0020) == 0xAB)
-    assert(sysTest.get.memory(0x0010) == 0xAB)
-    assert(sysTest.get.register(Regs.HL) == 0x000F)
-    assert(sysTest.get.register(Regs.DE) == 0x001F)
-    assert(sysTest.get.register(Regs.BC) == 0x0001)
-    TestUtils.testFlags(sysTest.get.register,"11_0_001")
+  test("run CPDR") {
+    //value not found
+    testCPxR(0xB9, 0xBB, 0x0012, List(0x12, 0x34, 0x56), 0x0003, "00_0_011", -1, 3)
+    //value found before end
+    testCPxR(0xB9, 0xBB, 0x0012, List(0x12, 0xBB, 0xAA), 0x0003, "01_0_111", -1, 2)
+    //value found at end
+    testCPxR(0xB9, 0xAA, 0x0012, List(0x12, 0x12, 0xAA), 0x0003, "01_0_011", -1, 3)
   }
-  test("run LDD (overflow)") {
-    //given
-    //when
-    val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0001)),
-      List((0x0000, 0xED), (0x0001, 0xA8), //LDD
-        (0x0010, 0xAB), (0x0020, 0x89))) //from / to locations
-    //then
-    assert(sysTest.get.register(Regs.PC) == 2)
-    assert(sysTest.get.memory(0x0020) == 0xAB)
-    assert(sysTest.get.memory(0x0010) == 0xAB)
-    assert(sysTest.get.register(Regs.HL) == 0x000F)
-    assert(sysTest.get.register(Regs.DE) == 0x001F)
-    assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register,"11_0_101")
-  }
-
-  test("run LDIR") {
-    //given
-    //when
-    val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0003), (Regs.F, 0xFF)),
-      List((0x0000, 0xED), (0x0001, 0xB0), //LDIR
-        (0x0010, 0xAB),(0x0011, 0xCD),(0x0012, 0xEF), (0x0020, 0x12),(0x0020, 0x34),(0x0020, 0x56)), //from / to locations
-      3)
-    //then
-    assert(sysTest.get.register(Regs.PC) == 2)
-    assert(sysTest.get.memory(0x0020) == 0xAB)
-    assert(sysTest.get.memory(0x0021) == 0xCD)
-    assert(sysTest.get.memory(0x0022) == 0xEF)
-    assert(sysTest.get.memory(0x0010) == 0xAB)
-    assert(sysTest.get.memory(0x0011) == 0xCD)
-    assert(sysTest.get.memory(0x0012) == 0xEF)
-    assert(sysTest.get.register(Regs.HL) == 0x0013)
-    assert(sysTest.get.register(Regs.DE) == 0x0023)
-    assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register, "11_0_101")
-  }
-  test("run LDDR") {
-    //given
-    //when
-    val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0012), (Regs.DE, 0x0022), (Regs.BC, 0x0003), (Regs.F, 0xFF)),
-      List((0x0000, 0xED), (0x0001, 0xB8), //LDDR
-        (0x0010, 0xAB), (0x0011, 0xCD), (0x0012, 0xEF), (0x0020, 0x12), (0x0020, 0x34), (0x0020, 0x56)), //from / to locations
-      3)
-    //then
-    assert(sysTest.get.register(Regs.PC) == 2)
-    assert(sysTest.get.memory(0x0020) == 0xAB)
-    assert(sysTest.get.memory(0x0021) == 0xCD)
-    assert(sysTest.get.memory(0x0022) == 0xEF)
-    assert(sysTest.get.memory(0x0010) == 0xAB)
-    assert(sysTest.get.memory(0x0011) == 0xCD)
-    assert(sysTest.get.memory(0x0012) == 0xEF)
-    assert(sysTest.get.register(Regs.HL) == 0x000F)
-    assert(sysTest.get.register(Regs.DE) == 0x001F)
-    assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register, "11_0_101")
-  }*/
 
   private def testCPx(opCode:Int,valA:Int,valHL:Int,memHL:Int,valBC:Int,flagsAsString:String,increment:Int):Unit = {
     //given
@@ -129,4 +58,16 @@ class SearchTest extends AnyFunSuite {
     TestUtils.testFlags(sysTest.get.register, flagsAsString)
   }
 
+  private def testCPxR(opCode:Int,valA:Int,valHL:Int,memHL:List[Int],valBC:Int,flagsAsString:String,increment:Int,steps:Int):Unit = {
+    //given
+    //when
+    val memList=(0 until valBC).map(i=>(Z80Utils.add16bit(valHL,i*increment),memHL(i)))
+    val sysTest = TestUtils.prepareTest(List((Regs.HL, valHL), (Regs.A, valA), (Regs.BC, valBC), (Regs.F, 0xFF)),
+      List((0x0000, 0xED), (0x0001, opCode))++memList,steps)
+    //then
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.register(Regs.HL) == Z80Utils.add16bit(valHL, steps*increment))
+    assert(sysTest.get.register(Regs.BC) == Z80Utils.add16bit(valBC, -steps))
+    TestUtils.testFlags(sysTest.get.register, flagsAsString)
+  }
 }
