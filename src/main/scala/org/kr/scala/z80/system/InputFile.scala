@@ -6,12 +6,12 @@ import java.util.concurrent.{ArrayBlockingQueue, FutureTask}
 import scala.concurrent.{ExecutionContext, blocking}
 
 abstract class InputPort {
-  def read():Int
+  def read(upperAddr:Int):Int
   def refresh():InputPort
 }
 
 class InputPortConstant(val value:Int) extends InputPort {
-  def read():Int=value
+  def read(upperAddr:Int):Int=value
   def refresh():InputPort=this
 }
 
@@ -20,17 +20,17 @@ object InputPortConstant {
 }
 
 class InputPortSequential(val value:Int, val every: Int, val position:Int=0, defaultValue:Int=0) extends InputPort {
-  def read():Int=if(position==0) value else defaultValue
+  def read(upperAddr:Int):Int=if(position==0) value else defaultValue
   def refresh():InputPort=new InputPortSequential(value,every,(position+1) % every,defaultValue)
 }
 
 class InputPortSingle(val value:Int, val defaultValue:Int=0, val isAtStart:Boolean=true) extends InputPort {
-  def read():Int=if(isAtStart) value else defaultValue
+  def read(upperAddr:Int):Int=if(isAtStart) value else defaultValue
   def refresh():InputPort=new InputPortSingle(value,defaultValue,false)
 }
 
 class InputPortMultiple(val valueList:List[Int], val defaultValue:Int=0) extends InputPort {
-  def read():Int=valueList match {
+  def read(upperAddr:Int):Int=valueList match {
     case head :: _ => head
     case _ => defaultValue
   }
@@ -46,7 +46,7 @@ class InputPortConsole(initialChars:Array[Char])(implicit val executionContext: 
   private val keys = new ArrayBlockingQueue[Key](65536)
   initialChars.foreach(ch=>keys.add(Key(ch)))
 
-  def read():Int= {
+  def read(upperAddr:Int):Int= {
     val k = keys.peek()
     if (k == null) 0 else keys.peek().code
   }
@@ -71,14 +71,14 @@ class InputPortConsole(initialChars:Array[Char])(implicit val executionContext: 
 case class Key(code:Int)
 
 class InputPortControlConsole(consolePort:InputPortConsole) extends InputPort {
-  override def read(): Int = if(consolePort.read()!=0) 1 else 0
+  override def read(upperAddr:Int): Int = if(consolePort.read(upperAddr:Int)!=0) 1 else 0
 
   override def refresh(): InputPortControlConsole = this
 }
 
 class InputFile(val ports:Map[PortID,InputPort]=Map()) {
-  def read(port:PortID)(implicit debugger:Debugger):Int={
-    ports.getOrElse(port,InputPortConstant.blank).read()
+  def read(port:PortID, upperAddr:Int)(implicit debugger:Debugger):Int={
+    ports.getOrElse(port,InputPortConstant.blank).read(upperAddr)
   }
   def attachPort(port:PortID, inPort:InputPort):InputFile=new InputFile(this.ports ++ Map(port->inPort))
 }
@@ -101,5 +101,8 @@ object InputFile {
   }
 }
 
-case class PortID(num:Int,upperNum:Int=0)
+case class PortIDWithUpper(num:Int,upperNum:Int) {
+  def lower:PortID=PortID(num)
+}
 
+case class PortID(num:Int)

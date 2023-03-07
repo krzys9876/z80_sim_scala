@@ -20,11 +20,6 @@ object TestUtils {
     prepareTestWith(StateWatcher[Z80System](Z80System.blank),regList,memList,steps)
   }
 
-  def prepareTest8BitIO(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps: Int = 1)
-                 (implicit debugger: Debugger): StateWatcher[Z80System] = {
-    prepareTestWith(StateWatcher[Z80System](Z80System.blank8BitIO), regList, memList, steps)
-  }
-
   def prepareTestWith(sysBlank:StateWatcher[Z80System], regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int)
                      (implicit debugger:Debugger): StateWatcher[Z80System] = {
     //given
@@ -37,7 +32,7 @@ object TestUtils {
     )
     //when
     val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.output, sysBlank.get.input,
-      0, sysBlank.get.portMapping, sysBlank.state.interrupt))
+      0, sysBlank.state.interrupt))
     sysInit >>== Z80System.run(debugger)(steps.toLong)
   }
 

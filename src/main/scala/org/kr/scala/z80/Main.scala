@@ -10,12 +10,10 @@ import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext
 
 object Main extends App {
-
   import ExecutionContext.Implicits._
-
-  val clArgs=new Args(args)
   println("INIT")
 
+  val clArgs=new Args(args)
   println(f"mode: ${clArgs.mode()}")
   println(f"memory: ${clArgs.memoryType()}")
   println(f"steps: ${if(clArgs.steps==Long.MaxValue) "infinite" else clArgs.steps}")
@@ -40,8 +38,7 @@ object Main extends App {
   }
   //whole system
   val interrupts=if(clArgs.interrupts()) system.CyclicInterrupt.every20ms else NoInterrupt()
-  val ioMappingMode=if(clArgs.ioPorts16Bit()) Z80System.use16BitIOPorts else Z80System.use8BitIOPorts
-  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0, ioMappingMode,interrupts)
+  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0,interrupts)
 
   println("START")
   val startTime=LocalDateTime.now()
@@ -60,18 +57,6 @@ object Main extends App {
   println(f"reference seconds: $refseconds%1.2f")
   println(f"relative speed: ${speed*100}%2.2f %%")
   println("END")
-
-  //1. initial version: ~29 seconds
-  //2. limit opcode lists in handlers only to those handled by handler: ~16-20 seconds
-  // pros: lists as shorter, maintains compile time type checking
-  // cons: still uses list lookup
-  //3. runtime type conversion from OpCodes.list to type required by handler - same or little slower than limiting lists
-  // pros: simplifies code
-  // cons: uses runtime type casting which may result in runtime exception, not compile time exception
-  //4. as 3. but simplify Z80System.handle (do not lookup twice) ~ 14 sec. - best option so far
-  //5. reduce all list lookups to one per step ~4-5 seconds
-  //6. replace register map with vals ~3-4 seconds
-  //7. remove unnecessary state watchers ~10-15%
 
   private def readFile(fullFileWithPath:String):List[String]=
     Files.readAllLines(Path.of(fullFileWithPath)).asScala.toList

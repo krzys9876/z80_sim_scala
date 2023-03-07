@@ -46,7 +46,7 @@ class InterruptTest extends AnyFunSuite {
   test("trigger interrupt (IM 1)") {
     //given
     val sysBlank=new Z80System(ImmutableMemory.blank(0x0100),Register.blank,OutputFile.blank,InputFile.blank,
-      0,Z80System.use8BitIOPorts,CyclicInterrupt(50))
+      0,CyclicInterrupt(50))
     val memList=interruptTestProgram
     val regList=List((Regs.IFF,1),(Regs.IM,1),(Regs.SP,0x00FF),(Regs.A,0x00))
     // run to interrupt routine, before RETI
@@ -71,7 +71,7 @@ class InterruptTest extends AnyFunSuite {
   test("trigger interrupt (IM 0) - unsupported") {
     //given
     val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
-      0, Z80System.use8BitIOPorts, CyclicInterrupt(50))
+      0, CyclicInterrupt(50))
     val memList = interruptTestProgram
     val regList = List((Regs.IFF, 1), (Regs.IM, 0), (Regs.SP, 0x00FF), (Regs.A, 0x00))
     // when
@@ -81,7 +81,7 @@ class InterruptTest extends AnyFunSuite {
   test("do not trigger interrupt when IFF is 0") {
     //given
     val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
-      0, Z80System.use8BitIOPorts, CyclicInterrupt(50))
+      0, CyclicInterrupt(50))
     val memList = interruptTestProgram
     val regList = List((Regs.IFF, 0), (Regs.IM, 1), (Regs.SP, 0x00FF), (Regs.A, 0x00))
     // when
@@ -94,7 +94,7 @@ class InterruptTest extends AnyFunSuite {
   test("run HALT w/o interrupts") {
     //given
     val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
-      0, Z80System.use8BitIOPorts, CyclicInterrupt(50))
+      0, CyclicInterrupt(50))
     val memList = List((0x0000,0x76)) // HALT
     val regList = List((Regs.IFF, 0), (Regs.IM, 0), (Regs.SP, 0x00FF), (Regs.A, 0x00))
     // when
@@ -107,7 +107,7 @@ class InterruptTest extends AnyFunSuite {
   test("run HALT with interrupts") {
     //given
     val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
-      0, Z80System.use8BitIOPorts, CyclicInterrupt(40))
+      0, CyclicInterrupt(40))
     val memList = List((0x0000, 0x76),(0x0038, 0xED), (0x0039, 0x4D)) // HALT + RETI (the whole interrupt routine is RETI)
     val regList = List((Regs.IFF, 1), (Regs.IM, 1), (Regs.SP, 0x00FF), (Regs.A, 0x00))
     // when

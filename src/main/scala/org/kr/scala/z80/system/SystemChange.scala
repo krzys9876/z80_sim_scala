@@ -31,12 +31,12 @@ class MemoryChangeWord(val address: Int, val value: Int) extends SystemChange {
     system.changeMemoryWord(address,value)
 }
 
-class OutputChange(val port: PortID, val value: Int)(implicit debugger:Debugger) extends SystemChange {
+class OutputChange(val port: PortIDWithUpper, val value: Int)(implicit debugger:Debugger) extends SystemChange {
   override def handle(system:Z80System):Z80System=
     system.outputByte(port,value)
 }
 
-class InputRefreshChange(val port: PortID) extends SystemChange {
+class InputRefreshChange(val port: PortIDWithUpper) extends SystemChange {
   override def handle(system:Z80System):Z80System=
     system.refreshInput(port)
 }

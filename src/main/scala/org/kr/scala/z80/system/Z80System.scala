@@ -8,7 +8,6 @@ import scala.annotation.tailrec
 class Z80System(val memory: MemoryContents, val register: Register,
                 val output: OutputFile, val input: InputFile,
                 val elapsedTCycles:Long,
-                val portMapping: PortID=>PortID,
                 val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler) {
   lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(getCurrentOpCode)
 
@@ -44,7 +43,7 @@ class Z80System(val memory: MemoryContents, val register: Register,
   private def getByte(address:Int):Int = memory(address)
   private def getWord(address:Int):Int = Z80Utils.makeWord(memory(address+1),memory(address))
 
-  def readPort(port:PortID):Int=input.read(port)
+  def readPort(port:PortIDWithUpper):Int=input.read(port.lower,port.upperNum)
 
   def getOptionalValueFromLocation(location:Location):OptionInt =
     location match {
@@ -141,8 +140,8 @@ class Z80System(val memory: MemoryContents, val register: Register,
     replaceMemory(newMem)
   }
 
-  def outputByte(port:PortID, value:Int):Z80System = {
-    val newOut=(StateWatcher(output) >>== OutputFile.out(debugger)(port,value)).get
+  def outputByte(port:PortIDWithUpper, value:Int):Z80System = {
+    val newOut=(StateWatcher(output) >>== OutputFile.out(debugger)(port.lower,value)).get
     replaceOutput(newOut)
   }
 
@@ -151,27 +150,24 @@ class Z80System(val memory: MemoryContents, val register: Register,
     replaceInput(newIn)
   }
 
-  def refreshInput(port:PortID):Z80System = {
-    val newIn=(StateWatcherSilent(input) >>== InputFile.refreshPort(port)).get
+  def refreshInput(port:PortIDWithUpper):Z80System = {
+    val newIn=(StateWatcherSilent(input) >>== InputFile.refreshPort(port.lower)).get
     replaceInput(newIn)
   }
 
   def refreshInterrupt:Z80System = replaceInterrupt(interrupt.refresh(this))
 
-  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,portMapping,interrupt)
-  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,portMapping,interrupt)
-  private def replaceMemory(newMem:MemoryContents):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles,portMapping,interrupt)
-  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles,portMapping,interrupt)
-  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles,portMapping,interrupt)
-  private def replaceInterrupt(newInterrupt:InterruptInfo):Z80System= new Z80System(memory,register,output,input,elapsedTCycles,portMapping,newInterrupt)
+  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,interrupt)
+  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,interrupt)
+  private def replaceMemory(newMem:MemoryContents):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles,interrupt)
+  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles,interrupt)
+  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles,interrupt)
+  private def replaceInterrupt(newInterrupt:InterruptInfo):Z80System= new Z80System(memory,register,output,input,elapsedTCycles,newInterrupt)
 }
 
 object Z80System {
   def blank(implicit debugger:Debugger,memoryHandler:MemoryHandler):Z80System=new Z80System(memoryHandler.blank(0x10000),Register.blank,
-    OutputFile.blank, InputFile.blank,0, use16BitIOPorts,NoInterrupt())
-
-  def blank8BitIO(implicit debugger: Debugger,memoryHandler:MemoryHandler): Z80System = new Z80System(memoryHandler.blank(0x10000), Register.blank,
-    OutputFile.blank, InputFile.blank, 0, use8BitIOPorts,NoInterrupt())
+    OutputFile.blank, InputFile.blank,0, NoInterrupt())
 
   // run - main function changing state of the system
   def run(implicit debug:Debugger):Long=>Z80System=>Z80System=
@@ -187,9 +183,6 @@ object Z80System {
 
   private def step(implicit debugger:Debugger): () => Z80System => Z80System = () => system => system.step
 
-  // IO mapping
-  val use8BitIOPorts:PortID=>PortID = port=>PortID(port.num)
-  val use16BitIOPorts:PortID=>PortID = port=>port
   // clock parameters
   val REFERENCE_HZ:Long=3686400
   val REFERENCE_CYCLES_20ms:Long=REFERENCE_HZ / 50
