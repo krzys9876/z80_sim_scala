@@ -4,7 +4,7 @@ import org.kr.scala.z80.system.{Debugger, DummyDebugger, Regs}
 import org.kr.scala.z80.utils.Z80Utils
 import org.scalatest.funsuite.AnyFunSuite
 
-class SearchTest extends AnyFunSuite {
+class OpSearchTest extends AnyFunSuite {
 
   implicit val debugger: Debugger = DummyDebugger
 

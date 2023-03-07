@@ -1,6 +1,6 @@
 package org.kr.scala.z80.opcode
 
-import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, BlockTransfer, Ccf8b, Comp8b, Cpl8b, Dec16b, Dec8b, EmptyJumpCondition, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, FlagJumpCondition, Halt, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpConditionBase, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RegisterJumpCondition, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Search, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
+import org.kr.scala.z80.opcode.handler.{Add16b, Add8b, AddC16b, AddC8b, And8b, Arithmetic16Bit, Arithmetic8Bit, BitManipulation, BitOpType, BitOperation, BlockTransfer, Ccf8b, Comp8b, Cpl8b, Daa, Dec16b, Dec8b, EmptyJumpCondition, Exchange, ExchangeLocation, ExchangeLocationBase, ExchangeLocationIndirect, FlagJumpCondition, Halt, InOutOpType, InOutOperation, Inc16b, Inc8b, InputOutput, JumpCallReturn, JumpConditionBase, JumpOperation, JumpType, Load16Bit, Load8Bit, Neg8b, Nop, OpCodeHandler, Or8b, RegisterJumpCondition, RotShRl, RotShRla, RotShRlc, RotShRlca, RotShRr, RotShRra, RotShRrc, RotShRrca, RotShSla, RotShSra, RotShSrl, RotateDL, RotateDR, RotateDigit, RotateShift, Scf8b, Search, Sub8b, SubC16b, SubC8b, Unknown, Xor8b}
 import org.kr.scala.z80.system.{Flag, Regs}
 import org.kr.scala.z80.utils.IntValue
 
@@ -116,6 +116,7 @@ trait Arith8bCpl extends OpCodeArithmetic8b with SourceDestA {override val opera
 trait Arith8bNeg extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=Neg8b}
 trait Arith8bCcf extends OpCodeArithmetic8b with SourceA with DestinationEmpty {override val operation:ArithmeticOperation=Ccf8b}
 trait Arith8bScf extends OpCodeArithmetic8b with SourceA with DestinationEmpty {override val operation:ArithmeticOperation=Scf8b}
+trait Arith8bDaa extends OpCodeArithmetic8b with SourceDestA {override val operation:ArithmeticOperation=Daa}
 
 trait OpCodeRotateDigit extends SourceA with DestinationHLra {
   val operation:ArithmeticOperation

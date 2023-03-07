@@ -12,7 +12,7 @@ object OpCodes {
       JP_cond.codes ++ CALL_cond.codes ++ RET_cond.codes ++ RST_all.codes ++
       List(
         //Arithmetic8b
-        ADD_A_n,ADC_A_n,SUB_n,SBC_A_n,AND_n,XOR_n,OR_n,CP_n,CPL,SCF,CCF,NEG,
+        ADD_A_n,ADC_A_n,SUB_n,SBC_A_n,AND_n,XOR_n,OR_n,CP_n,CPL,SCF,CCF,NEG,DAA,
         //Rotate digit
         RLD,RRD,
         //Rotate shift

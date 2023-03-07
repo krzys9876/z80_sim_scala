@@ -227,4 +227,29 @@ class OpArithmetic8BitTest extends AnyFunSuite {
     TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0xFF), (Regs.A, 0x00)), List((0x0000, 0x37)), Regs.NONE,AnyInt, AnyInt, "11_0_101")
   }
 
+  test("run DAA") {
+    //https://github.com/ruyrybeyro/daatable/blob/master/daaoutput.txt
+    //http://www.z80.info/zip/z80-documented.pdf
+    //https://ehaskins.com/2018-01-30%20Z80%20DAA/ - random rows from generated output
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x09)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x09), "00_0_000")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0x4A)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x50), "00_1_000")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.A, 0xBF)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x25), "00_1_001")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x10), (Regs.A, 0x13)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x19), "00_0_000")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x10), (Regs.A, 0x2D)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x33), "00_1_000")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x10), (Regs.A, 0xBA)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x20), "00_1_001")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x01), (Regs.A, 0x88)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0xE8), "10_0_001")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x11), (Regs.A, 0x03)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x69), "00_0_001")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x11), (Regs.A, 0x8F)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0xF5), "10_1_001")
+
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x02), (Regs.A, 0x09)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x09), "00_0_010")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x02), (Regs.A, 0x4A)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x44), "00_0_010")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x02), (Regs.A, 0xBF)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x59), "00_0_011")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x12), (Regs.A, 0x13)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x0D), "00_1_010")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x12), (Regs.A, 0x2D)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x27), "00_0_010")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x12), (Regs.A, 0xBA)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x54), "00_0_011")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x03), (Regs.A, 0x88)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x28), "00_0_011") // not present in reference file
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x13), (Regs.A, 0x03)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x9D), "10_1_011")
+    TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x13), (Regs.A, 0x8F)), List((0x0000, 0x27)), Regs.A, AnyInt, IntValue(0x29), "00_0_011")
+  }
+
 }

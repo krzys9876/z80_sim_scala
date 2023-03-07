@@ -76,6 +76,8 @@ object DEC_reg {
   val codes: List[Arithmetic8bDef] = OpCode.generateOpCodesType1(OpCode(0x05),3).map(op=>
     new Arithmetic8bDef(op._1.main,op._1.supp,op._2,op._3,op._4,f"DEC ${op._2.label}") with SourceFromDestination with Arith8bDec)
 }
+object DAA extends OpCode(0x27) with HandleArithmetic8Bit with Arith8bDaa with Size1 with T4 with Label {override val label:String="DAA"}
+
 object CPL extends OpCode(0x2F) with HandleArithmetic8Bit with Arith8bCpl with Size1 with T4 with Label {override val label:String="CPL"}
 object NEG extends OpCode(0xED,IntValue(0x44)) with HandleArithmetic8Bit with Arith8bNeg with Size2 with T8 with Label {override val label:String="NEG"}
 object SCF extends OpCode(0x37) with HandleArithmetic8Bit with Arith8bScf with Size1 with T4 with Label {override val label:String="SCF"}

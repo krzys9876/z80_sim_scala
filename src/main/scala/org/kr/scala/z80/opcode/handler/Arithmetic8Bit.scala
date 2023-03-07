@@ -1,9 +1,6 @@
 package org.kr.scala.z80.opcode.handler
 
-import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOperation, EmptyLocation,
-  FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset,
-  FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode,
-  OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
+import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOpResult, ArithmeticOperation, EmptyLocation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
 import org.kr.scala.z80.system.{Debugger, DummyChange, Flag, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
@@ -128,4 +125,43 @@ object Scf8b extends ArithmeticOperation with ArithmeticCalculatorByte
   with FlagHReset with FlagNReset with FlagCSet {
 
   override def getDestination(source:Location):Location=EmptyLocation
+}
+
+object Daa extends ArithmeticOperation with ArithmeticCalculatorByte with FlagSSignByte {
+  override def calcUnsigned(input: ArithmeticOpInput): OptionInt = {
+    val (ah,al,c,h)=((input.value & 0xF0) >> 4,input.value & 0x0F,input.flags.flagValue(Flag.C),input.flags.flagValue(Flag.H))
+    // http://www.z80.info/zip/z80-documented.pdf page 18 table 1
+    val correction = (c,ah,h,al) match {
+      case(0,ah1,1,al1) if ah1<=0x9 && al1<=0x9 => 0x06
+      case(0,ah1,_,al1) if ah1<=0x8 && al1>=0xA => 0x06
+      case(0,ah1,0,al1) if ah1>=0xA && al1<=0x9 => 0x60
+      case(1, _ ,0,al1) if             al1<=0x9 => 0x60
+      case(1, _ ,1,al1) if             al1<=0x9 => 0x66
+      case(1, _ ,_,al1) if             al1>=0xA => 0x66
+      case(0,ah1,_,al1) if ah1>=0x9 && al1>=0xA => 0x66
+      case(0,ah1,1,al1) if ah1>=0xA && al1<=0x9 => 0x66
+      case _ => 0x00
+    }
+    val outValue=input.value + (if(input.flags(Flag.N)) -correction else correction)
+    IntValue(outValue)
+  }
+  override def calcC(res:ArithmeticOpResult,input:ArithmeticOpInput):Boolean= {
+    // http://www.z80.info/zip/z80-documented.pdf h table 2
+    val (ah,al,c)=((input.value & 0xF0) >> 4,input.value & 0x0F,input.flags.flagValue(Flag.C))
+    (c,ah,al) match {
+      case (0,ah1,al1) if ah1>=0x09 && al1>=0xA => true
+      case (0,ah1,al1) if ah1>=0x0A && al1<=0x9 => true
+      case (1, _ , _ )                          => true
+      case _ => false
+    }
+  }
+  override def calcH(res: ArithmeticOpResult, input: ArithmeticOpInput): Boolean = {
+    // http://www.z80.info/zip/z80-documented.pdf h table 3
+    val (al, n, h) = (input.value & 0x0F, input.flags.flagValue(Flag.N),input.flags.flagValue(Flag.H))
+    (n, h, al) match {
+      case (0,_,al1) if al1>=0xA => true
+      case (1,1,al1) if al1<=0x5 => true
+      case _ => false
+    }
+  }
 }

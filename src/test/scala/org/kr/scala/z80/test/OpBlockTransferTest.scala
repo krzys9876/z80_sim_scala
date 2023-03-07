@@ -3,7 +3,7 @@ package org.kr.scala.z80.test
 import org.kr.scala.z80.system.{Debugger, DummyDebugger, Regs}
 import org.scalatest.funsuite.AnyFunSuite
 
-class BlockTransferTest extends AnyFunSuite {
+class OpBlockTransferTest extends AnyFunSuite {
 
   implicit val debugger: Debugger = DummyDebugger
 
