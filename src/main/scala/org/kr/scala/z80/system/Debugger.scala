@@ -2,6 +2,7 @@ package org.kr.scala.z80.system
 
 trait Debugger {
   def info[Watched](before:Watched,after:Watched):Unit
+  def error[Watched](message:String):Unit = println(message)
 }
 
 object DummyDebugger extends Debugger {

@@ -229,6 +229,13 @@ object LDIR extends OpCode(0xED,IntValue(0xB0)) with HandleBlockTransfer with Tr
 object LDD extends OpCode(0xED,IntValue(0xA8)) with HandleBlockTransfer with TransferDown with TransferOnce with Size2 with T16 with Label {override val label:String="LDD"}
 object LDDR extends OpCode(0xED,IntValue(0xB8)) with HandleBlockTransfer with TransferDown with TransferRepeat with Size2 with T2116 with Label {override val label:String="LDDR"}
 
+//Search
+// Z80 manual page 49
+object CPI extends OpCode(0xED,IntValue(0xA1)) with HandleSearch with TransferUp with TransferOnce with Size2 with T16 with Label {override val label:String="CPI"}
+object CPIR extends OpCode(0xED,IntValue(0xB1)) with HandleSearch with TransferUp with TransferRepeat with Size2 with T2116 with Label {override val label:String="CPIR"}
+object CPD extends OpCode(0xED,IntValue(0xA9)) with HandleSearch with TransferDown with TransferOnce with Size2 with T16 with Label {override val label:String="CPD"}
+object CPDR extends OpCode(0xED,IntValue(0xB9)) with HandleSearch with TransferDown with TransferRepeat with Size2 with T2116 with Label {override val label:String="CPDR"}
+
 //Rotate and shift
 // Z80 manual page 54 (NOTE: error in OpCode for RCL L and (HL))
 // generator for rotate and shift

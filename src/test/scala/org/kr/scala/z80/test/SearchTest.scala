@@ -1,28 +1,35 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.system.{Debugger, DummyDebugger, Regs}
+import org.kr.scala.z80.utils.Z80Utils
 import org.scalatest.funsuite.AnyFunSuite
 
-class BlockTransferTest extends AnyFunSuite {
+class SearchTest extends AnyFunSuite {
 
   implicit val debugger: Debugger = DummyDebugger
 
-  test("run LDI (counter>0)") {
-    //given
-    //when
-    val sysTest = TestUtils.prepareTest(List((Regs.HL,0x0010),(Regs.DE,0x0020),(Regs.BC,0x0002),(Regs.F,0xFF)),
-      List((0x0000, 0xED), (0x0001, 0xA0), //LDI
-      (0x0010, 0xAB),(0x0020, 0x89))) //from / to locations
-    //then
-    assert(sysTest.get.register(Regs.PC) == 2)
-    assert(sysTest.get.memory(0x0020)==0xAB)
-    assert(sysTest.get.memory(0x0010)==0xAB)
-    assert(sysTest.get.register(Regs.HL)==0x0011)
-    assert(sysTest.get.register(Regs.DE)==0x0021)
-    assert(sysTest.get.register(Regs.BC)==0x0001)
-    TestUtils.testFlags(sysTest.get.register,"11_0_101")
+  test("run CPI") {
+    //value not found, counter>0
+    testCPx(0xA1,0xAC,0x0010,0xAB,0x0002,"00_0_111",1)
+    //value not found, counter=0
+    testCPx(0xA1,0xAC,0x0010,0xAB,0x0001,"00_0_011",1)
+    //value found, counter>0
+    testCPx(0xA1,0xAC,0x0010,0xAC,0x0002,"01_0_111",1)
+    //value found, counter=0
+    testCPx(0xA1,0xAC,0x0010,0xAC,0x0001,"01_0_011",1)
   }
-  test("run LDI (counter=0)") {
+  test("run CPD") {
+    //value not found, counter>0
+    testCPx(0xA9, 0xAB, 0x0010, 0xAC, 0x0002, "10_1_111", -1)
+    //value not found, counter=0
+    testCPx(0xA9, 0xAC, 0x0010, 0xAB, 0x0001, "00_0_011", -1)
+    //value found, counter>0
+    testCPx(0xA9, 0xAC, 0x0010, 0xAC, 0x0002, "01_0_111", -1)
+    //value found, counter=0
+    testCPx(0xA9, 0xAC, 0x0010, 0xAC, 0x0001, "01_0_011", -1)
+  }
+
+  /*test("run LDI (overflow)") {
     //given
     //when
     val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0001)),
@@ -35,9 +42,9 @@ class BlockTransferTest extends AnyFunSuite {
     assert(sysTest.get.register(Regs.HL) == 0x0011)
     assert(sysTest.get.register(Regs.DE) == 0x0021)
     assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register,"11_0_001")
+    TestUtils.testFlags(sysTest.get.register,"11_0_101")
   }
-  test("run LDD (counter>0)") {
+  test("run LDD (no overflow)") {
     //given
     //when
     val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0002)),
@@ -50,9 +57,9 @@ class BlockTransferTest extends AnyFunSuite {
     assert(sysTest.get.register(Regs.HL) == 0x000F)
     assert(sysTest.get.register(Regs.DE) == 0x001F)
     assert(sysTest.get.register(Regs.BC) == 0x0001)
-    TestUtils.testFlags(sysTest.get.register,"11_0_101")
+    TestUtils.testFlags(sysTest.get.register,"11_0_001")
   }
-  test("run LDD (counter=0)") {
+  test("run LDD (overflow)") {
     //given
     //when
     val sysTest = TestUtils.prepareTest(List((Regs.HL, 0x0010), (Regs.DE, 0x0020), (Regs.BC, 0x0001)),
@@ -65,7 +72,7 @@ class BlockTransferTest extends AnyFunSuite {
     assert(sysTest.get.register(Regs.HL) == 0x000F)
     assert(sysTest.get.register(Regs.DE) == 0x001F)
     assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register,"11_0_001")
+    TestUtils.testFlags(sysTest.get.register,"11_0_101")
   }
 
   test("run LDIR") {
@@ -86,7 +93,7 @@ class BlockTransferTest extends AnyFunSuite {
     assert(sysTest.get.register(Regs.HL) == 0x0013)
     assert(sysTest.get.register(Regs.DE) == 0x0023)
     assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register, "11_0_001")
+    TestUtils.testFlags(sysTest.get.register, "11_0_101")
   }
   test("run LDDR") {
     //given
@@ -106,6 +113,20 @@ class BlockTransferTest extends AnyFunSuite {
     assert(sysTest.get.register(Regs.HL) == 0x000F)
     assert(sysTest.get.register(Regs.DE) == 0x001F)
     assert(sysTest.get.register(Regs.BC) == 0x0000)
-    TestUtils.testFlags(sysTest.get.register, "11_0_001")
+    TestUtils.testFlags(sysTest.get.register, "11_0_101")
+  }*/
+
+  private def testCPx(opCode:Int,valA:Int,valHL:Int,memHL:Int,valBC:Int,flagsAsString:String,increment:Int):Unit = {
+    //given
+    //when
+    val sysTest = TestUtils.prepareTest(List((Regs.HL, valHL), (Regs.A, valA), (Regs.BC, valBC), (Regs.F, 0xFF)),
+      List((0x0000, 0xED), (0x0001, opCode),
+        (valHL, memHL)))
+    //then
+    assert(sysTest.get.register(Regs.PC) == 2)
+    assert(sysTest.get.register(Regs.HL) == Z80Utils.add16bit(valHL,increment))
+    assert(sysTest.get.register(Regs.BC) == Z80Utils.add16bit(valBC,-1))
+    TestUtils.testFlags(sysTest.get.register, flagsAsString)
   }
+
 }

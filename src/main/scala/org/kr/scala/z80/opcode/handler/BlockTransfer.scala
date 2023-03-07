@@ -20,7 +20,7 @@ object BlockTransfer extends OpCodeHandler {
     val newCounterValue=Z80Utils.add16bit(counterValue,-1)
     // Flags
     val baseFlags=system.getFlags.reset(Flag.H).reset(Flag.N)
-    val newFlags=if(newCounterValue==0) baseFlags.set(Flag.P) else baseFlags.reset(Flag.P)
+    val newFlags=baseFlags.set(Flag.P,newCounterValue!=0)
 
     val chgList=
       List(system.putValueToLocation(destValueLoc,sourceValue), // (HL)->(DE)
