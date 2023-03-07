@@ -26,7 +26,7 @@ And here it is :slightly_smiling_face:
 <img src="https://img.shields.io/badge/Load%208--bit-Done-green.svg"/></a>
 <img src="https://img.shields.io/badge/Load%2016--bit-Done-green.svg"/></a>
 <img src="https://img.shields.io/badge/Exchange-Done-green.svg"/></a>
-<img src="https://img.shields.io/badge/Block%20transfer-In progress-blue.svg"/></a>
+<img src="https://img.shields.io/badge/Block%20transfer-Done-green.svg"/></a>
 <img src="https://img.shields.io/badge/8--bit%20arithmetic-Done-green.svg"/></a>
 
 <img src="https://img.shields.io/badge/16--bit%20arithmetic-Done-green.svg"/></a>
@@ -104,6 +104,4 @@ The parameters are:
     [--steps-m]     : steps to be executed in millions (real number) or -1 for infinity
     [--memory-type] : fast/slow (default: fast)
     [--interrupts]  : true/false (default: true) - should the program use interrupts to read user input
-    [--ioPorts16Bit]: should the simulator use 16-bit IO ports (i.e. accumulator value on upper 8 bits).
-                      This is a reserved feature for future use.
 
