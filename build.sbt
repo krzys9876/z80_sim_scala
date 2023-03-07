@@ -1,12 +1,12 @@
 name := "z80_sim"
-ThisBuild / version := "0.0.5"
+ThisBuild / version := "0.0.6"
 ThisBuild / versionScheme := Some("early-semver")
 
 scalaVersion := "2.13.10"
 
 libraryDependencies ++= Seq(
     "jline" % "jline" % "2.14.6",
-    "io.github.krzys9876" %% "command-line-reader" % "1.0.0",
+    "io.github.krzys9876" %% "command-line-reader" % "1.1.0",
     "org.scalatest" %% "scalatest" % "3.2.15" % Test
 )
 
