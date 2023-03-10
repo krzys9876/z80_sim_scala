@@ -105,3 +105,8 @@ The parameters are:
     [--memory-type] : fast/slow (default: fast)
     [--interrupts]  : true/false (default: true) - should the program use interrupts to read user input
 
+## Copyright notice ##
+
+Nascom/Microsoft Basic 4.7 is copyryght of Microsoft. See also: [http://www.nascomhomepage.com/](http://www.nascomhomepage.com/)
+
+Modifications to original source are copyright of Grant Searle. You cannot use it for commercial purposes. See: [http://searle.wales/](http://searle.wales/)
