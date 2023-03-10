@@ -13,9 +13,10 @@ class RegisterTest extends AnyFunSuite {
     val registerController=StateWatcher[Register](Register.blank)
     //when
     //then
-    assert(registerController.get(Regs.A).equals(0))
+    assert(registerController.get(Regs.A).equals(0xFF))
     assert(registerController.get(Regs.PC).equals(0))
     assert(registerController.get(Regs.F).equals(0xFF))
+    assert(registerController.get(Regs.SP).equals(0xFFFF))
   }
 
   test("set register") {
@@ -36,7 +37,6 @@ class RegisterTest extends AnyFunSuite {
     val afterState=registerController >>= (reg=>StateWatcher[Register](reg.set(Regs.B,36)))
     //then
     assert(afterState.get(Regs.B).equals(36))
-    assert(afterState.get(Regs.A).equals(0))
   }
 
   test("set register pairs") {

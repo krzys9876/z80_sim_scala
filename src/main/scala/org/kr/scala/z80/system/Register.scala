@@ -78,7 +78,8 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
 }
 
 object Register {
-  def blank:Register=new Register(0,0xFF,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+  def blank:Register=new Register(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0,0xFFFF,0,0,0xFFFF,0xFFFF,
+    0xFF,0xFF,0xFF,0xFF,0,0)
   def apply(register: Register):Register=new Register(register.a,register.f,register.b,register.c,
     register.d,register.e,register.h,register.l,register.pc,register.sp,register.r,register.i,register.ix,register.iy,
     register.af1,register.bc1,register.de1,register.hl1,register.iff,register.im)
