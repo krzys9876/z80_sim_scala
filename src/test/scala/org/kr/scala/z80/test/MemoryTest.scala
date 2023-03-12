@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemory, MemoryContents, MemoryHandler, MutableMemory, StateWatcher}
+import org.kr.scala.z80.system._
 import org.scalatest.funsuite.AnyFunSuite
 
 class MemoryTest extends AnyFunSuite {

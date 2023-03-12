@@ -4,41 +4,13 @@ import org.kr.scala.z80.utils.Z80Utils
 
 import scala.annotation.tailrec
 
-class ImmutableMemory(override val copy: Vector[Int], val size:Int, val lock:Int=0) extends MemoryContents {
+class ImmutableMemory(override val copy: Vector[Int], val size:Int, override val lock: AddressRange=AddressRange.empty) extends MemoryContents {
   override def apply(address:Int):Int=copy(address)
   override def apply(address:Int,offset:Int):Int=copy(Z80Utils.add16bit(address,offset))
-
-  override def poke(address:Int, value:Int):ImmutableMemory= if(address>=lock) replaceSingle(address,value) else this
-  override def pokeW(address:Int, value:Int):ImmutableMemory= pokeMulti(address,Vector(Z80Utils.getL(value),Z80Utils.getH(value)))
-  override def pokeMulti(address:Int, values:Vector[Int]):ImmutableMemory= {
-    if(values.isEmpty || address+values.size<lock) this
-    else {
-      val startAddress = unlockedAddress(address)
-      val (endAddressExcl, overflow:Boolean) = addressInRangeOrOverflow(address+values.size)
-      val startElement = startAddress - address
-      val endElementExcl = startElement + endAddressExcl - startAddress
-      val valuesToReplace = sliceInRange(values,startElement,endElementExcl)
-
-      val newMem=replaceMulti(startAddress, valuesToReplace)
-      if(overflow) newMem.pokeMulti(0,values.slice(endElementExcl,values.size))
-      else newMem
-    }
-  }
-  private def unlockedAddress(address:Int):Int=if (address < lock) lock else address
-  private def addressInRangeOrOverflow(address:Int):(Int,Boolean)=
-    if (address > size) (size, true) else (address, false)
-  private def sliceInRange(values:Vector[Int], start:Int, endExcl:Int):Vector[Int]=
-    if(start==0 && endExcl==values.size) values
-    else values.slice(start, endExcl)
-
-  override def loadHexLines(lines:List[String]):ImmutableMemory= lines.foldLeft(this)((mem, line)=>mem.loadHexLine(line))
-  private def loadHexLine(line:String):ImmutableMemory= loadHexLine(new HexLineLoader(line))
-  private def loadHexLine(loader:HexLineLoader):ImmutableMemory=pokeMulti(loader.address,loader.values)
-  override def lockTo(upperAddressExcl: Int): ImmutableMemory = new ImmutableMemory(copy,size,upperAddressExcl)
-
-  private def replaceSingle(address:Int,value:Int):ImmutableMemory=
+  override def lock(range: AddressRange): ImmutableMemory = new ImmutableMemory(copy,size,range)
+  override def replaceSingle(address:Int,value:Int):ImmutableMemory=
     new ImmutableMemory((copy.slice(0,address) :+ value) ++ copy.slice(address+1,size),size,lock)
-  private def replaceMulti(address:Int,values:Vector[Int]):ImmutableMemory=
+  override def replaceMulti(address:Int,values:Vector[Int]):ImmutableMemory=
     new ImmutableMemory(copy.slice(0,address) ++ values ++ copy.slice(address+values.size,size),size,lock)
 }
 
@@ -50,55 +22,28 @@ object ImmutableMemory extends MemoryHandler {
   override def pokeW: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.pokeW(address, value)
   override def pokeMulti: (Int, Vector[Int]) => MemoryContents => MemoryContents = (address, values) => memory => memory.pokeMulti(address, values)
   override def loadHexLines: List[String] => MemoryContents => MemoryContents = lines => memory => memory.loadHexLines(lines)
-  override def lockTo: Int => MemoryContents => MemoryContents = upperAddressExcl => memory => memory.lockTo(upperAddressExcl)
+  override def lockTo: Int => MemoryContents => MemoryContents = upperAddressExcl => memory => memory.lock(AddressRange(0,upperAddressExcl))
+  override def lock: AddressRange => MemoryContents => MemoryContents = range => memory => memory.lock(range)
 }
 
-class MutableMemory(val initial: Vector[Int], val size:Int, var lock:Int=0) extends MemoryContents {
+class MutableMemory(val initial: Vector[Int], val size:Int, var lockRange: AddressRange=AddressRange.empty) extends MemoryContents {
+  override def lock:AddressRange=lockRange
   private val data: MemoryArray = new MemoryArray(size,initial.toArray)
   override def apply(address:Int):Int=data.data(address)
   override def apply(address:Int,offset:Int):Int=data.data(Z80Utils.add16bit(address,offset))
-
-  override def poke(address:Int, value:Int):MutableMemory= if(address>=lock) replaceSingle(address,value) else this
-  override def pokeW(address:Int, value:Int):MutableMemory= pokeMulti(address,Vector(Z80Utils.getL(value),Z80Utils.getH(value)))
-  override def pokeMulti(address:Int, values:Vector[Int]):MutableMemory= {
-    if(values.isEmpty || address+values.size<lock) this
-    else {
-      val startAddress = unlockedAddress(address)
-      val (endAddressExcl, overflow:Boolean) = addressInRangeOrOverflow(address+values.size)
-      val startElement = startAddress - address
-      val endElementExcl = startElement + endAddressExcl - startAddress
-      val valuesToReplace = sliceInRange(values,startElement,endElementExcl)
-
-      val newMem=replaceMulti(startAddress, valuesToReplace)
-      if(overflow) newMem.pokeMulti(0,values.slice(endElementExcl,values.size))
-      else newMem
-    }
-  }
-  private def unlockedAddress(address:Int):Int=if (address < lock) lock else address
-  private def addressInRangeOrOverflow(address:Int):(Int,Boolean)=
-    if (address > size) (size, true) else (address, false)
-  private def sliceInRange(values:Vector[Int], start:Int, endExcl:Int):Vector[Int]=
-    if(start==0 && endExcl==values.size) values
-    else values.slice(start, endExcl)
-
-  override def loadHexLines(lines: List[String]): MutableMemory = lines.foldLeft(this)((mem, line) => mem.loadHexLine(line))
-  private def loadHexLine(line:String):MutableMemory= loadHexLine(new HexLineLoader(line))
-  private def loadHexLine(loader:HexLineLoader):MutableMemory=pokeMulti(loader.address,loader.values)
-  override def lockTo(upperAddressExcl: Int): MutableMemory = {
-    lock=upperAddressExcl
+  override def copy: Vector[Int] = data.data.toVector
+  override def lock(newLockRange:AddressRange): MutableMemory = {
+    lockRange=newLockRange
     this
   }
-
-  private def replaceSingle(address:Int,value:Int):MutableMemory={
+  override def replaceSingle(address:Int,value:Int):MutableMemory={
     data.data(address)=value
     this
   }
-  private def replaceMulti(address:Int,values:Vector[Int]):MutableMemory= {
+  override def replaceMulti(address:Int,values:Vector[Int]):MutableMemory= {
     for(addr<-address until address+values.size) data.data(addr)=values(addr-address)
     this
   }
-
-  override def copy: Vector[Int] = data.data.toVector
 }
 
 object MutableMemory extends MemoryHandler {
@@ -109,7 +54,8 @@ object MutableMemory extends MemoryHandler {
   override def pokeW: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.pokeW(address, value)
   override def pokeMulti: (Int, Vector[Int]) => MemoryContents => MemoryContents = (address, values) => memory => memory.pokeMulti(address, values)
   override def loadHexLines: List[String] => MemoryContents => MemoryContents = lines => memory => memory.loadHexLines(lines)
-  override def lockTo: Int => MemoryContents => MemoryContents = upperAddressExcl => memory => memory.lockTo(upperAddressExcl)
+  override def lockTo: Int => MemoryContents => MemoryContents = upperAddressExcl => memory => memory.lock(AddressRange(0, upperAddressExcl))
+  override def lock: AddressRange => MemoryContents => MemoryContents = range => memory => memory.lock(range)
 }
 
 trait MemoryHandler {
@@ -121,15 +67,73 @@ trait MemoryHandler {
   def pokeMulti: (Int, Vector[Int]) => MemoryContents => MemoryContents
   def loadHexLines: List[String] => MemoryContents => MemoryContents
   def lockTo: Int => MemoryContents => MemoryContents
+  def lock: AddressRange => MemoryContents => MemoryContents
 }
 
 trait MemoryContents {
+  def lock:AddressRange
+  val size:Int
   def apply(address: Int): Int
   def apply(address: Int, offset: Int): Int
-  def poke(address:Int, value:Int):MemoryContents
-  def pokeW(address:Int, value:Int):MemoryContents
-  def pokeMulti(address:Int, values:Vector[Int]):MemoryContents
-  def loadHexLines(lines:List[String]):MemoryContents
-  def lockTo(upperAddressExcl: Int): MemoryContents
+  def poke(address:Int, value:Int):MemoryContents= if(!lock.overlaps(address)) replaceSingle(address,value) else this
+  def pokeMulti(address: Int, values: Vector[Int]): MemoryContents = {
+    address + values.size match {
+      case overflow if overflow > size =>
+        val sizeInRange = values.size - (overflow - size)
+        doPokeMulti(address, values.slice(0, sizeInRange))
+          .doPokeMulti(0, values.slice(sizeInRange, sizeInRange + overflow - size))
+      case _ => doPokeMulti(address, values)
+    }
+  }
+  private def doPokeMulti(address: Int, values: Vector[Int]): MemoryContents = {
+    val range = AddressRange(address, address + values.size)
+    val locked = lock.overlapping(range)
+    (range, locked) match {
+      case (empty, _) if empty.isEmpty => this //no change
+      case (_, empty) if empty.isEmpty => replaceMulti(address, values) // range is fully unlocked
+      case (r, l) if r == l => this // range is fully locked
+      case (r, l) => // range is partially locked
+        val (firstRange, secondRange) = r.noOverlappingRanges(l)
+        replaceMulti(firstRange.from, values.slice(0, firstRange.size))
+          .replaceMulti(secondRange.from, values.slice(secondRange.from - address, values.size))
+    }
+  }
+  def pokeW(address: Int, value: Int): MemoryContents = pokeMulti(address, Vector(Z80Utils.getL(value), Z80Utils.getH(value)))
+  def lock(range:AddressRange): MemoryContents
   def copy:Vector[Int]
+  def loadHexLines(lines: List[String]): MemoryContents = lines.foldLeft(this)((mem, line) => mem.loadHexLine(line))
+  def loadHexLine(line: String): MemoryContents = loadHexLine(new HexLineLoader(line))
+  def loadHexLine(loader: HexLineLoader): MemoryContents = pokeMulti(loader.address, loader.values)
+
+  def replaceSingle(address: Int, value: Int): MemoryContents
+  def replaceMulti(address: Int, values: Vector[Int]): MemoryContents
+
+}
+
+case class AddressRange(from:Int, toExcl:Int) {
+  def contains(address:Int):Boolean = address>=from && address<toExcl
+  def isEmpty:Boolean = from>=toExcl
+  def overlaps(address: Int): Boolean = address>=from && address<toExcl
+  def overlaps(other: AddressRange): Boolean = other.from < toExcl && other.toExcl >= from
+  def overlapping(other:AddressRange):AddressRange =
+    if(overlaps(other)) AddressRange(Math.max(from,other.from),Math.min(toExcl,other.toExcl))
+    else AddressRange.emptyFrom(other.from)
+  def noOverlappingRanges(other: AddressRange): (AddressRange,AddressRange) = {
+    val overlappingRange=overlapping(other)
+    val firstRange= overlappingRange match {
+      case o if o.from<from => AddressRange(o.from,from)
+      case _ => AddressRange.emptyFrom(from)
+    }
+    val secondRange = overlappingRange match {
+      case o if toExcl > o.toExcl => AddressRange(o.toExcl, toExcl)
+      case _ => AddressRange.emptyFrom(other.toExcl)
+    }
+    (firstRange,secondRange)
+  }
+  def size:Int = Math.max(toExcl-from,0)
+}
+
+object AddressRange {
+  def emptyFrom(from:Int):AddressRange = new AddressRange(from,from)
+  def empty:AddressRange = emptyFrom(0)
 }
