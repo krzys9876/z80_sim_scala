@@ -6,8 +6,8 @@ import org.scalatest.funsuite.AnyFunSuite
 class MemoryTest extends AnyFunSuite {
   implicit val debugger:Debugger=DummyDebugger
 
-  testAll(ImmutableMemory,"immutable")
-  testAll(MutableMemory,"mutable")
+  testAll(new ImmutableMemoryHandler(),"immutable")
+  testAll(new MutableMemoryHandler(),"mutable")
 
   def testAll(implicit memoryHandler: MemoryHandler,prefix:String):Unit = {
     test(f"init blank memory ($prefix)") {

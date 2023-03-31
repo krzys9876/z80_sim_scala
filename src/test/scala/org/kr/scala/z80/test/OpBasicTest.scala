@@ -1,11 +1,11 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemory, MemoryHandler, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemory, ImmutableMemoryHandler, MemoryHandler, Regs, StateWatcher, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpBasicTest extends AnyFunSuite {
   implicit val debugger:Debugger=DummyDebugger
-  implicit val memoryHandler:MemoryHandler=ImmutableMemory
+  implicit val memoryHandler:MemoryHandler=new ImmutableMemoryHandler()
 
   // TEST NOP
   test("run NOP and move PC") {

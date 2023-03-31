@@ -1,13 +1,13 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{CyclicInterrupt, Debugger, DummyDebugger, ImmutableMemory, InputFile, MemoryHandler, OutputFile, Register, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{CyclicInterrupt, Debugger, DummyDebugger, ImmutableMemoryHandler, InputFile, MemoryHandler, OutputFile, Register, Regs, StateWatcher, Z80System}
 import org.kr.scala.z80.utils.{AnyInt, IntValue}
 import org.scalatest.funsuite.AnyFunSuite
 
 class InterruptTest extends AnyFunSuite {
 
   implicit val debugger:Debugger=DummyDebugger
-  implicit val memoryHandler:MemoryHandler=ImmutableMemory
+  implicit val memoryHandler:MemoryHandler=new ImmutableMemoryHandler()
 
   test("run EI / DI") {
     TestUtils.testRegOrAddrWithFlags(List((Regs.F, 0x00), (Regs.IFF, 0x00), (Regs.PC, 0x0100)), List((0x0100, 0xFB)),
@@ -45,7 +45,7 @@ class InterruptTest extends AnyFunSuite {
 
   test("trigger interrupt (IM 1)") {
     //given
-    val sysBlank=new Z80System(ImmutableMemory.blank(0x0100),Register.blank,OutputFile.blank,InputFile.blank,
+    val sysBlank=new Z80System(memoryHandler.blank(0x0100),Register.blank,OutputFile.blank,InputFile.blank,
       0,CyclicInterrupt(50))
     val memList=interruptTestProgram
     val regList=List((Regs.IFF,1),(Regs.IM,1),(Regs.SP,0x00FF),(Regs.A,0x00))
@@ -70,7 +70,7 @@ class InterruptTest extends AnyFunSuite {
   }
   test("trigger interrupt (IM 0) - unsupported") {
     //given
-    val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+    val sysBlank = new Z80System(memoryHandler.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
       0, CyclicInterrupt(50))
     val memList = interruptTestProgram
     val regList = List((Regs.IFF, 1), (Regs.IM, 0), (Regs.SP, 0x00FF), (Regs.A, 0x00))
@@ -80,7 +80,7 @@ class InterruptTest extends AnyFunSuite {
   }
   test("do not trigger interrupt when IFF is 0") {
     //given
-    val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+    val sysBlank = new Z80System(memoryHandler.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
       0, CyclicInterrupt(50))
     val memList = interruptTestProgram
     val regList = List((Regs.IFF, 0), (Regs.IM, 1), (Regs.SP, 0x00FF), (Regs.A, 0x00))
@@ -93,7 +93,7 @@ class InterruptTest extends AnyFunSuite {
   }
   test("run HALT w/o interrupts") {
     //given
-    val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+    val sysBlank = new Z80System(memoryHandler.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
       0, CyclicInterrupt(50))
     val memList = List((0x0000,0x76)) // HALT
     val regList = List((Regs.IFF, 0), (Regs.IM, 0), (Regs.SP, 0x00FF), (Regs.A, 0x00))
@@ -106,7 +106,7 @@ class InterruptTest extends AnyFunSuite {
   }
   test("run HALT with interrupts") {
     //given
-    val sysBlank = new Z80System(ImmutableMemory.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
+    val sysBlank = new Z80System(memoryHandler.blank(0x0100), Register.blank, OutputFile.blank, InputFile.blank,
       0, CyclicInterrupt(40))
     val memList = List((0x0000, 0x76),(0x0038, 0xED), (0x0039, 0x4D)) // HALT + RETI (the whole interrupt routine is RETI)
     val regList = List((Regs.IFF, 1), (Regs.IM, 1), (Regs.SP, 0x00FF), (Regs.A, 0x00))

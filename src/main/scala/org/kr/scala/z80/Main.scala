@@ -27,8 +27,8 @@ object Main extends App {
   implicit val debugger:Debugger=ConsoleDebugger
   // memory
   implicit val memoryHandler:MemoryHandler = clArgs.memoryType().toLowerCase match {
-    case "slow" | "s" => ImmutableMemory
-    case _ => MutableMemory
+    case "slow" | "s" => new ImmutableMemoryHandler()
+    case _ => new MutableMemoryHandler()
   }
   val memory=prepareMemory(clArgs.hexFile())
   // input keys sequence
@@ -63,8 +63,8 @@ object Main extends App {
 
   private def prepareMemory(hexFile: String)(implicit memoryHandler:MemoryHandler): MemoryContents =
     (StateWatcher(memoryHandler.blank(0x10000)) >>==
-      ImmutableMemory.loadHexLines(readFile(hexFile)) >>==
-      ImmutableMemory.lockTo(0x2000))
+      memoryHandler.loadHexLines(readFile(hexFile)) >>==
+      memoryHandler.lockTo(0x2000))
       .state
 
   private def prepareInputFromFile(inputTextFile:String):InputFile={

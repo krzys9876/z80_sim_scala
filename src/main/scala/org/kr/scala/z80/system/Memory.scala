@@ -14,18 +14,6 @@ class ImmutableMemory(override val copy: Vector[Int], val size:Int, override val
     new ImmutableMemory(copy.slice(0,address) ++ values ++ copy.slice(address+values.size,size),size,lock)
 }
 
-object ImmutableMemory extends MemoryHandler {
-  override def blank(size:Int):MemoryContents=new ImmutableMemory(Vector.fill(size)(0),size)
-  def preloaded(initial:Vector[Int],size:Int):MemoryContents= new ImmutableMemory(initial++Vector.fill(size-initial.size)(0),size)
-  // functions changing state (Memory=>Memory)
-  override def poke: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.poke(address, value)
-  override def pokeW: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.pokeW(address, value)
-  override def pokeMulti: (Int, Vector[Int]) => MemoryContents => MemoryContents = (address, values) => memory => memory.pokeMulti(address, values)
-  override def loadHexLines: List[String] => MemoryContents => MemoryContents = lines => memory => memory.loadHexLines(lines)
-  override def lockTo: Int => MemoryContents => MemoryContents = upperAddressExcl => memory => memory.lock(AddressRange(0,upperAddressExcl))
-  override def lock: AddressRange => MemoryContents => MemoryContents = range => memory => memory.lock(range)
-}
-
 class MutableMemory(val initial: Vector[Int], val size:Int, var lockRange: AddressRange=AddressRange.empty) extends MemoryContents {
   override def lock:AddressRange=lockRange
   private val data: MemoryArray = new MemoryArray(size,initial.toArray)
@@ -46,28 +34,27 @@ class MutableMemory(val initial: Vector[Int], val size:Int, var lockRange: Addre
   }
 }
 
-object MutableMemory extends MemoryHandler {
-  override def blank(size:Int):MemoryContents=new MutableMemory(Vector.fill(size)(0),size)
-  def preloaded(initial:Vector[Int],size:Int):MemoryContents= new MutableMemory(initial++Vector.fill(size-initial.size)(0),size)
-  // functions changing state (Memory=>Memory)
-  override def poke: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.poke(address, value)
-  override def pokeW: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.pokeW(address, value)
-  override def pokeMulti: (Int, Vector[Int]) => MemoryContents => MemoryContents = (address, values) => memory => memory.pokeMulti(address, values)
-  override def loadHexLines: List[String] => MemoryContents => MemoryContents = lines => memory => memory.loadHexLines(lines)
-  override def lockTo: Int => MemoryContents => MemoryContents = upperAddressExcl => memory => memory.lock(AddressRange(0, upperAddressExcl))
-  override def lock: AddressRange => MemoryContents => MemoryContents = range => memory => memory.lock(range)
+class ImmutableMemoryHandler extends MemoryHandler {
+  override def blank(size:Int):ImmutableMemory=new ImmutableMemory(Vector.fill(size)(0),size)
+  override def preloaded(initial:Vector[Int],size:Int):ImmutableMemory= new ImmutableMemory(initial++Vector.fill(size-initial.size)(0),size)
 }
+
+class MutableMemoryHandler extends MemoryHandler {
+  override def blank(size:Int):MutableMemory=new MutableMemory(Vector.fill(size)(0),size)
+  override def preloaded(initial:Vector[Int],size:Int):MutableMemory= new MutableMemory(initial++Vector.fill(size-initial.size)(0),size)
+}
+
 
 trait MemoryHandler {
   def blank(size: Int): MemoryContents
   def preloaded(initial: Vector[Int], size: Int): MemoryContents
   // functions changing state (Memory=>Memory)
-  def poke: (Int, Int) => MemoryContents => MemoryContents
-  def pokeW: (Int, Int) => MemoryContents => MemoryContents
-  def pokeMulti: (Int, Vector[Int]) => MemoryContents => MemoryContents
-  def loadHexLines: List[String] => MemoryContents => MemoryContents
-  def lockTo: Int => MemoryContents => MemoryContents
-  def lock: AddressRange => MemoryContents => MemoryContents
+  def poke: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.poke(address, value)
+  def pokeW: (Int, Int) => MemoryContents => MemoryContents = (address, value) => memory => memory.pokeW(address, value)
+  def pokeMulti: (Int, Vector[Int]) => MemoryContents => MemoryContents = (address, values) => memory => memory.pokeMulti(address, values)
+  def loadHexLines: List[String] => MemoryContents => MemoryContents = lines => memory => memory.loadHexLines(lines)
+  def lockTo: Int => MemoryContents => MemoryContents = upperAddressExcl => memory => memory.lock(AddressRange(0, upperAddressExcl))
+  def lock: AddressRange => MemoryContents => MemoryContents = range => memory => memory.lock(range)
 }
 
 trait MemoryContents {

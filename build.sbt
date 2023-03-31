@@ -1,5 +1,5 @@
 name := "z80_sim"
-ThisBuild / version := "0.0.11"
+ThisBuild / version := "0.0.12"
 ThisBuild / versionScheme := Some("early-semver")
 
 scalaVersion := "2.13.10"
@@ -10,7 +10,10 @@ libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.2.15" % Test
 )
 
-ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature")
+ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-opt:l:inline", "-opt:simplify-jumps", "-opt:redundant-casts", "-opt:box-unbox", "-opt-inline-from:**")
+//ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature")
+//ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-opt:l:inline", "-opt-inline-from:**")
+//ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-opt:redundant-casts")
 
 // set main class
 assembly / mainClass := Some("org.kr.scala.z80.Main")

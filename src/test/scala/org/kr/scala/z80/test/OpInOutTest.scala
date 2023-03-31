@@ -1,12 +1,12 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, ImmutableMemory, InputPort, InputPortConstant, InputPortSequential, MemoryHandler, PortID, RegSymbol, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{ConsoleDebugger, ConsoleDetailedDebugger, Debugger, DummyDebugger, ImmutableMemory, ImmutableMemoryHandler, InputPort, InputPortConstant, InputPortSequential, MemoryHandler, PortID, RegSymbol, Regs, StateWatcher, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class OpInOutTest extends AnyFunSuite {
 
   implicit val debugger:Debugger=ConsoleDetailedDebugger
-  implicit val memoryHandler:MemoryHandler=ImmutableMemory
+  implicit val memoryHandler:MemoryHandler=new ImmutableMemoryHandler()
 
   test("run OUT (n),A (8-bit IO mode only)") {
     //given

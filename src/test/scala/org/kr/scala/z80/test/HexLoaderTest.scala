@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemory, MemoryContents, StateWatcher}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemoryHandler, MemoryContents, StateWatcher}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -19,12 +19,14 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   override def afterAll(): Unit = {}
 
+  val memoryHandler = new ImmutableMemoryHandler()
+
 
   test("load single line") {
     //given
-    val mem=StateWatcher[MemoryContents](ImmutableMemory.blank(0x100))
+    val mem=StateWatcher[MemoryContents](memoryHandler.blank(0x100))
     //when
-    val memLoaded=mem >>== ImmutableMemory.loadHexLines(List(":10004000282DDB81F53A4320FE3F2003F118202ABA"))
+    val memLoaded=mem >>== memoryHandler.loadHexLines(List(":10004000282DDB81F53A4320FE3F2003F118202ABA"))
     //then
     assert(memLoaded.get(0x0040)==0x28)
     assert(memLoaded.get(0x0041)==0x2D)
@@ -34,9 +36,9 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load multiple lines") {
     //given
-    val mem=StateWatcher[MemoryContents](ImmutableMemory.blank(0x100))
+    val mem=StateWatcher[MemoryContents](memoryHandler.blank(0x100))
     //when
-    val memLoaded=mem >>== ImmutableMemory.loadHexLines(
+    val memLoaded=mem >>== memoryHandler.loadHexLines(
       List(
         ":10000000F3C3B80000000000C39F00000000000020",
         ":10001000C374000000000000C3AA0000000000003C",
@@ -57,9 +59,9 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
 
   test("load ending line") {
     //given
-    val mem=StateWatcher[MemoryContents](ImmutableMemory.blank(0x100))
+    val mem=StateWatcher[MemoryContents](memoryHandler.blank(0x100))
     //when
-    val memLoaded=mem >>== ImmutableMemory.loadHexLines(List(":00000001FF"))
+    val memLoaded=mem >>== memoryHandler.loadHexLines(List(":00000001FF"))
     //then
     assert(memLoaded.get(0x0000)==0x00)
     assert(memLoaded.get(0x0001)==0x00)
@@ -88,10 +90,10 @@ class HexLoaderTest extends AnyFunSuite with BeforeAndAfterAll {
     if(Files.exists(tmpFilePath)) Files.delete(tmpFilePath)
 
     saveToFile(tmpFilePath,lines)
-    val mem=StateWatcher[MemoryContents](ImmutableMemory.blank(0x100))
+    val mem=StateWatcher[MemoryContents](memoryHandler.blank(0x100))
     //when
     val linesFromFile=Files.readAllLines(tmpFilePath).asScala.toList
-    val memLoaded=mem >>== ImmutableMemory.loadHexLines(linesFromFile)
+    val memLoaded=mem >>== memoryHandler.loadHexLines(linesFromFile)
     //then
     assert(memLoaded.get(0x0000)==0xF3)
     assert(memLoaded.get(0x0001)==0xC3)

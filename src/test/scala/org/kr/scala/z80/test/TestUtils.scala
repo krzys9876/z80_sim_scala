@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, Flag, ImmutableMemory, MemoryHandler, RegSymbol, Register, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, ImmutableMemory, ImmutableMemoryHandler, MemoryHandler, RegSymbol, Register, Regs, StateWatcher, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object TestUtils {
@@ -13,7 +13,7 @@ object TestUtils {
     assert(reg(Flag.C) == Z80Utils.getBitFromString(flagsAsString, Flag.C.bit))
   }
 
-  implicit val memoryHandler:MemoryHandler = ImmutableMemory
+  implicit val memoryHandler:MemoryHandler = new ImmutableMemoryHandler()
 
   def prepareTest(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int=1)
                  (implicit debugger:Debugger): StateWatcher[Z80System] = {
@@ -28,7 +28,7 @@ object TestUtils {
     )
 
     val mem = memList.foldLeft(StateWatcher(sysBlank.get.memory))(
-      (memC, entry) => memC >>== ImmutableMemory.poke(entry._1, entry._2)
+      (memC, entry) => memC >>== memoryHandler.poke(entry._1, entry._2)
     )
     //when
     val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.output, sysBlank.get.input,
