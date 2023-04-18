@@ -91,7 +91,7 @@ trait RegisterHandler {
 
   // functions changing state (Register=>Register)
   def set: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.set(regSymbol, value)
-  def setRelative: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.setRelative(regSymbol, value)
+  def relative: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.setRelative(regSymbol, value)
 }
 
 class ImmutableRegisterHandler extends RegisterHandler {

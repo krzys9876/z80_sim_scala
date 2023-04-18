@@ -121,12 +121,12 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
   }
 
   def changeRegisterRelative(regSymbol:RegSymbol, value:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== registerHandler.setRelative(regSymbol,value)).get
+    val newReg=(StateWatcherSilent(register) >>== registerHandler.relative(regSymbol,value)).get
     replaceRegister(newReg)
   }
 
   def changePCAndCycles(pc:Int, cycles:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== registerHandler.setRelative(Regs.PC,pc)).get
+    val newReg=(StateWatcherSilent(register) >>== registerHandler.relative(Regs.PC,pc)).get
     replaceRegisterAndCycles(newReg,elapsedTCycles+cycles)
   }
 
