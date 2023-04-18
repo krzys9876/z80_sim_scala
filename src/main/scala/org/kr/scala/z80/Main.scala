@@ -16,6 +16,7 @@ object Main extends App {
   val clArgs=new Args(args)
   println(f"mode: ${clArgs.mode()}")
   println(f"memory: ${clArgs.memoryType()}")
+  println(f"register: ${clArgs.registerType()}")
   println(f"steps: ${if(clArgs.steps==Long.MaxValue) "infinite" else clArgs.steps}")
 
   val CONTROL_PORT = PortID(0xB1)
@@ -32,7 +33,10 @@ object Main extends App {
   }
   val memory=prepareMemory(clArgs.hexFile())
   // register
-  implicit val registerHandler:RegisterHandler = new ImmutableRegisterHandler()
+  implicit val registerHandler:RegisterHandler = clArgs.registerType().toLowerCase match {
+    case "slow" | "s" => new ImmutableRegisterHandler()
+    case _ => new MutableRegisterHandler()
+  }
   // input keys sequence
   val input =  clArgs.mode().toLowerCase match {
     case "interactive" | "i" => prepareConsoleInput(clArgs.basicFile())

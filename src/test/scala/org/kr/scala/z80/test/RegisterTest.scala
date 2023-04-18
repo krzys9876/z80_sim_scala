@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, DummyDebugger, Flag, ImmutableRegister, ImmutableRegisterHandler, RegisterBase, RegisterHandler, Regs, StateWatcher}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, Flag, ImmutableRegister, ImmutableRegisterHandler, MutableRegisterHandler, RegisterBase, RegisterHandler, Regs, StateWatcher}
 import org.scalatest.funsuite.AnyFunSuite
 
 class RegisterTest extends AnyFunSuite {
@@ -8,10 +8,11 @@ class RegisterTest extends AnyFunSuite {
   implicit val debugger:Debugger=DummyDebugger
 
   testAll(new ImmutableRegisterHandler(),"immutable")
+  testAll(new MutableRegisterHandler(),"mutable")
 
   def testAll(implicit registerHandler: RegisterHandler, prefix:String):Unit = {
 
-    test("init blank register ($prefix)") {
+    test(f"init blank register ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when
@@ -22,7 +23,7 @@ class RegisterTest extends AnyFunSuite {
       assert(registerController.get(Regs.SP).equals(0xFFFF))
     }
 
-    test("set register ($prefix)") {
+    test(f"set register ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when
@@ -33,7 +34,7 @@ class RegisterTest extends AnyFunSuite {
       assert(afterState.get(Regs.PC).equals(0))
     }
 
-    test("set register relative ($prefix)") {
+    test(f"set register relative ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when
@@ -42,7 +43,7 @@ class RegisterTest extends AnyFunSuite {
       assert(afterState.get(Regs.SP).equals(126))
     }
 
-    test("set register direct function declaration ($prefix)") {
+    test(f"set register direct function declaration ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when
@@ -51,7 +52,7 @@ class RegisterTest extends AnyFunSuite {
       assert(afterState.get(Regs.B).equals(36))
     }
 
-    test("set register pairs ($prefix)") {
+    test(f"set register pairs ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when
@@ -75,7 +76,7 @@ class RegisterTest extends AnyFunSuite {
       assert(afterState.get(Regs.HL1).equals(0xF7F8))
     }
 
-    test("get register pairs ($prefix)") {
+    test(f"get register pairs ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when
@@ -91,7 +92,7 @@ class RegisterTest extends AnyFunSuite {
       assert(afterState.get(Regs.HL).equals(0x0708))
     }
 
-    test("check flags 1 ($prefix)") {
+    test(f"check flags 1 ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when
@@ -106,7 +107,7 @@ class RegisterTest extends AnyFunSuite {
       assert(!afterState.get(Flag.C))
     }
 
-    test("check flags 2 ($prefix)") {
+    test(f"check flags 2 ($prefix)") {
       //given
       val registerController = StateWatcher[RegisterBase](registerHandler.blank)
       //when

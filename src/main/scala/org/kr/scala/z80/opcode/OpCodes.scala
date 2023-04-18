@@ -55,12 +55,26 @@ object OpCodes {
         m ++ Map(OpCode(op.main)->op)
       )
 
+  lazy val mapMainOnlyFast: Map[Int, OpCode with OpCodeHandledBy] =
+    list
+      .filter(op => op.numberOfCodes == 1)
+      .foldLeft(Map[Int, OpCode with OpCodeHandledBy]())((m, op) =>
+        m ++ Map(op.main -> op)
+      )
+
   // 2-byte opcodes
   lazy val mapMainSupp:Map[OpCode,OpCode with OpCodeHandledBy]=
     list
       .filter(op=>op.numberOfCodes==2)
       .foldLeft(Map[OpCode,OpCode with OpCodeHandledBy]())((m,op)=>
         m ++ Map(OpCode(op.main,op.supp)->op)
+      )
+
+  lazy val mapMainSuppFast: Map[Int, OpCode with OpCodeHandledBy] =
+    list
+      .filter(op => op.numberOfCodes == 2)
+      .foldLeft(Map[Int, OpCode with OpCodeHandledBy]())((m, op) =>
+        m ++ Map((op.main | op.supp() << 8) -> op)
       )
 
   // 3-byte opcodes
@@ -71,11 +85,29 @@ object OpCodes {
         m ++ Map(OpCode(op.main,op.supp,op.supp2)->op)
       )
 
+  lazy val mapMainSuppFast2: Map[Int, OpCode with OpCodeHandledBy] =
+    list
+      .filter(op => op.numberOfCodes == 3)
+      .foldLeft(Map[Int, OpCode with OpCodeHandledBy]())((m, op) =>
+        m ++ Map(op.main + (op.supp() << 8) + (op.supp2() << 16) -> op)
+      )
+
   def getOpCodeObject(code:OpCode):OpCode with OpCodeHandledBy= {
     // search in 3 smaller maps instead of one larger list - ~20% faster (many most often used opcodes are 1-byte)
     mapMainOnly.getOrElse(code.mainOnly,
       mapMainSupp.getOrElse(code.mainSupp,
         mapMainSupp2.getOrElse(code,
           new UNKNOWN(code))))
+  }
+
+  def getOpCodeObjectFast(code: Int): OpCode with OpCodeHandledBy = {
+    // this version is a little faster than when searching by OpCode objects
+    val main=code & 0xFF
+    val mainsupp=code & 0xFFFF
+    val mainsupp2=code
+    mapMainOnlyFast.getOrElse(main,
+      mapMainSuppFast.getOrElse(mainsupp,
+        mapMainSuppFast2.getOrElse(mainsupp2,
+          new UNKNOWN(OpCode.c3(main,mainsupp >> 8,mainsupp2 >> 16)))))
   }
 }

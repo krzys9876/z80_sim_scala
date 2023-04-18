@@ -9,7 +9,7 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
                 val output: OutputFile, val input: InputFile,
                 val elapsedTCycles:Long,
                 val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler) {
-  lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(getCurrentOpCode)
+  lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObjectFast(getCurrentOpCodeFast)
 
   private def step(implicit debugger:Debugger):Z80System= handleCurrent
 
@@ -19,6 +19,13 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
       memory(pc),
       memory(pc,1),
       memory(pc,3))
+  }
+
+  /* "fast" means: find opcode by number (int is sufficient as we need 3 bytes), not by OpCode object .
+  This speeds-up the whole execution by a few percent */
+  private def getCurrentOpCodeFast:Int = {
+    val pc = register(Regs.PC)
+    memory(pc) + (memory(pc, 1) << 8) +  (memory(pc, 3) << 16)
   }
 
   private def handleCurrent(implicit debugger:Debugger):Z80System={
@@ -115,6 +122,7 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
   def changeList(list:List[SystemChange]):Z80System =
     list.foldLeft(this)((changedSystem,oneChange)=>oneChange.handle(changedSystem))
 
+  /* NOTE: StateWatcherSilent does not add any overhead (verified with profiler) */
   def changeRegister(regSymbol:RegSymbol, value:Int):Z80System = {
     val newReg=(StateWatcherSilent(register) >>== registerHandler.set(regSymbol,value)).get
     replaceRegister(newReg)

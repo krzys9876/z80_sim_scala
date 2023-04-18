@@ -6,7 +6,7 @@ trait RegisterBase {
   def apply(regSymbolObj:RegSymbol):Int
   def apply(flag:FlagSymbol):Boolean
   def set(regSymbolObj:RegSymbol,value:Int): RegisterBase
-  def setRelative(regSymbol:RegSymbol,relativeValue:Int): RegisterBase
+  def relative(regSymbol:RegSymbol, relativeValue:Int): RegisterBase
 }
 
 
@@ -76,7 +76,7 @@ class ImmutableRegister(val a:Int, val f:Int, val b:Int, val c:Int, val d:Int, v
     }
   }
 
-  def setRelative(regSymbol:RegSymbol,relativeValue:Int): ImmutableRegister=
+  def relative(regSymbol:RegSymbol, relativeValue:Int): ImmutableRegister=
     set(regSymbol,Z80Utils.add16bit(apply(regSymbol),relativeValue))
 
   override def toString:String=
@@ -85,50 +85,106 @@ class ImmutableRegister(val a:Int, val f:Int, val b:Int, val c:Int, val d:Int, v
         f"AF1:$af1%04X|BC1:$bc1%04X|DE1:$de1%04X|HL1:$hl1%04X||IFF:$iff|IM:$im"
 }
 
+class MutableRegister() extends RegisterBase {
+  val data:RegisterArray = new RegisterArray(25,
+    Array(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
+      0xFFFF,0xFFFF,0xFFFF,0xFFFF,
+      0,0xFFFF,0,0,0xFFFF,0xFFFF,
+      0xFFFF,0xFFFF,0xFFFF,0xFFFF,
+      0,0))
+
+  def apply(regSymbolObj:RegSymbol):Int= {
+    regSymbolObj match {
+      case Regs.AF => Z80Utils.makeWord(data.data(Regs.A.index),data.data(Regs.F.index))
+      case Regs.BC => Z80Utils.makeWord(data.data(Regs.B.index),data.data(Regs.C.index))
+      case Regs.DE => Z80Utils.makeWord(data.data(Regs.D.index),data.data(Regs.E.index))
+      case Regs.HL => Z80Utils.makeWord(data.data(Regs.H.index),data.data(Regs.L.index))
+      case _ => data.data(regSymbolObj.index)
+    }
+  }
+
+  def apply(flag:FlagSymbol):Boolean=flag.extract(data.data(Regs.F.index))
+
+  def set(regSymbolObj:RegSymbol,value:Int): MutableRegister= {
+    regSymbolObj match {
+      case Regs.AF =>
+        data.data(Regs.A.index)=Z80Utils.getH(value)
+        data.data(Regs.F.index)=Z80Utils.getL(value)
+      case Regs.BC =>
+        data.data(Regs.B.index) = Z80Utils.getH(value)
+        data.data(Regs.C.index) = Z80Utils.getL(value)
+      case Regs.DE =>
+        data.data(Regs.D.index) = Z80Utils.getH(value)
+        data.data(Regs.E.index) = Z80Utils.getL(value)
+      case Regs.HL =>
+        data.data(Regs.H.index) = Z80Utils.getH(value)
+        data.data(Regs.L.index) = Z80Utils.getL(value)
+      case _ => data.data(regSymbolObj.index)=value
+    }
+
+    this
+  }
+
+  def relative(regSymbol:RegSymbol, relativeValue:Int): MutableRegister=
+    set(regSymbol,Z80Utils.add16bit(apply(regSymbol),relativeValue))
+
+  override def toString:String=
+    f"A:${data.data(Regs.A.index)}%02X|F:${data.data(Regs.F.index)}%02X|B:${data.data(Regs.B.index)}%02X|"+
+      f"C:${data.data(Regs.C.index)}%02X|D:${data.data(Regs.D.index)}%02X|E:${data.data(Regs.E.index)}%02X|"+
+      f"H:${data.data(Regs.H.index)}%02X|L:${data.data(Regs.L.index)}%02X|"+
+      f"PC:${data.data(Regs.PC.index)}%04X|SP:${data.data(Regs.SP.index)}%02X|R:${data.data(Regs.R.index)}%02X|"+
+      f"I:${data.data(Regs.I.index)}%02X|IX:${data.data(Regs.IX.index)}%02X|IY:${data.data(Regs.IY.index)}%02X|"+
+      f"AF1:${data.data(Regs.AF1.index)}%04X|BC1:${data.data(Regs.BC1.index)}%04X|DE1:${data.data(Regs.DE1.index)}%04X|"+
+      f"HL1:${data.data(Regs.HL1.index)}%04X||IFF:${data.data(Regs.IFF.index)}|IM:${data.data(Regs.IM.index)}"
+}
 
 trait RegisterHandler {
   def blank:RegisterBase
 
   // functions changing state (Register=>Register)
   def set: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.set(regSymbol, value)
-  def relative: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.setRelative(regSymbol, value)
+  def relative: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.relative(regSymbol, value)
 }
 
 class ImmutableRegisterHandler extends RegisterHandler {
   override def blank:ImmutableRegister=new ImmutableRegister(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0,0xFFFF,0,0,0xFFFF,0xFFFF,
-    0xFF,0xFF,0xFF,0xFF,0,0)
+    0xFFFF,0xFFFF,0xFFFF,0xFFFF,0,0)
 }
 
-sealed abstract class RegSymbol(val symbol:String) {
+class MutableRegisterHandler extends RegisterHandler {
+  override def blank:MutableRegister=new MutableRegister()
+}
+
+sealed abstract class RegSymbol(val symbol:String, val index: Int) {
   override val toString:String=f"$symbol"
 }
 
 object Regs {
-  case object A extends RegSymbol("A")
-  case object B extends RegSymbol("B")
-  case object C extends RegSymbol("C")
-  case object D extends RegSymbol("D")
-  case object E extends RegSymbol("E")
-  case object H extends RegSymbol("H")
-  case object L extends RegSymbol("L")
-  case object F extends RegSymbol("F")
-  case object AF extends RegSymbol("AF")
-  case object BC extends RegSymbol("BC")
-  case object DE extends RegSymbol("DE")
-  case object HL extends RegSymbol("HL")
-  case object PC extends RegSymbol("PC")
-  case object SP extends RegSymbol("SP")
-  case object R extends RegSymbol("R")
-  case object I extends RegSymbol("I")
-  case object IX extends RegSymbol("IX")
-  case object IY extends RegSymbol("IY")
-  case object AF1 extends RegSymbol("AF1")
-  case object BC1 extends RegSymbol("BC1")
-  case object DE1 extends RegSymbol("DE1")
-  case object HL1 extends RegSymbol("HL1")
-  case object IFF extends RegSymbol("IFF")
-  case object IM extends RegSymbol("IM")
-  case object NONE extends RegSymbol("NONE")
+  case object A extends RegSymbol("A", 0)
+  case object B extends RegSymbol("B", 1)
+  case object C extends RegSymbol("C", 2)
+  case object D extends RegSymbol("D", 3)
+  case object E extends RegSymbol("E", 4)
+  case object H extends RegSymbol("H", 5)
+  case object L extends RegSymbol("L", 6)
+  case object F extends RegSymbol("F", 7)
+  case object AF extends RegSymbol("AF", 8)
+  case object BC extends RegSymbol("BC", 9)
+  case object DE extends RegSymbol("DE", 10)
+  case object HL extends RegSymbol("HL", 11)
+  case object PC extends RegSymbol("PC", 12)
+  case object SP extends RegSymbol("SP", 13)
+  case object R extends RegSymbol("R", 14)
+  case object I extends RegSymbol("I", 15)
+  case object IX extends RegSymbol("IX", 16)
+  case object IY extends RegSymbol("IY", 17)
+  case object AF1 extends RegSymbol("AF1", 18)
+  case object BC1 extends RegSymbol("BC1", 19)
+  case object DE1 extends RegSymbol("DE1", 20)
+  case object HL1 extends RegSymbol("HL1", 21)
+  case object IFF extends RegSymbol("IFF", 22)
+  case object IM extends RegSymbol("IM", 23)
+  case object NONE extends RegSymbol("NONE", 24)
 }
 
 sealed abstract class FlagSymbol(val symbol:String, val bit:Int) {

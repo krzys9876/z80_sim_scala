@@ -1,5 +1,5 @@
 name := "z80_sim"
-ThisBuild / version := "0.0.12"
+ThisBuild / version := "0.0.13"
 ThisBuild / versionScheme := Some("early-semver")
 
 scalaVersion := "2.13.10"
