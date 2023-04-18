@@ -2,10 +2,18 @@ package org.kr.scala.z80.system
 
 import org.kr.scala.z80.utils.Z80Utils
 
-class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h:Int,val l:Int,
-               val pc:Int,val sp:Int,val r:Int,val i:Int,val ix:Int,val iy:Int,
-               val af1:Int,val bc1:Int,val de1:Int,val hl1:Int,
-               val iff:Int, val im:Int) {
+trait RegisterBase {
+  def apply(regSymbolObj:RegSymbol):Int
+  def apply(flag:FlagSymbol):Boolean
+  def set(regSymbolObj:RegSymbol,value:Int): RegisterBase
+  def setRelative(regSymbol:RegSymbol,relativeValue:Int): RegisterBase
+}
+
+
+class ImmutableRegister(val a:Int, val f:Int, val b:Int, val c:Int, val d:Int, val e:Int, val h:Int, val l:Int,
+                        val pc:Int, val sp:Int, val r:Int, val i:Int, val ix:Int, val iy:Int,
+                        val af1:Int, val bc1:Int, val de1:Int, val hl1:Int,
+                        val iff:Int, val im:Int) extends RegisterBase {
   def apply(regSymbolObj:RegSymbol):Int= {
     regSymbolObj match {
       case Regs.A => a
@@ -38,37 +46,37 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
 
   def apply(flag:FlagSymbol):Boolean=flag.extract(f)
 
-  def set(regSymbolObj:RegSymbol,value:Int): Register= {
+  def set(regSymbolObj:RegSymbol,value:Int): ImmutableRegister= {
     regSymbolObj match {
-      case Regs.A => new Register(value,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.F => new Register(a,value,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.AF => new Register(Z80Utils.getH(value),Z80Utils.getL(value),b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.B => new Register(a,f,value,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.C => new Register(a,f,b,value,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.BC => new Register(a,f,Z80Utils.getH(value),Z80Utils.getL(value),d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.D => new Register(a,f,b,c,value,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.E => new Register(a,f,b,c,d,value,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.DE => new Register(a,f,b,c,Z80Utils.getH(value),Z80Utils.getL(value),h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.H => new Register(a,f,b,c,d,e,value,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.L => new Register(a,f,b,c,d,e,h,value,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.HL => new Register(a,f,b,c,d,e,Z80Utils.getH(value),Z80Utils.getL(value),pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.PC => new Register(a,f,b,c,d,e,h,l,value,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.SP => new Register(a,f,b,c,d,e,h,l,pc,value,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.R => new Register(a,f,b,c,d,e,h,l,pc,sp,value,i,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.I => new Register(a,f,b,c,d,e,h,l,pc,sp,r,value,ix,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.IX => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,value,iy,af1,bc1,de1,hl1,iff,im)
-      case Regs.IY => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,value,af1,bc1,de1,hl1,iff,im)
-      case Regs.AF1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,value,bc1,de1,hl1,iff,im)
-      case Regs.BC1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,value,de1,hl1,iff,im)
-      case Regs.DE1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,value,hl1,iff,im)
-      case Regs.HL1 => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,value,iff,im)
-      case Regs.IFF => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,value,im)
-      case Regs.IM => new Register(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,value)
+      case Regs.A => new ImmutableRegister(value,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.F => new ImmutableRegister(a,value,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.AF => new ImmutableRegister(Z80Utils.getH(value),Z80Utils.getL(value),b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.B => new ImmutableRegister(a,f,value,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.C => new ImmutableRegister(a,f,b,value,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.BC => new ImmutableRegister(a,f,Z80Utils.getH(value),Z80Utils.getL(value),d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.D => new ImmutableRegister(a,f,b,c,value,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.E => new ImmutableRegister(a,f,b,c,d,value,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.DE => new ImmutableRegister(a,f,b,c,Z80Utils.getH(value),Z80Utils.getL(value),h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.H => new ImmutableRegister(a,f,b,c,d,e,value,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.L => new ImmutableRegister(a,f,b,c,d,e,h,value,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.HL => new ImmutableRegister(a,f,b,c,d,e,Z80Utils.getH(value),Z80Utils.getL(value),pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.PC => new ImmutableRegister(a,f,b,c,d,e,h,l,value,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.SP => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,value,r,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.R => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,value,i,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.I => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,value,ix,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.IX => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,value,iy,af1,bc1,de1,hl1,iff,im)
+      case Regs.IY => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,value,af1,bc1,de1,hl1,iff,im)
+      case Regs.AF1 => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,value,bc1,de1,hl1,iff,im)
+      case Regs.BC1 => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,value,de1,hl1,iff,im)
+      case Regs.DE1 => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,value,hl1,iff,im)
+      case Regs.HL1 => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,value,iff,im)
+      case Regs.IFF => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,value,im)
+      case Regs.IM => new ImmutableRegister(a,f,b,c,d,e,h,l,pc,sp,r,i,ix,iy,af1,bc1,de1,hl1,iff,value)
       case Regs.NONE => this
     }
   }
 
-  def setRelative(regSymbol:RegSymbol,relativeValue:Int): Register=
+  def setRelative(regSymbol:RegSymbol,relativeValue:Int): ImmutableRegister=
     set(regSymbol,Z80Utils.add16bit(apply(regSymbol),relativeValue))
 
   override def toString:String=
@@ -77,17 +85,18 @@ class Register(val a:Int,val f:Int,val b:Int,val c:Int,val d:Int,val e:Int,val h
         f"AF1:$af1%04X|BC1:$bc1%04X|DE1:$de1%04X|HL1:$hl1%04X||IFF:$iff|IM:$im"
 }
 
-object Register {
-  def blank:Register=new Register(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0,0xFFFF,0,0,0xFFFF,0xFFFF,
-    0xFF,0xFF,0xFF,0xFF,0,0)
-  def apply(register: Register):Register=new Register(register.a,register.f,register.b,register.c,
-    register.d,register.e,register.h,register.l,register.pc,register.sp,register.r,register.i,register.ix,register.iy,
-    register.af1,register.bc1,register.de1,register.hl1,register.iff,register.im)
+
+trait RegisterHandler {
+  def blank:RegisterBase
 
   // functions changing state (Register=>Register)
-  val set: (RegSymbol, Int) => Register => Register = (regSymbol, value) => register => register.set(regSymbol, value)
-  val setRelative: (RegSymbol, Int) => Register => Register = (regSymbol, value) => register => register.setRelative(regSymbol, value)
+  def set: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.set(regSymbol, value)
+  def setRelative: (RegSymbol, Int) => RegisterBase => RegisterBase = (regSymbol, value) => register => register.setRelative(regSymbol, value)
+}
 
+class ImmutableRegisterHandler extends RegisterHandler {
+  override def blank:ImmutableRegister=new ImmutableRegister(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0,0xFFFF,0,0,0xFFFF,0xFFFF,
+    0xFF,0xFF,0xFF,0xFF,0,0)
 }
 
 sealed abstract class RegSymbol(val symbol:String) {

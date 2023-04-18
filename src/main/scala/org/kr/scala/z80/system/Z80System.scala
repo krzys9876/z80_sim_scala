@@ -5,10 +5,10 @@ import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt, Z80Utils}
 
 import scala.annotation.tailrec
 
-class Z80System(val memory: MemoryContents, val register: Register,
+class Z80System(val memory: MemoryContents, val register: RegisterBase,
                 val output: OutputFile, val input: InputFile,
                 val elapsedTCycles:Long,
-                val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler) {
+                val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler) {
   lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObject(getCurrentOpCode)
 
   private def step(implicit debugger:Debugger):Z80System= handleCurrent
@@ -116,17 +116,17 @@ class Z80System(val memory: MemoryContents, val register: Register,
     list.foldLeft(this)((changedSystem,oneChange)=>oneChange.handle(changedSystem))
 
   def changeRegister(regSymbol:RegSymbol, value:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== Register.set(regSymbol,value)).get
+    val newReg=(StateWatcherSilent(register) >>== registerHandler.set(regSymbol,value)).get
     replaceRegister(newReg)
   }
 
   def changeRegisterRelative(regSymbol:RegSymbol, value:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== Register.setRelative(regSymbol,value)).get
+    val newReg=(StateWatcherSilent(register) >>== registerHandler.setRelative(regSymbol,value)).get
     replaceRegister(newReg)
   }
 
   def changePCAndCycles(pc:Int, cycles:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== Register.setRelative(Regs.PC,pc)).get
+    val newReg=(StateWatcherSilent(register) >>== registerHandler.setRelative(Regs.PC,pc)).get
     replaceRegisterAndCycles(newReg,elapsedTCycles+cycles)
   }
 
@@ -155,10 +155,10 @@ class Z80System(val memory: MemoryContents, val register: Register,
     replaceInput(newIn)
   }
 
-  def refreshInterrupt:Z80System = replaceInterrupt(interrupt.refresh(this))
+  private def refreshInterrupt:Z80System = replaceInterrupt(interrupt.refresh(this))
 
-  private def replaceRegister(newReg:Register):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,interrupt)
-  private def replaceRegisterAndCycles(newReg:Register, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,interrupt)
+  private def replaceRegister(newReg:RegisterBase):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,interrupt)
+  private def replaceRegisterAndCycles(newReg:RegisterBase, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,interrupt)
   private def replaceMemory(newMem:MemoryContents):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles,interrupt)
   private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles,interrupt)
   private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles,interrupt)
@@ -166,8 +166,9 @@ class Z80System(val memory: MemoryContents, val register: Register,
 }
 
 object Z80System {
-  def blank(implicit debugger:Debugger,memoryHandler:MemoryHandler):Z80System=new Z80System(memoryHandler.blank(0x10000),Register.blank,
-    OutputFile.blank, InputFile.blank,0, NoInterrupt())
+  def blank(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler):Z80System=
+    new Z80System(memoryHandler.blank(0x10000),registerHandler.blank,
+      OutputFile.blank, InputFile.blank,0, NoInterrupt())
 
   // run - main function changing state of the system
   def run(implicit debug:Debugger):Long=>Z80System=>Z80System=

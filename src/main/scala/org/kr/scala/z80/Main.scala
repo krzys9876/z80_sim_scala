@@ -31,6 +31,8 @@ object Main extends App {
     case _ => new MutableMemoryHandler()
   }
   val memory=prepareMemory(clArgs.hexFile())
+  // register
+  implicit val registerHandler:RegisterHandler = new ImmutableRegisterHandler()
   // input keys sequence
   val input =  clArgs.mode().toLowerCase match {
     case "interactive" | "i" => prepareConsoleInput(clArgs.basicFile())
@@ -38,7 +40,7 @@ object Main extends App {
   }
   //whole system
   val interrupts=if(clArgs.interrupts()) system.CyclicInterrupt.every20ms else NoInterrupt()
-  val initSystem=new Z80System(memory,Register.blank,OutputFile.blank,input,0,interrupts)
+  val initSystem=new Z80System(memory,registerHandler.blank,OutputFile.blank,input,0,interrupts)
 
   println("START")
   val startTime=LocalDateTime.now()

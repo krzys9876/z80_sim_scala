@@ -1,10 +1,10 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, Flag, ImmutableMemory, ImmutableMemoryHandler, MemoryHandler, RegSymbol, Register, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, ImmutableMemoryHandler, ImmutableRegisterHandler, MemoryHandler, RegSymbol, RegisterBase, RegisterHandler, Regs, StateWatcher, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object TestUtils {
-  def testFlags(reg: Register, flagsAsString: String): Unit = {
+  def testFlags(reg: RegisterBase, flagsAsString: String): Unit = {
     assert(reg(Flag.S) == Z80Utils.getBitFromString(flagsAsString, Flag.S.bit))
     assert(reg(Flag.Z) == Z80Utils.getBitFromString(flagsAsString, Flag.Z.bit))
     assert(reg(Flag.H) == Z80Utils.getBitFromString(flagsAsString, Flag.H.bit))
@@ -14,6 +14,7 @@ object TestUtils {
   }
 
   implicit val memoryHandler:MemoryHandler = new ImmutableMemoryHandler()
+  implicit val registerHandler: RegisterHandler = new ImmutableRegisterHandler()
 
   def prepareTest(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int=1)
                  (implicit debugger:Debugger): StateWatcher[Z80System] = {
@@ -24,7 +25,7 @@ object TestUtils {
                      (implicit debugger:Debugger): StateWatcher[Z80System] = {
     //given
     val reg = regList.foldLeft(StateWatcher(sysBlank.get.register))(
-      (regC, entry) => regC >>== Register.set(entry._1, entry._2)
+      (regC, entry) => regC >>== registerHandler.set(entry._1, entry._2)
     )
 
     val mem = memList.foldLeft(StateWatcher(sysBlank.get.memory))(
@@ -50,7 +51,7 @@ object TestUtils {
     assert(sysTest.get.register(Regs.PC) == pcAfter)
     (resultReg,resultAddr) match {
       case (reg,_) if reg!=Regs.NONE => assert(sysTest.get.register(resultReg) == result())
-      case (_,addr:IntValue) => assert(sysTest.get.memory(resultAddr()) == result())
+      case (_,_:IntValue) => assert(sysTest.get.memory(resultAddr()) == result())
       case _ =>
     }
     TestUtils.testFlags(sysTest.get.register, flagsAsString)
