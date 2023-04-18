@@ -85,28 +85,29 @@ Note that extensive use of console may degrade performance due to scrolling.
 
 The initial idea was to use purely immutable data structures, including array/vector for the memory.
 I verified the performance several times with _visualvm_ and the results were clear - the application spent ~50% of time
-to manipulate the memory. So why not test the mutable memory for comparison?
+to manipulate the memory and another ~10% for registers. So why not test the mutable memory and registers for comparison?
 
 I used native java array (to avoid boxing of integer values) and the same mutable-like interface (every function
 returns an instance of the memory, which in case of mutable memory is just the same instance
-every time). The boost in performance was quite substantial - for **arithmetic2.txt** it was x2 - x3 (from ~80% to ~200% or more).
+every time). The boost in performance was quite substantial - for **arithmetic2.txt** it was x2 - x3 (from ~80%-100% to even ~200-400% or more).
 
 ## Run sample programs ##
 
 In the main project directory you will find the _run.bat_ script with some examples. 
 The parameters are:
 
-     --mode         : batch (no user interaction)/
-                      interactive (use console to interact with the program and Esc to break execution))
-     --hex-file     : the ROM file to run
-    [--basic-file]  : a file with Basic proram, 
-                      actually this is just to simulate user input
-    [--steps-m]     : steps to be executed in millions (real number) or -1 for infinity
-    [--memory-type] : fast/slow (default: fast)
-    [--interrupts]  : true/false (default: true) - should the program use interrupts to read user input
+     --mode           : batch (no user interaction)/
+                        interactive (use console to interact with the program and Esc to break execution))
+     --hex-file       : the ROM file to run
+    [--basic-file]    : a file with Basic proram, 
+                        actually this is just to simulate user input
+    [--steps-m]       : steps to be executed in millions (real number) or -1 for infinity
+    [--memory-type]   : fast/slow (default: fast)
+    [--register-type] : fast/slow (default: fast)
+    [--interrupts]    : true/false (default: true) - should the program use interrupts to read user input
 
 ## Copyright notice ##
 
-Nascom/Microsoft Basic 4.7 is copyryght of Microsoft. See also: [http://www.nascomhomepage.com/](http://www.nascomhomepage.com/)
+Nascom/Microsoft Basic 4.7 is copyright of Microsoft. See also: [http://www.nascomhomepage.com/](http://www.nascomhomepage.com/)
 
 Modifications to original source are copyright of Grant Searle. You cannot use it for commercial purposes. See: [http://searle.wales/](http://searle.wales/)
