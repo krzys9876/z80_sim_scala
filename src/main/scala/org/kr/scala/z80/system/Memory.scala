@@ -62,6 +62,8 @@ trait MemoryContents {
   val size:Int
   def apply(address: Int): Int
   def apply(address: Int, offset: Int): Int
+  def word(address: Int): Int = word(address,0)
+  def word(address: Int, offset: Int): Int = Z80Utils.makeWord(apply(address,offset+1),apply(address, offset))
   def poke(address:Int, value:Int):MemoryContents= if(!lock.overlaps(address)) replaceSingle(address,value) else this
   def pokeMulti(address: Int, values: Vector[Int]): MemoryContents = {
     address + values.size match {

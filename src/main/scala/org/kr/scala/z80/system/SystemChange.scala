@@ -1,19 +1,12 @@
 package org.kr.scala.z80.system
 
-import org.kr.scala.z80.utils.{AnyInt, OptionInt}
-
 abstract class SystemChange {
   def handle(systemC:Z80System):Z80System
 }
 
 class RegisterChange(val regSymbol: RegSymbol, val value: Int) extends SystemChange {
   override def handle(system:Z80System):Z80System=
-  system.changeRegister(regSymbol,value)
-}
-
-class PCChange(val value: Int, val valueSupp: Int) extends SystemChange {
-  override def handle(system:Z80System):Z80System=
-    system.changePCAndCycles(value,valueSupp)
+    system.changeRegister(regSymbol,value)
 }
 
 class RegisterChangeRelative(val regSymbol: RegSymbol, val value: Int) extends SystemChange {

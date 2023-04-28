@@ -3,14 +3,14 @@ package org.kr.scala.z80.utils
 import scala.annotation.tailrec
 
 object Z80Utils {
-  def add8bit(val1: Int, val2: Int): Int = byteEnsureRange((val1 + val2) % 0x100)
-  def add16bit(val1: Int, val2: Int): Int = wordEnsureRange((val1 + val2) % 0x10000)
+  def add8bit(val1: Int, val2: Int): Int = byteEnsureRange((val1 + val2) & 0xFF)
+  def add16bit(val1: Int, val2: Int): Int = wordEnsureRange((val1 + val2) & 0xFFFF)
 
   def getH(word: Int): Int = (word >> 8) & 0xFF
 
   def getL(word: Int): Int = word & 0xFF
 
-  def makeWord(valH:Int,valL:Int):Int=valH*0x100+valL
+  def makeWord(valH:Int,valL:Int):Int=(valH << 8) | valL
 
   private def wordEnsureRange(raw:Int):Int=if(raw<0) raw & 0xFFFF else raw
   private def byteEnsureRange(raw:Int):Int=if(raw<0) raw & 0xFF else raw
@@ -18,8 +18,8 @@ object Z80Utils {
   def isOutOfRangeWord(value:Int):Boolean=(value > 0x7FFF) || (value < -0x8000)
   def isOutOfRangeByte(value:Int):Boolean=(value > 0x7F) || (value < -0x80)
 
-  def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-((raw>>7)&1)*0x80
-  def rawWordTo2Compl(raw:Int):Int= (raw & 0x7FFF)-((raw>>15)&1)*0x8000
+  def rawByteTo2Compl(raw:Int):Int= (raw & 0x7F)-(raw & 0x80)
+  def rawWordTo2Compl(raw:Int):Int= (raw & 0x7FFF)-(raw & 0x8000)
   def word2ComplToRaw(compl:Int):Int= wordEnsureRange(compl)
 
   def getBitFromString(stringAsBoolean:String, bit:Int):Boolean = stringAsBoolean.substring(7-bit,7-bit+1)=="1"

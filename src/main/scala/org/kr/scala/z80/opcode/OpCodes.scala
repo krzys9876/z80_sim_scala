@@ -92,22 +92,14 @@ object OpCodes {
         m ++ Map(op.main + (op.supp() << 8) + (op.supp2() << 16) -> op)
       )
 
-  def getOpCodeObject(code:OpCode):OpCode with OpCodeHandledBy= {
-    // search in 3 smaller maps instead of one larger list - ~20% faster (many most often used opcodes are 1-byte)
-    mapMainOnly.getOrElse(code.mainOnly,
-      mapMainSupp.getOrElse(code.mainSupp,
-        mapMainSupp2.getOrElse(code,
-          new UNKNOWN(code))))
-  }
-
-  def getOpCodeObjectFast(code: Int): OpCode with OpCodeHandledBy = {
-    // this version is a little faster than when searching by OpCode objects
-    val main=code & 0xFF
-    val mainsupp=code & 0xFFFF
-    val mainsupp2=code
+  def getOpCodeObject(main: Int, supp: ()=>Int, supp2: ()=>Int): OpCode with OpCodeHandledBy = {
+    // this version makes reading memory lazy - it is a costly operation and should not be performed in advance
+    // as opcodes are mostly 1-byte
+    lazy val mainSuppValue = main | (supp() << 8)
+    lazy val mainSupp2Value = mainSuppValue | (supp2() << 16)
     mapMainOnlyFast.getOrElse(main,
-      mapMainSuppFast.getOrElse(mainsupp,
-        mapMainSuppFast2.getOrElse(mainsupp2,
-          new UNKNOWN(OpCode.c3(main,mainsupp >> 8,mainsupp2 >> 16)))))
+      mapMainSuppFast.getOrElse(mainSuppValue,
+        mapMainSuppFast2.getOrElse(mainSupp2Value,
+          new UNKNOWN(OpCode.c3(main, mainSuppValue >> 8, mainSupp2Value >> 16)))))
   }
 }

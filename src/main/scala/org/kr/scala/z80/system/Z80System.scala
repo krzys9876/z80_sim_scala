@@ -9,24 +9,20 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
                 val output: OutputFile, val input: InputFile,
                 val elapsedTCycles:Long,
                 val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler) {
-  lazy val currentOpCode:OpCode with OpCodeHandledBy=OpCodes.getOpCodeObjectFast(getCurrentOpCodeFast)
+  private lazy val pc=register(Regs.PC)
+  // always read main opcode
+  private lazy val mainOpCode = memory(pc)
+  // functions fetching parts of current opcode - making them functions (not values) allows passing them to OpCodes
+  // and makes opcode lookup lazy - two supporting opcodes are called only when needed.
+  // This speeds-up opcode lookup significantly
+  private val suppOpCodeFetch = () => memory(pc, 1)
+  private val supp2OpCodeFetch = () => memory(pc, 3)
+
+  // find current opcode but read memory only if needed
+  lazy val currentOpCode:OpCode with OpCodeHandledBy =
+    OpCodes.getOpCodeObject(mainOpCode,suppOpCodeFetch,supp2OpCodeFetch)
 
   private def step(implicit debugger:Debugger):Z80System= handleCurrent
-
-  private def getCurrentOpCode:OpCode={
-    val pc=register(Regs.PC)
-    OpCode.c3(
-      memory(pc),
-      memory(pc,1),
-      memory(pc,3))
-  }
-
-  /* "fast" means: find opcode by number (int is sufficient as we need 3 bytes), not by OpCode object .
-  This speeds-up the whole execution by a few percent */
-  private def getCurrentOpCodeFast:Int = {
-    val pc = register(Regs.PC)
-    memory(pc) + (memory(pc, 1) << 8) +  (memory(pc, 3) << 16)
-  }
 
   private def handleCurrent(implicit debugger:Debugger):Z80System={
     implicit val system:Z80System=this
@@ -37,18 +33,14 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
   def getRegValue(symbol:RegSymbol):Int=register(symbol)
   def getFlags:Flag=new Flag(register(Regs.F))
 
-  private def getByteFromMemoryAtPC(offset:Int):Int = getByteFromMemoryAtReg(Regs.PC,offset)
-  private def getWordFromMemoryAtPC(offset:Int):Int = getWordFromMemoryAtReg(Regs.PC,offset)
+  private def getByteFromMemoryAtPC(offset:Int):Int = memory(pc,offset)
+  private def getWordFromMemoryAtPC(offset:Int):Int = memory.word(pc,offset)
   private def getAddressFromReg(symbol:RegSymbol,offset:Int):Int= getRegValue(symbol)+offset
   private def getFromMemoryAtReg(symbol:RegSymbol,offset:Int,isWord:Boolean):Int =
     if(isWord) getWordFromMemoryAtReg(symbol,offset) else getByteFromMemoryAtReg(symbol,offset)
-  private def getByteFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int = getByte(getAddressFromReg(symbol,offset))
-  private def getWordFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int =
-    Z80Utils.makeWord(getByte(getAddressFromReg(symbol,offset)+1),getByte(getAddressFromReg(symbol,offset)))
-  private def getByteOrWord(address:Int,isWord:Boolean):Int =
-    if(isWord) getWord(address) else getByte(address)
-  private def getByte(address:Int):Int = memory(address)
-  private def getWord(address:Int):Int = Z80Utils.makeWord(memory(address+1),memory(address))
+  private def getByteFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int = memory(getAddressFromReg(symbol,offset))
+  private def getWordFromMemoryAtReg(symbol:RegSymbol,offset:Int):Int = memory.word(getAddressFromReg(symbol,offset))
+  private def getByteOrWord(address:Int,isWord:Boolean):Int = if(isWord) memory.word(address) else memory(address)
 
   def readPort(port:PortIDWithUpper):Int=input.read(port.lower,port.upperNum)
 
@@ -88,63 +80,67 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
   }
   // functions changing state
   private def returnAfterChange(chgList:List[SystemChange], forwardPC:Int=0, forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
-    val chgListAfterPC=addPCAndTCyclesChange(chgList,forwardPC,forwardTCycles)
-    changeList(chgListAfterPC)
+    //NOTE: changing PC and TCycles could be added to chgList but this was a little slower than the solution below
+    changeList(chgList)
+      .updatePCAndTCycles(forwardPC, forwardTCycles)
       .handleInterrupt
-  }
-
-  private def handleInterrupt:Z80System = {
-    (if(interrupt.trigger(this)) doHandleInterrupt() else this)
       .refreshInterrupt
   }
+
+  private def updatePCAndTCycles(forwardPC:Int, forwardTCycles:Int):Z80System =
+    if(forwardPC!=0 || forwardTCycles!=0) changePCAndCycles(forwardPC,forwardTCycles) else this
+
+  private def handleInterrupt:Z80System = if(interrupt.trigger(this)) doHandleInterrupt() else this
 
   private def doHandleInterrupt(): Z80System = {
     assume(getRegValue(Regs.IM) == 1) // handle ONLY IM 1
     changeList(interruptIM1)
+      .updatePCAndTCycles(0, 11+2) // add T cycles (11 for RST 38 + 2 extra wait cycles)
   }
 
   private lazy val interruptIM1: List[SystemChange] = {
     val isInHalt = currentOpCode.mainOnly == HALT.mainOnly
     // Note: PC is already set to the return address
     // only for Halt the return address is the next instruction
-    val returnPC = getRegValue(Regs.PC) + (if(isInHalt) 1 else 0)
+    val returnPC = pc + (if(isInHalt) 1 else 0)
     List(
       new RegisterChange(Regs.PC, 0x0038),             // IM1: call static address 0x0038
       new MemoryChangeWord(getRegValue(Regs.SP)-2, returnPC), // put PC on stack
       new RegisterChangeRelative(Regs.SP, -2),         // decrease stack
-      new PCChange(0, 11 + 2)               // add T cycles (11 for RST 38 + 2 extra wait cycles)
     )
   }
-
-  private def addPCAndTCyclesChange(chgList:List[SystemChange], forwardPC:Int, forwardTCycles:Int):List[SystemChange] =
-    chgList ++ (if(forwardPC!=0 || forwardTCycles!=0) List(new PCChange(forwardPC,forwardTCycles)) else List())
 
   def changeList(list:List[SystemChange]):Z80System =
     list.foldLeft(this)((changedSystem,oneChange)=>oneChange.handle(changedSystem))
 
-  /* NOTE: StateWatcherSilent does not add any overhead (verified with profiler) */
+  /* NOTE: We could be watching memory changes through StateWatcher, but it adds some overhead */
   def changeRegister(regSymbol:RegSymbol, value:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== registerHandler.set(regSymbol,value)).get
+    //val newReg=(StateWatcherSilent(register) >>== registerHandler.set(regSymbol,value)).get
+    val newReg=register.set(regSymbol,value)
     replaceRegister(newReg)
   }
 
   def changeRegisterRelative(regSymbol:RegSymbol, value:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== registerHandler.relative(regSymbol,value)).get
+    //val newReg=(StateWatcherSilent(register) >>== registerHandler.relative(regSymbol,value)).get
+    val newReg=register.relative(regSymbol,value)
     replaceRegister(newReg)
   }
 
   def changePCAndCycles(pc:Int, cycles:Int):Z80System = {
-    val newReg=(StateWatcherSilent(register) >>== registerHandler.relative(Regs.PC,pc)).get
+    //val newReg=(StateWatcherSilent(register) >>== registerHandler.relative(Regs.PC,pc)).get
+    val newReg=register.relative(Regs.PC,pc)
     replaceRegisterAndCycles(newReg,elapsedTCycles+cycles)
   }
 
   def changeMemoryByte(address:Int, value:Int):Z80System = {
-    val newMem=(StateWatcherSilent(memory) >>== memoryHandler.poke(address,value)).get
+    //val newMem=(StateWatcherSilent(memory) >>== memoryHandler.poke(address,value)).get
+    val newMem=memory.poke(address, value)
     replaceMemory(newMem)
   }
 
   def changeMemoryWord(address:Int, value:Int):Z80System = {
-    val newMem=(StateWatcherSilent(memory) >>== memoryHandler.pokeW(address,value)).get
+    //val newMem=(StateWatcherSilent(memory) >>== memoryHandler.pokeW(address,value)).get
+    val newMem=memory.pokeW(address, value)
     replaceMemory(newMem)
   }
 
