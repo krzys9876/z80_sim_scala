@@ -1,6 +1,6 @@
 package org.kr.scala.z80.test
 
-import org.kr.scala.z80.system.{Debugger, Flag, ImmutableMemoryHandler, ImmutableRegisterHandler, MemoryHandler, RegSymbol, RegisterBase, RegisterHandler, Regs, StateWatcher, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, ImmutableMemoryHandler, ImmutableRegisterHandler, MemoryHandler, RegSymbol, RegisterBase, RegisterHandler, Regs, StateWatcher, TCycleCounterHandler, TCycleCounterHandlerImmutable, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object TestUtils {
@@ -15,6 +15,7 @@ object TestUtils {
 
   implicit val memoryHandler:MemoryHandler = new ImmutableMemoryHandler()
   implicit val registerHandler: RegisterHandler = new ImmutableRegisterHandler()
+  implicit val tCycleHandler: TCycleCounterHandler = new TCycleCounterHandlerImmutable()
 
   def prepareTest(regList: List[(RegSymbol, Int)], memList: List[(Int, Int)], steps:Int=1)
                  (implicit debugger:Debugger): StateWatcher[Z80System] = {
@@ -33,7 +34,7 @@ object TestUtils {
     )
     //when
     val sysInit = StateWatcher[Z80System](new Z80System(mem.get, reg.get,sysBlank.get.output, sysBlank.get.input,
-      0, sysBlank.state.interrupt))
+      tCycleHandler.blank, sysBlank.state.interrupt))
     sysInit >>== Z80System.run(debugger)(steps.toLong)
   }
 

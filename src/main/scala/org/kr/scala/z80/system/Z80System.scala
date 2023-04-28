@@ -7,20 +7,15 @@ import scala.annotation.tailrec
 
 class Z80System(val memory: MemoryContents, val register: RegisterBase,
                 val output: OutputFile, val input: InputFile,
-                val elapsedTCycles:Long,
+                val elapsedTCycles:TCycleCounter,
                 val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler) {
-  private lazy val pc=register(Regs.PC)
-  // always read main opcode
-  private lazy val mainOpCode = memory(pc)
-  // functions fetching parts of current opcode - making them functions (not values) allows passing them to OpCodes
-  // and makes opcode lookup lazy - two supporting opcodes are called only when needed.
-  // This speeds-up opcode lookup significantly
-  private val suppOpCodeFetch = () => memory(pc, 1)
-  private val supp2OpCodeFetch = () => memory(pc, 3)
+  private def pc=register(Regs.PC)
 
   // find current opcode but read memory only if needed
-  lazy val currentOpCode:OpCode with OpCodeHandledBy =
-    OpCodes.getOpCodeObject(mainOpCode,suppOpCodeFetch,supp2OpCodeFetch)
+  def currentOpCode:OpCode with OpCodeHandledBy = {
+    val pcValue=pc
+    OpCodes.getOpCodeObject(memory(pcValue),memory(pcValue,1),memory(pcValue,3))
+  }
 
   private def step(implicit debugger:Debugger):Z80System= handleCurrent
 
@@ -129,7 +124,7 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
   def changePCAndCycles(pc:Int, cycles:Int):Z80System = {
     //val newReg=(StateWatcherSilent(register) >>== registerHandler.relative(Regs.PC,pc)).get
     val newReg=register.relative(Regs.PC,pc)
-    replaceRegisterAndCycles(newReg,elapsedTCycles+cycles)
+    replaceRegisterAndCycles(newReg,elapsedTCycles.add(cycles))
   }
 
   def changeMemoryByte(address:Int, value:Int):Z80System = {
@@ -161,18 +156,25 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
 
   private def refreshInterrupt:Z80System = replaceInterrupt(interrupt.refresh(this))
 
-  private def replaceRegister(newReg:RegisterBase):Z80System= new Z80System(memory,newReg,output,input,elapsedTCycles,interrupt)
-  private def replaceRegisterAndCycles(newReg:RegisterBase, newTCycles:Long):Z80System= new Z80System(memory,newReg,output,input,newTCycles,interrupt)
-  private def replaceMemory(newMem:MemoryContents):Z80System= new Z80System(newMem,register,output,input,elapsedTCycles,interrupt)
-  private def replaceOutput(newOut:OutputFile):Z80System= new Z80System(memory,register,newOut,input,elapsedTCycles,interrupt)
-  private def replaceInput(newIn:InputFile):Z80System= new Z80System(memory,register,output,newIn,elapsedTCycles,interrupt)
-  private def replaceInterrupt(newInterrupt:InterruptInfo):Z80System= new Z80System(memory,register,output,input,elapsedTCycles,newInterrupt)
+  private def replaceRegister(newReg:RegisterBase):Z80System=
+    if(newReg ne register) new Z80System(memory,newReg,output,input,elapsedTCycles,interrupt) else this
+  private def replaceRegisterAndCycles(newReg:RegisterBase, newTCycles:TCycleCounter):Z80System=
+    if((newReg ne register) || (newTCycles ne elapsedTCycles)) new Z80System(memory,newReg,output,input,newTCycles,interrupt) else this
+  private def replaceMemory(newMem:MemoryContents):Z80System=
+    if(newMem ne memory) new Z80System(newMem,register,output,input,elapsedTCycles,interrupt) else this
+  private def replaceOutput(newOut:OutputFile):Z80System=
+    if(newOut ne output) new Z80System(memory,register,newOut,input,elapsedTCycles,interrupt) else this
+  private def replaceInput(newIn:InputFile):Z80System=
+    if(newIn ne input) new Z80System(memory,register,output,newIn,elapsedTCycles,interrupt) else this
+  private def replaceInterrupt(newInterrupt:InterruptInfo):Z80System=
+    if(newInterrupt ne interrupt) new Z80System(memory,register,output,input,elapsedTCycles,newInterrupt) else this
 }
 
 object Z80System {
-  def blank(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler):Z80System=
+  def blank(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler,
+            tCycleHandler:TCycleCounterHandler):Z80System=
     new Z80System(memoryHandler.blank(0x10000),registerHandler.blank,
-      OutputFile.blank, InputFile.blank,0, NoInterrupt())
+      OutputFile.blank, InputFile.blank,tCycleHandler.blank, NoInterrupt())
 
   // run - main function changing state of the system
   def run(implicit debug:Debugger):Long=>Z80System=>Z80System=
@@ -208,13 +210,61 @@ case class CyclicInterrupt(everyTCycles:Long,toGo:Long,lastTCycles:Long) extends
   override def trigger(system:Z80System):Boolean = system.getRegValue(Regs.IFF)==1 && toGo<0
   // always cycle - even if interrupts are disabled (normally interrupts are generated externally to the system)
   override def refresh(system:Z80System):CyclicInterrupt = {
-    val step=system.elapsedTCycles - lastTCycles
+    val step=system.elapsedTCycles.cycles - lastTCycles
     val newToGo = if(toGo<0) toGo - step + everyTCycles else toGo - step
-    new CyclicInterrupt(everyTCycles,newToGo,system.elapsedTCycles)
+    new CyclicInterrupt(everyTCycles,newToGo,system.elapsedTCycles.cycles)
   }
 }
 
 object CyclicInterrupt {
   def apply(everyTCycles:Long):CyclicInterrupt = new CyclicInterrupt(everyTCycles, everyTCycles, 0)
   def every20ms:CyclicInterrupt = apply(Z80System.REFERENCE_CYCLES_20ms)
+}
+
+class CyclicInterruptMutable(val everyTCycles:Long) extends InterruptInfo {
+  private var toGo:Long = everyTCycles
+  private var lastTCycles:Long = 0
+  // trigger only if interrupts are enabled
+  override def trigger(system:Z80System):Boolean = system.getRegValue(Regs.IFF)==1 && toGo<0
+  // always cycle - even if interrupts are disabled (normally interrupts are generated externally to the system)
+  override def refresh(system:Z80System):CyclicInterruptMutable = {
+    val step=system.elapsedTCycles.cycles - lastTCycles
+    toGo = if(toGo<0) toGo - step + everyTCycles else toGo - step
+    lastTCycles = system.elapsedTCycles.cycles
+    this
+  }
+}
+
+object CyclicInterruptMutable {
+  def apply(everyTCycles:Long):CyclicInterruptMutable = new CyclicInterruptMutable(everyTCycles)
+  def every20ms:CyclicInterruptMutable = apply(Z80System.REFERENCE_CYCLES_20ms)
+}
+
+trait TCycleCounter {
+  def cycles:Int
+  def add(cyclesToAdd:Int):TCycleCounter
+}
+
+case class TCycleCounterImmutable(override val cycles:Int) extends TCycleCounter {
+  override def add(cyclesToAdd:Int):TCycleCounter = copy(cycles=cycles+cyclesToAdd)
+}
+
+class TCycleCounterMutable(private var c:Int) extends TCycleCounter {
+  def cycles:Int = c
+  override def add(cyclesToAdd:Int):TCycleCounter = {
+    c+=cyclesToAdd
+    this
+  }
+}
+
+trait TCycleCounterHandler {
+  def blank:TCycleCounter
+}
+
+class TCycleCounterHandlerImmutable extends TCycleCounterHandler {
+  override def blank:TCycleCounterImmutable = TCycleCounterImmutable(0)
+}
+
+class TCycleCounterHandlerMutable extends TCycleCounterHandler{
+  override def blank:TCycleCounterMutable = new TCycleCounterMutable(0)
 }

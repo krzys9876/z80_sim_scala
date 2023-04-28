@@ -26,25 +26,40 @@ object Main extends App {
 
   //debugger
   implicit val debugger:Debugger=ConsoleDebugger
-  // memory
-  implicit val memoryHandler:MemoryHandler = clArgs.memoryType().toLowerCase match {
-    case "slow" | "s" => new ImmutableMemoryHandler()
-    case _ => new MutableMemoryHandler()
+  //determine required (im)mutability
+  val mutableMemoryFlag: Boolean = clArgs.memoryType().toLowerCase match {
+    case "slow" | "s" => false
+    case _ => true
   }
+  val mutableRegisterFlag: Boolean = clArgs.registerType().toLowerCase match {
+    case "slow" | "s" => false
+    case _ => true
+  }
+
+  // memory
+  implicit val memoryHandler:MemoryHandler =
+    if(mutableMemoryFlag) new MutableMemoryHandler() else new ImmutableMemoryHandler()
   val memory=prepareMemory(clArgs.hexFile())
   // register
-  implicit val registerHandler:RegisterHandler = clArgs.registerType().toLowerCase match {
-    case "slow" | "s" => new ImmutableRegisterHandler()
-    case _ => new MutableRegisterHandler()
-  }
+  implicit val registerHandler:RegisterHandler =
+    if(mutableRegisterFlag) new MutableRegisterHandler() else new ImmutableRegisterHandler()
+  // tCycle handler
+  implicit val tCycleCounterHandler:TCycleCounterHandler =
+    if(mutableMemoryFlag && mutableRegisterFlag) new TCycleCounterHandlerMutable()
+    else new TCycleCounterHandlerImmutable()
   // input keys sequence
   val input =  clArgs.mode().toLowerCase match {
     case "interactive" | "i" => prepareConsoleInput(clArgs.basicFile())
     case "batch" | "b" => prepareInputFromFile(clArgs.basicFile())
   }
   //whole system
-  val interrupts=if(clArgs.interrupts()) system.CyclicInterrupt.every20ms else NoInterrupt()
-  val initSystem=new Z80System(memory,registerHandler.blank,OutputFile.blank,input,0,interrupts)
+  val interrupts=if(clArgs.interrupts()) {
+    (mutableRegisterFlag,mutableRegisterFlag) match {
+      case(true,true) => CyclicInterruptMutable.every20ms
+      case _ => CyclicInterrupt.every20ms
+    }
+  } else NoInterrupt()
+  val initSystem=new Z80System(memory,registerHandler.blank,OutputFile.blank,input,tCycleCounterHandler.blank,interrupts)
 
   println("START")
   val startTime=LocalDateTime.now()
@@ -55,10 +70,10 @@ object Main extends App {
   val seconds=ChronoUnit.MILLIS.between(startTime,endTime).toDouble/1000
   val cycles=after.get.elapsedTCycles
   val refhz=Z80System.REFERENCE_HZ
-  val refseconds=cycles.toDouble/refhz.toDouble
+  val refseconds=cycles.cycles.toDouble/refhz.toDouble
   val speed=refseconds/seconds // assuming CPU @ 3.6468MHZ
   println(f"elapsed seconds: $seconds%1.2f")
-  println(f"elapsed T cycles: $cycles")
+  println(f"elapsed T cycles: ${cycles.cycles}")
   println(f"reference clock ${refhz.toDouble/1000000}%1.4f MHz")
   println(f"reference seconds: $refseconds%1.2f")
   println(f"relative speed: ${speed*100}%2.2f %%")
