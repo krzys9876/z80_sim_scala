@@ -241,16 +241,16 @@ object CyclicInterruptMutable {
 }
 
 trait TCycleCounter {
-  def cycles:Int
+  def cycles:Long
   def add(cyclesToAdd:Int):TCycleCounter
 }
 
-case class TCycleCounterImmutable(override val cycles:Int) extends TCycleCounter {
+case class TCycleCounterImmutable(override val cycles:Long) extends TCycleCounter {
   override def add(cyclesToAdd:Int):TCycleCounter = copy(cycles=cycles+cyclesToAdd)
 }
 
-class TCycleCounterMutable(private var c:Int) extends TCycleCounter {
-  def cycles:Int = c
+class TCycleCounterMutable(private var c:Long) extends TCycleCounter {
+  def cycles:Long = c
   override def add(cyclesToAdd:Int):TCycleCounter = {
     c+=cyclesToAdd
     this
