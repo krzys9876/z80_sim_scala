@@ -16,13 +16,6 @@ case class OpCode(main:Int,supp:OptionInt=AnyInt,supp2:OptionInt=AnyInt) {
   override def toString: String =
     f"OpCode(${OpCode.num2hex(main)}${if(supp!=AnyInt) ","+OpCode.num2hex(supp()) else ""}${if(supp2!=AnyInt) ","+OpCode.num2hex(supp2()) else ""})"
 
-  def replaceCode(codeNo:Int,value:Int):OpCode=
-    codeNo match {
-      case 1 => OpCode(value,supp,supp2)
-      case 2 => OpCode(main,IntValue(value),supp2)
-      case 3 => OpCode(main,supp,IntValue(value))
-    }
-
   lazy val numberOfCodes:Int= {
     (supp,supp2) match {
       case (AnyInt,AnyInt) => 1
@@ -35,9 +28,6 @@ case class OpCode(main:Int,supp:OptionInt=AnyInt,supp2:OptionInt=AnyInt) {
     main==code.main &&
     (supp==AnyInt || code.supp==AnyInt || supp()==code.supp()) &&
     (supp2==AnyInt || code.supp2==AnyInt || supp2()==code.supp2())
-
-  def mainOnly:OpCode=OpCode(main)
-  def mainSupp:OpCode=OpCode(main,supp)
 }
 
 object OpCode {

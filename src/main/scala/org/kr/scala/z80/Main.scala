@@ -74,6 +74,7 @@ object Main extends App {
   val speed=refseconds/seconds // assuming CPU @ 3.6468MHZ
   println(f"elapsed seconds: $seconds%1.2f")
   println(f"elapsed T cycles: ${cycles.cycles}")
+  //println(f"elapsed instructionsBySize: 1 - ${cycles.instructionsBySize(1)}, 2 - ${cycles.instructionsBySize(2)}, 3 - ${cycles.instructionsBySize(3)}")
   println(f"reference clock ${refhz.toDouble/1000000}%1.4f MHz")
   println(f"reference seconds: $refseconds%1.2f")
   println(f"relative speed: ${speed*100}%2.2f %%")

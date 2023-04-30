@@ -1,5 +1,7 @@
 package org.kr.scala.z80.opcode
 
+import scala.annotation.tailrec
+
 object OpCodes {
   // All defined opcodes
   val list:List[OpCode with OpCodeHandledBy]=
@@ -45,47 +47,27 @@ object OpCodes {
         NOP, HALT
       )
 
-  //Separate maps to find opcodes 1-, 2- and 3-bytes long
+  //Separate collections to find opcodes 1-, 2- and 3-bytes long
   //(separation due to performance considerations after profiling)
-  // 1-byte opcodes
-  lazy val mapMainOnly:Map[OpCode,OpCode with OpCodeHandledBy]=
-    list
-      .filter(op=>op.numberOfCodes==1)
-      .foldLeft(Map[OpCode,OpCode with OpCodeHandledBy]())((m,op)=>
-        m ++ Map(OpCode(op.main)->op)
-      )
-
-  lazy val mapMainOnlyFast: Map[Int, OpCode with OpCodeHandledBy] =
+  // 1-byte opcodes - Vector for better performance than Map
+  private val mainOnlyCodes: Vector[Option[OpCode with OpCodeHandledBy]] = {
+    val empty:Vector[Option[OpCode with OpCodeHandledBy]]=Vector.fill(256)(None)
     list
       .filter(op => op.numberOfCodes == 1)
-      .foldLeft(Map[Int, OpCode with OpCodeHandledBy]())((m, op) =>
-        m ++ Map(op.main -> op)
+      .foldLeft(empty)((populated, op) => populated.updated(op.main,Some(op))
       )
+  }
 
-  // 2-byte opcodes
-  lazy val mapMainSupp:Map[OpCode,OpCode with OpCodeHandledBy]=
-    list
-      .filter(op=>op.numberOfCodes==2)
-      .foldLeft(Map[OpCode,OpCode with OpCodeHandledBy]())((m,op)=>
-        m ++ Map(OpCode(op.main,op.supp)->op)
-      )
-
-  lazy val mapMainSuppFast: Map[Int, OpCode with OpCodeHandledBy] =
+  // 2-byte opcodes - Map for moderate performance - but 2-byte opcodes are relatively rare
+  private val mainSuppCodes: Map[Int, OpCode with OpCodeHandledBy] =
     list
       .filter(op => op.numberOfCodes == 2)
       .foldLeft(Map[Int, OpCode with OpCodeHandledBy]())((m, op) =>
         m ++ Map((op.main | op.supp() << 8) -> op)
       )
 
-  // 3-byte opcodes
-  lazy val mapMainSupp2:Map[OpCode,OpCode with OpCodeHandledBy]=
-    list
-      .filter(op=>op.numberOfCodes==3)
-      .foldLeft(Map[OpCode,OpCode with OpCodeHandledBy]())((m,op)=>
-        m ++ Map(OpCode(op.main,op.supp,op.supp2)->op)
-      )
-
-  lazy val mapMainSuppFast2: Map[Int, OpCode with OpCodeHandledBy] =
+  // 3-byte opcodes - very rare
+  private val mainSupp2Codes: Map[Int, OpCode with OpCodeHandledBy] =
     list
       .filter(op => op.numberOfCodes == 3)
       .foldLeft(Map[Int, OpCode with OpCodeHandledBy]())((m, op) =>
@@ -97,9 +79,9 @@ object OpCodes {
     // as opcodes are mostly 1-byte
     lazy val mainSuppValue = main | (supp << 8)
     lazy val mainSupp2Value = mainSuppValue | (supp2 << 16)
-    mapMainOnlyFast.getOrElse(main,
-      mapMainSuppFast.getOrElse(mainSuppValue,
-        mapMainSuppFast2.getOrElse(mainSupp2Value,
+    mainOnlyCodes(main).getOrElse(
+      mainSuppCodes.getOrElse(mainSuppValue,
+        mainSupp2Codes.getOrElse(mainSupp2Value,
           new UNKNOWN(OpCode.c3(main, mainSuppValue >> 8, mainSupp2Value >> 16)))))
   }
 }

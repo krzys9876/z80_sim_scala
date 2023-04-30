@@ -11,18 +11,15 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
                 val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler) {
   private def pc=register(Regs.PC)
 
-  // find current opcode but read memory only if needed
-  def currentOpCode:OpCode with OpCodeHandledBy = {
-    val pcValue=pc
-    OpCodes.getOpCodeObject(memory(pcValue),memory(pcValue,1),memory(pcValue,3))
-  }
-
   private def step(implicit debugger:Debugger):Z80System= handleCurrent
 
   private def handleCurrent(implicit debugger:Debugger):Z80System={
     implicit val system:Z80System=this
-    val (change,forwardPC,forwardCycles)=currentOpCode.handler.handle(currentOpCode)
-    returnAfterChange(change,forwardPC,forwardCycles)
+    val pcValue=pc
+    val opCode=OpCodes.getOpCodeObject(memory(pcValue),memory(pcValue,1),memory(pcValue,3))
+    val (change,forwardPC,forwardCycles)=opCode.handler.handle(opCode)
+    //replaceRegisterAndCycles(register,elapsedTCycles.addInstruction(currentOpCode.numberOfCodes)).
+      returnAfterChange(change,forwardPC,forwardCycles)
   }
 
   def getRegValue(symbol:RegSymbol):Int=register(symbol)
@@ -93,11 +90,11 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
       .updatePCAndTCycles(0, 11+2) // add T cycles (11 for RST 38 + 2 extra wait cycles)
   }
 
-  private lazy val interruptIM1: List[SystemChange] = {
-    val isInHalt = currentOpCode.mainOnly == HALT.mainOnly
+  private def interruptIM1: List[SystemChange] = {
+    val isHaltNext = memory(pc) == HALT.main
     // Note: PC is already set to the return address
-    // only for Halt the return address is the next instruction
-    val returnPC = pc + (if(isInHalt) 1 else 0)
+    // only for Halt the return address is the next instruction (as interrupt wakes the CPU up from halt state)
+    val returnPC = pc + (if(isHaltNext) 1 else 0)
     List(
       new RegisterChange(Regs.PC, 0x0038),             // IM1: call static address 0x0038
       new MemoryChangeWord(getRegValue(Regs.SP)-2, returnPC), // put PC on stack
@@ -243,16 +240,27 @@ object CyclicInterruptMutable {
 trait TCycleCounter {
   def cycles:Long
   def add(cyclesToAdd:Int):TCycleCounter
+  def instructionsBySize(size: Int): Long
+  def addInstruction(size:Int):TCycleCounter
+
 }
 
-case class TCycleCounterImmutable(override val cycles:Long) extends TCycleCounter {
+case class TCycleCounterImmutable(override val cycles:Long, instructionsBySizeSrc:Vector[Long]=Vector(0,0,0,0)) extends TCycleCounter {
   override def add(cyclesToAdd:Int):TCycleCounter = copy(cycles=cycles+cyclesToAdd)
+  override def instructionsBySize(size:Int):Long = instructionsBySizeSrc(size)
+  override def addInstruction(size: Int): TCycleCounter =
+    copy(instructionsBySizeSrc=instructionsBySizeSrc.updated(size,instructionsBySizeSrc(size)+1))
 }
 
-class TCycleCounterMutable(private var c:Long) extends TCycleCounter {
+class TCycleCounterMutable(private var c:Long,private val instructionsBySizeSrc:Array[Long]=Array(0,0,0,0)) extends TCycleCounter {
   def cycles:Long = c
   override def add(cyclesToAdd:Int):TCycleCounter = {
     c+=cyclesToAdd
+    this
+  }
+  override def instructionsBySize(size:Int):Long = instructionsBySizeSrc(size)
+  override def addInstruction(size: Int): TCycleCounter = {
+    instructionsBySizeSrc(size)+=1
     this
   }
 }
