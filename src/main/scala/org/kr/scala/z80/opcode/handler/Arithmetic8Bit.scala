@@ -1,12 +1,12 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode.{ArithmeticCalculatorByte, ArithmeticOpInput, ArithmeticOpResult, ArithmeticOperation, EmptyLocation, FlagCBorrow, FlagCCarry, FlagCInvert, FlagCReset, FlagCSet, FlagHBorrow, FlagHCarryByte, FlagHCopyC, FlagHReset, FlagHSet, FlagNReset, FlagNSet, FlagPOverflowByte, FlagPParity, FlagSSignByte, FlagZZero, Location, OpCode, OpCodeArithmetic8b, OpCodeDestLocation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
-import org.kr.scala.z80.system.{Debugger, DummyChange, Flag, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, Regs, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object Arithmetic8Bit extends OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System, Int, Int) = {
     val actualCode=castType[OpCode with OpCodeArithmetic8b with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with OpCodeTCycles](code)
 
     val oper = actualCode.operation
@@ -18,15 +18,11 @@ object Arithmetic8Bit extends OpCodeHandler {
     val destLocation = oper.getDestination(sourceLocation)
 
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))
-    /*val chgList = destLocation match {
-      case EmptyLocation => List(new DummyChange())
-      case _ => List(system.putValueToLocation(destLocation, result.valueOut))
-    }*/
     val chgSystem = destLocation match {
       case EmptyLocation => system
       case _ => system.putValueToLocation2(destLocation, result.valueOut)
     }
-    (chgSystem.changeRegister(Regs.F, flags()),/*chgList ++ List(new RegisterChange(Regs.F, flags()))*/ DummyChange.blank, actualCode.size, actualCode.t)
+    (chgSystem.changeRegister(Regs.F, flags()), actualCode.size, actualCode.t)
   }
 }
 

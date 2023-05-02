@@ -18,8 +18,8 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
     implicit val system:Z80System=this
     val pcValue=pc
     val opCode=OpCodes.getOpCodeObject(memory(pcValue),memory(pcValue,1),memory(pcValue,3))
-    val (changedSystem,changes,forwardPC,forwardCycles)=opCode.handler.handle(opCode)
-    changedSystem.returnAfterChange(changes,forwardPC,forwardCycles)
+    val (changedSystem,forwardPC,forwardCycles)=opCode.handler.handle(opCode)
+    changedSystem.returnAfterChange(forwardPC,forwardCycles)
   }
 
   def getRegValue(symbol:RegSymbol):Int=register(symbol)
@@ -55,25 +55,9 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
       case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
 
-  private def putValueToMemory(address:Int, value:Int, isWord:Boolean):SystemChange =
-    if(isWord) new MemoryChangeWord(address,value)
-    else new MemoryChangeByte(address,value)
-
   private def putValueToMemory2(address: Int, value: Int, isWord: Boolean): Z80System =
     if (isWord) changeMemoryWord(address, value)
     else changeMemoryByte(address, value)
-
-  def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChange = {
-    location match {
-      case loc:RegisterLocation => new RegisterChange(loc.register, value)
-      case loc:IndirectAddrLocation => putValueToMemory(getWordFromMemoryAtPC(loc.offsetPC), value, isWord)
-      case loc:RegisterAddrLocation => putValueToMemory(getAddressFromReg(loc.addressReg, 0), value, isWord)
-      case loc:RegisterAddrDirOffsetLocation => putValueToMemory(getAddressFromReg(loc.addressReg, loc.directOffset), value, isWord)
-      case loc:RegisterAddrIndirOffsetLocation =>
-        putValueToMemory(getAddressFromReg(loc.addressReg, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl))), value, isWord)
-      case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
-    }
-  }
 
   def putValueToLocation2(location: Location, value: Int, isWord: Boolean = false): Z80System = {
     location match {
@@ -88,10 +72,8 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
   }
 
   // functions changing state
-  private def returnAfterChange(chgList:List[SystemChange], forwardPC:Int=0, forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
-    //NOTE: changing PC and TCycles could be added to chgList but this was a little slower than the solution below
-    /*changeList(chgList)
-      .*/updatePCAndTCycles(forwardPC, forwardTCycles)
+  private def returnAfterChange(forwardPC:Int=0, forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
+    updatePCAndTCycles(forwardPC, forwardTCycles)
       .handleInterrupt
       .refreshInterrupt
   }
@@ -115,11 +97,6 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
     changeRegister(Regs.PC, 0x0038)             // IM1: call static address 0x0038
       .changeMemoryWord(getRegValue(Regs.SP)-2, returnPC) // put PC on stack
       .changeRegisterRelative(Regs.SP, -2)         // decrease stack
-  }
-
-  def changeList(list:List[SystemChange]):Z80System = {
-    if(!(list == DummyChange.blank)) println("diff")
-    list.foldLeft(this)((changedSystem,oneChange)=>oneChange.handle(changedSystem))
   }
 
   /* NOTE: We could be watching memory changes through StateWatcher, but it adds some overhead */

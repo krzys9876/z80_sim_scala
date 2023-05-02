@@ -1,12 +1,12 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.system.{Debugger, DummyChange, Flag, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.system.{Debugger, Flag, Regs, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object Arithmetic16Bit extends OpCodeHandler {
   // Z80 manual page 52
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System, Int, Int) = {
     val actualCode=castType[OpCode with OpCodeArithmetic16b with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with OpCodeTCycles](code)
     val oper = actualCode.operation
     val sourceLoc = actualCode.source
@@ -18,12 +18,11 @@ object Arithmetic16Bit extends OpCodeHandler {
       system.getFlags)
 
     val (result, flags) = oper.calcAll(calcInput)
-    //val chgList = List(system.putValueToLocation(destLoc, result.valueOut), new RegisterChange(Regs.F,flags()))
 
     (system
       .putValueToLocation2(destLoc, result.valueOut)
       .changeRegister(Regs.F,flags()),
-      DummyChange.blank, actualCode.size, actualCode.t)
+      actualCode.size, actualCode.t)
   }
 }
 

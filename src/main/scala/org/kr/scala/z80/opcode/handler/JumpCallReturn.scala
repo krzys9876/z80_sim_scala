@@ -16,24 +16,24 @@ object JumpType {
 }
 
 object JumpCallReturn extends OpCodeHandler {
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System, Int, Int) = {
     val actualCode=castType[OpCode with OpCodeJump with OpCodeJumpCondition with OpCodeSourceLocation with OpCodeSize with OpCodeTCycles](code)
 
     val oper = actualCode.operation
     val instrSize = actualCode.size
     val checker = new JumpConditionChecker(actualCode.condition)
 
-    val (chgSystemStJump,_) = handleStackForJump(checker.isMet, oper, instrSize)(system)
-    val (chgSystemPC, _) =
+    val chgSystemStJump = handleStackForJump(checker.isMet, oper, instrSize)(system)
+    val chgSystemPC =
       handleJump(
         oper,
         actualCode.condition,
         checker,
         actualCode.source,
         instrSize)(chgSystemStJump)
-    val (chgSystemStReturn,_) = handleStackForReturn(checker.isMet, oper, instrSize)(chgSystemPC)
+    val chgSystemStReturn = handleStackForReturn(checker.isMet, oper)(chgSystemPC)
 
-    (chgSystemStReturn,DummyChange.blank, 0, if(checker.isMet) actualCode.t+actualCode.tConditional else actualCode.t)
+    (chgSystemStReturn, 0, if(checker.isMet) actualCode.t+actualCode.tConditional else actualCode.t)
   }
 
   private def calcAddress(oper: JumpOperation, value: Int, prevPC: Int): Int =
@@ -46,34 +46,34 @@ object JumpCallReturn extends OpCodeHandler {
   private def calcRelativeAddress(pc: Int, relative: Int): Int = Z80Utils.word2ComplToRaw(pc + 2 + Z80Utils.rawByteTo2Compl(relative))
 
   private def handleJump(oper: JumpOperation, cond: JumpConditionBase, checker: JumpConditionChecker, location: Location, instrSize: Int)
-                        (system: Z80System): (Z80System,List[SystemChange]) = {
+                        (system: Z80System): Z80System = {
     val prevPC = system.getRegValue(Regs.PC)
     val address = calcAddress(oper, system.getValueFromLocation(location), prevPC)
     val newPC = chooseAddress(prevPC, address, checker)
-    val (chgSystemPC,changePC) = (system.changeRegister(Regs.PC, newPC + (if (!checker.isMet) instrSize else 0)),DummyChange.blank)
-    val (chgSystem,changeReg) = (oper, cond) match {
-      case (JumpType.DJumpR, c:RegisterJumpCondition) => (chgSystemPC.changeRegister(c.register, checker.decRegValue()),DummyChange.blank)
-      case _ => (chgSystemPC,List())
+    val chgSystemPC = system.changeRegister(Regs.PC, newPC + (if (!checker.isMet) instrSize else 0))
+    val chgSystem = (oper, cond) match {
+      case (JumpType.DJumpR, c:RegisterJumpCondition) => chgSystemPC.changeRegister(c.register, checker.decRegValue())
+      case _ => chgSystemPC
     }
-    (chgSystem,changePC ++ changeReg)
+    chgSystem
   }
 
   private def chooseAddress(prevPC: Int, address: Int, checker: JumpConditionChecker): Int =
     if (checker.isMet) address else prevPC
 
-  private def handleStackForJump(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(system: Z80System): (Z80System,List[SystemChange]) =
+  private def handleStackForJump(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(system: Z80System): Z80System =
     (shouldJump, oper) match {
-      case (true, JumpType.Call) => (
+      case (true, JumpType.Call) =>
         system
           .changeMemoryWord(system.getRegValue(Regs.SP) - 2, system.getRegValue(Regs.PC) + instrSize)
-          .changeRegisterRelative(Regs.SP, -2),DummyChange.blank)
-      case _ => (system,DummyChange.blank)
+          .changeRegisterRelative(Regs.SP, -2)
+      case _ => system
     }
 
-  private def handleStackForReturn(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(system: Z80System): (Z80System, List[SystemChange]) =
+  private def handleStackForReturn(shouldJump: Boolean, oper: JumpOperation)(system: Z80System): Z80System =
     (shouldJump, oper) match {
-      case (true, JumpType.Return) => (system.changeRegisterRelative(Regs.SP, 2), DummyChange.blank)
-      case _ => (system, DummyChange.blank)
+      case (true, JumpType.Return) => system.changeRegisterRelative(Regs.SP, 2)
+      case _ => system
     }
 }
 
