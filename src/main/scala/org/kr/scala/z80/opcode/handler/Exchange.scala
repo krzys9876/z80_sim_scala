@@ -14,7 +14,7 @@ class ExchangeLocation(override val reg1:RegSymbol,override val reg2: RegSymbol)
 class ExchangeLocationIndirect(override val reg1:RegSymbol,override val reg2: RegSymbol) extends ExchangeLocationBase(reg1,reg2)
 
 object Exchange extends OpCodeHandler {
-  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChange],Int, Int) = {
+  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(Z80System,List[SystemChange],Int, Int) = {
     val actualCode=castType[OpCode with OpCodeExchangeLocation with OpCodeSize with OpCodeTCycles](code)
     val exchangeLocList=actualCode.exchange
 
@@ -30,6 +30,6 @@ object Exchange extends OpCodeHandler {
             new RegisterChange(loc.reg2,memLoc1))
       }
     })
-    (chgList,actualCode.size,actualCode.t)
+    (system,chgList,actualCode.size,actualCode.t)
   }
 }

@@ -1,7 +1,7 @@
 package org.kr.scala.z80.test
 
 import org.kr.scala.z80.opcode.NOP
-import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemoryHandler, ImmutableRegisterHandler, MemoryChangeByte, MemoryChangeWord, MemoryHandler, MutableMemoryHandler, MutableRegisterHandler, RegisterChange, RegisterChangeRelative, RegisterHandler, Regs, StateWatcher, TCycleCounterHandler, TCycleCounterHandlerImmutable, TCycleCounterHandlerMutable, Z80System}
+import org.kr.scala.z80.system.{Debugger, DummyDebugger, ImmutableMemoryHandler, ImmutableRegisterHandler, MemoryChangeByte, MemoryChangeWord, MemoryHandler, MutableMemoryHandler, MutableRegisterHandler, RegisterChange, RegisterChangeRelative, RegisterHandler, Regs, StateWatcher, StateWatcherHandler, StateWatcherHandlerBase, TCycleCounterHandler, TCycleCounterHandlerImmutable, TCycleCounterHandlerMutable, Z80System}
 import org.scalatest.funsuite.AnyFunSuite
 
 class SystemTest extends AnyFunSuite {
@@ -14,6 +14,7 @@ class SystemTest extends AnyFunSuite {
   val memoryHandlerMutable: MemoryHandler = new MutableMemoryHandler()
   val registerHandlerMutable: RegisterHandler = new MutableRegisterHandler()
   val tCycleCounterHandlerMutable: TCycleCounterHandler = new TCycleCounterHandlerMutable()
+  val stateWatcherHandler:StateWatcherHandlerBase[Z80System] = new StateWatcherHandler[Z80System]()
 
   testAll(memoryHandlerImmutable,registerHandlerImmutable,tCycleCounterHandlerImmutable,"M:I,R:I,C:I")
   testAll(memoryHandlerImmutable,registerHandlerImmutable,tCycleCounterHandlerMutable,"M:I,R:I,C:M")
@@ -86,7 +87,7 @@ class SystemTest extends AnyFunSuite {
       //given
       val system = Z80System.blank
       //when
-      val afterState = StateWatcher[Z80System](system) >>== Z80System.run(debugger)(10)
+      val afterState = StateWatcher[Z80System](system) >>== Z80System.run(debugger,stateWatcherHandler)(10)
       //then
       assert(afterState.get.register(Regs.PC) == 10)
       assert(afterState.get.elapsedTCycles.cycles == NOP.t * 10)

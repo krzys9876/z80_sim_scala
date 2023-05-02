@@ -15,7 +15,7 @@ object BitOpType {
 
 object BitManipulation extends OpCodeHandler {
   //Z80 manual p.55 - NOTE error in opCode: 0xCB, not 0xC8!
-  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChange],Int, Int) = {
+  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(Z80System,List[SystemChange],Int, Int) = {
     val actualCode=castType[OpCode with OpCodeBitManipulation with OpCodeSourceLocation with OpCodeSize with OpCodeTCycles](code)
     val loc=actualCode.source
 
@@ -27,7 +27,7 @@ object BitManipulation extends OpCodeHandler {
         system.getFlags())
     val change=List(system.putValueToLocation(loc,value),new RegisterChange(Regs.F, flags))
 
-    (change,actualCode.size,actualCode.t)
+    (system,change,actualCode.size,actualCode.t)
   }
 
   private def handleBitManipulation(oper: BitOperation, bit: Int, prevValue: Int, prevFlags:Int):(Int,Int)={

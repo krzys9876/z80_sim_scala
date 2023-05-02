@@ -8,7 +8,8 @@ import scala.annotation.tailrec
 class Z80System(val memory: MemoryContents, val register: RegisterBase,
                 val output: OutputFile, val input: InputFile,
                 val elapsedTCycles:TCycleCounter,
-                val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler,registerHandler:RegisterHandler) {
+                val interrupt: InterruptInfo)(implicit debugger:Debugger,memoryHandler:MemoryHandler,
+                                              registerHandler:RegisterHandler) {
   private def pc=register(Regs.PC)
 
   private def step(implicit debugger:Debugger):Z80System= handleCurrent
@@ -17,8 +18,7 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
     implicit val system:Z80System=this
     val pcValue=pc
     val opCode=OpCodes.getOpCodeObject(memory(pcValue),memory(pcValue,1),memory(pcValue,3))
-    val (change,forwardPC,forwardCycles)=opCode.handler.handle(opCode)
-    //replaceRegisterAndCycles(register,elapsedTCycles.addInstruction(currentOpCode.numberOfCodes)).
+    val (changedSystem,change,forwardPC,forwardCycles)=opCode.handler.handle(opCode)
       returnAfterChange(change,forwardPC,forwardCycles)
   }
 
@@ -174,13 +174,13 @@ object Z80System {
       OutputFile.blank, InputFile.blank,tCycleHandler.blank, NoInterrupt())
 
   // run - main function changing state of the system
-  def run(implicit debug:Debugger):Long=>Z80System=>Z80System=
-    toGo=>system=>steps(StateWatcher(system),toGo).state
+  def run(implicit debug:Debugger,watcherHandler:StateWatcherHandlerBase[Z80System]):Long=>Z80System=>Z80System=
+    toGo=>system=>steps(watcherHandler.createNewWatcher(system),toGo).state
 
   @tailrec
-  private def steps(start:StateWatcher[Z80System], toGo:Long)(implicit debugger: Debugger):StateWatcher[Z80System]={
+  private def steps(start:StateWatcherBase[Z80System], toGo:Long)(implicit debugger: Debugger):StateWatcherBase[Z80System]={
     toGo match {
-      case 0 => StateWatcher(start.state)
+      case 0 => start
       case _ => steps(start >>== Z80System.step(debugger)(),toGo-1)
     }
   }

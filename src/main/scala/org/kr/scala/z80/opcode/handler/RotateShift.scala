@@ -5,7 +5,7 @@ import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChan
 import org.kr.scala.z80.utils.{AnyInt, IntValue, OptionInt, Z80Utils}
 
 object RotateShift extends OpCodeHandler {
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
     val actualCode=castType[OpCode with OpCodeRotateShift with OpCodeSourceLocation with OpCodeSize with OpCodeTCycles](code)
 
     val oper = actualCode.operation
@@ -15,10 +15,11 @@ object RotateShift extends OpCodeHandler {
 
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, AnyInt, prevFlags))
 
-    (List(
-      system.putValueToLocation(loc, result.valueOut),
-      new RegisterChange(Regs.F, flags())
-    ),
+    (system,
+      List(
+        system.putValueToLocation(loc, result.valueOut),
+        new RegisterChange(Regs.F, flags())
+      ),
       actualCode.size,actualCode.t)
   }
 }

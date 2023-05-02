@@ -74,14 +74,15 @@ object OpCodes {
         m ++ Map(op.main + (op.supp() << 8) + (op.supp2() << 16) -> op)
       )
 
-  def getOpCodeObject(main: =>Int, supp: =>Int, supp2: =>Int): OpCode with OpCodeHandledBy = {
+  def getOpCodeObject(main: Int, supp: =>Int, supp2: =>Int): OpCode with OpCodeHandledBy = {
     // this version makes reading memory lazy - it is a costly operation and should not be performed in advance
     // as opcodes are mostly 1-byte
-    lazy val mainSuppValue = main | (supp << 8)
-    lazy val mainSupp2Value = mainSuppValue | (supp2 << 16)
-    mainOnlyCodes(main).getOrElse(
+    mainOnlyCodes(main).getOrElse({
+      lazy val mainSuppValue = main | (supp << 8)
+      lazy val mainSupp2Value = mainSuppValue | (supp2 << 16)
       mainSuppCodes.getOrElse(mainSuppValue,
         mainSupp2Codes.getOrElse(mainSupp2Value,
-          new UNKNOWN(OpCode.c3(main, mainSuppValue >> 8, mainSupp2Value >> 16)))))
+          new UNKNOWN(OpCode.c3(main, mainSuppValue >> 8, mainSupp2Value >> 16))))
+    })
   }
 }

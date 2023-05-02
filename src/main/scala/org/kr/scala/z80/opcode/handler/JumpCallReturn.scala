@@ -16,7 +16,7 @@ object JumpType {
 }
 
 object JumpCallReturn extends OpCodeHandler {
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
     val actualCode=castType[OpCode with OpCodeJump with OpCodeJumpCondition with OpCodeSourceLocation with OpCodeSize with OpCodeTCycles](code)
 
     val oper = actualCode.operation
@@ -32,7 +32,7 @@ object JumpCallReturn extends OpCodeHandler {
         instrSize)
     val changeStack = handleStack(checker.isMet, oper, instrSize)
 
-    (changePC ++ changeStack, 0, if(checker.isMet) actualCode.t+actualCode.tConditional else actualCode.t)
+    (system,changePC ++ changeStack, 0, if(checker.isMet) actualCode.t+actualCode.tConditional else actualCode.t)
   }
 
   private def calcAddress(oper: JumpOperation, value: Int, prevPC: Int): Int =

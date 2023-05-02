@@ -5,7 +5,7 @@ import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChan
 import org.kr.scala.z80.utils.Z80Utils
 
 object BlockTransfer extends OpCodeHandler {
-  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChange],Int, Int) = {
+  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(Z80System,List[SystemChange],Int, Int) = {
     val actualCode=castType[OpCode with TransferDirection with TransferRepeatable with OpCodeSize with OpCodeTCycles](code)
     // Source
     val sourceAddr=system.getValueFromLocation(RegisterLocation(Regs.HL))
@@ -33,6 +33,6 @@ object BlockTransfer extends OpCodeHandler {
     val forwardPC=if(actualCode.repeat && newCounterValue>0) 0 else actualCode.size
     //NOTE: for last iteration (or single execution) it takes 16 cycles, otherwise 21 cycles. t=21, tConditional=-5
     val tCycles=actualCode.t + (if(newCounterValue==0) actualCode.tConditional else 0)
-    (chgList,forwardPC,tCycles)
+    (system,chgList,forwardPC,tCycles)
   }
 }

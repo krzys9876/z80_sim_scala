@@ -5,7 +5,7 @@ import org.kr.scala.z80.system._
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object Search extends OpCodeHandler {
-  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(List[SystemChange],Int, Int) = {
+  override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(Z80System,List[SystemChange],Int, Int) = {
     val actualCode=castType[OpCode with TransferDirection with TransferRepeatable with OpCodeSize with OpCodeTCycles](code)
 
     val searchedLoc = RegisterAddrLocation(Regs.HL)
@@ -38,6 +38,6 @@ object Search extends OpCodeHandler {
     val forwardPC=if(actualCode.repeat && newCounterValue>0 && !newFlags(Flag.Z)) 0 else actualCode.size
     //NOTE: for last iteration (or single execution) it takes 16 cycles, otherwise 21 cycles. t=21, tConditional=-5
     val tCycles=actualCode.t + (if(newCounterValue==0) actualCode.tConditional else 0)
-    (chgList,forwardPC,tCycles)
+    (system,chgList,forwardPC,tCycles)
   }
 }

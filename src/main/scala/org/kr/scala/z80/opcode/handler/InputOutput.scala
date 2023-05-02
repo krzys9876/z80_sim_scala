@@ -4,13 +4,13 @@ import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system.{Debugger, DummyChange, InputRefreshChange, OutputChange, PortID, PortIDWithUpper, Regs, SystemChange, Z80System}
 
 object InputOutput extends OpCodeHandler {
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
     val actualCode=castType[OpCode with OpCodeInOut with OpCodeSourceLocation with OpCodeDestLocation with UpperAddressRegister with OpCodeSize with OpCodeTCycles](code)
     val port = system.getValueFromLocation(actualCode.destination)
     val upperPort = system.getValueFromLocation(actualCode.upperAddressSource)
     val actualPort = PortIDWithUpper(port,upperPort)
     val chgList = actualCode.operation.handle(system, actualPort, actualCode.source)
-    (chgList, actualCode.size, actualCode.t)
+    (system,chgList, actualCode.size, actualCode.t)
   }
 }
 

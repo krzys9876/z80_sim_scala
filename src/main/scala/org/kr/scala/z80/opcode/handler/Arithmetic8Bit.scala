@@ -6,7 +6,7 @@ import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object Arithmetic8Bit extends OpCodeHandler {
   // Z80 manual page 50 (NOTE: ADD A,(HL) is 0x86, not 0x88!
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
     val actualCode=castType[OpCode with OpCodeArithmetic8b with OpCodeSourceLocation with OpCodeDestLocation with OpCodeSize with OpCodeTCycles](code)
 
     val oper = actualCode.operation
@@ -22,7 +22,7 @@ object Arithmetic8Bit extends OpCodeHandler {
       case EmptyLocation => List(new DummyChange())
       case _ => List(system.putValueToLocation(destLocation, result.valueOut))
     }
-    (chgList ++ List(new RegisterChange(Regs.F, flags())), actualCode.size, actualCode.t)
+    (system,chgList ++ List(new RegisterChange(Regs.F, flags())), actualCode.size, actualCode.t)
   }
 }
 

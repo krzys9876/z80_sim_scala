@@ -52,6 +52,8 @@ object Main extends App {
     case "interactive" | "i" => prepareConsoleInput(clArgs.basicFile())
     case "batch" | "b" => prepareInputFromFile(clArgs.basicFile())
   }
+  // state watcher handler
+  implicit val stateWatcherHandler: StateWatcherHandlerBase[Z80System] = new StateWatcherMutableHandler[Z80System]()
   //whole system
   val interrupts=if(clArgs.interrupts()) {
     (mutableRegisterFlag,mutableRegisterFlag) match {
@@ -64,7 +66,7 @@ object Main extends App {
   println("START")
   val startTime=LocalDateTime.now()
 
-  val after=StateWatcher[Z80System](initSystem) >>== Z80System.run(debugger)(MAX_STEPS)
+  val after=stateWatcherHandler.createNewWatcher(initSystem) >>== Z80System.run(debugger,stateWatcherHandler)(MAX_STEPS)
 
   val endTime=LocalDateTime.now()
   val seconds=ChronoUnit.MILLIS.between(startTime,endTime).toDouble/1000

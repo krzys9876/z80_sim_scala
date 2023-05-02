@@ -5,7 +5,7 @@ import org.kr.scala.z80.system.{Debugger, RegisterChange, Regs, SystemChange, Z8
 import org.kr.scala.z80.utils.{IntValue, OptionInt}
 
 object RotateDigit extends OpCodeHandler {
-  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (List[SystemChange], Int, Int) = {
+  override def handle(code: OpCode)(implicit system: Z80System, debugger:Debugger): (Z80System,List[SystemChange], Int, Int) = {
     //http://www.z80.info/z80sflag.htm
     val actualCode=castType[OpCode with OpCodeRotateDigit with OpCodeDestLocation with OpCodeSize with OpCodeTCycles](code)
 
@@ -23,7 +23,7 @@ object RotateDigit extends OpCodeHandler {
       system.putValueToLocation(loc, result.valueAux()),
       new RegisterChange(Regs.F, newF()))
 
-    (change, actualCode.size, actualCode.t)
+    (system, change, actualCode.size, actualCode.t)
   }
 }
 
