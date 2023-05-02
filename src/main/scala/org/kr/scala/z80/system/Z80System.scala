@@ -18,8 +18,8 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
     implicit val system:Z80System=this
     val pcValue=pc
     val opCode=OpCodes.getOpCodeObject(memory(pcValue),memory(pcValue,1),memory(pcValue,3))
-    val (changedSystem,change,forwardPC,forwardCycles)=opCode.handler.handle(opCode)
-      returnAfterChange(change,forwardPC,forwardCycles)
+    val (changedSystem,changes,forwardPC,forwardCycles)=opCode.handler.handle(opCode)
+    changedSystem.returnAfterChange(changes,forwardPC,forwardCycles)
   }
 
   def getRegValue(symbol:RegSymbol):Int=register(symbol)
@@ -59,6 +59,10 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
     if(isWord) new MemoryChangeWord(address,value)
     else new MemoryChangeByte(address,value)
 
+  private def putValueToMemory2(address: Int, value: Int, isWord: Boolean): Z80System =
+    if (isWord) changeMemoryWord(address, value)
+    else changeMemoryByte(address, value)
+
   def putValueToLocation(location:Location, value:Int, isWord:Boolean=false):SystemChange = {
     location match {
       case loc:RegisterLocation => new RegisterChange(loc.register, value)
@@ -70,11 +74,24 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
       case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
   }
+
+  def putValueToLocation2(location: Location, value: Int, isWord: Boolean = false): Z80System = {
+    location match {
+      case loc: RegisterLocation => changeRegister(loc.register, value)
+      case loc: IndirectAddrLocation => putValueToMemory2(getWordFromMemoryAtPC(loc.offsetPC), value, isWord)
+      case loc: RegisterAddrLocation => putValueToMemory2(getAddressFromReg(loc.addressReg, 0), value, isWord)
+      case loc: RegisterAddrDirOffsetLocation => putValueToMemory2(getAddressFromReg(loc.addressReg, loc.directOffset), value, isWord)
+      case loc: RegisterAddrIndirOffsetLocation =>
+        putValueToMemory2(getAddressFromReg(loc.addressReg, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl))), value, isWord)
+      case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
+    }
+  }
+
   // functions changing state
   private def returnAfterChange(chgList:List[SystemChange], forwardPC:Int=0, forwardTCycles:Int=0)(implicit debugger:Debugger):Z80System = {
     //NOTE: changing PC and TCycles could be added to chgList but this was a little slower than the solution below
-    changeList(chgList)
-      .updatePCAndTCycles(forwardPC, forwardTCycles)
+    /*changeList(chgList)
+      .*/updatePCAndTCycles(forwardPC, forwardTCycles)
       .handleInterrupt
       .refreshInterrupt
   }
@@ -86,24 +103,24 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
 
   private def doHandleInterrupt(): Z80System = {
     assume(getRegValue(Regs.IM) == 1) // handle ONLY IM 1
-    changeList(interruptIM1)
+    interruptIM1
       .updatePCAndTCycles(0, 11+2) // add T cycles (11 for RST 38 + 2 extra wait cycles)
   }
 
-  private def interruptIM1: List[SystemChange] = {
+  private def interruptIM1: Z80System = {
     val isHaltNext = memory(pc) == HALT.main
     // Note: PC is already set to the return address
     // only for Halt the return address is the next instruction (as interrupt wakes the CPU up from halt state)
     val returnPC = pc + (if(isHaltNext) 1 else 0)
-    List(
-      new RegisterChange(Regs.PC, 0x0038),             // IM1: call static address 0x0038
-      new MemoryChangeWord(getRegValue(Regs.SP)-2, returnPC), // put PC on stack
-      new RegisterChangeRelative(Regs.SP, -2),         // decrease stack
-    )
+    changeRegister(Regs.PC, 0x0038)             // IM1: call static address 0x0038
+      .changeMemoryWord(getRegValue(Regs.SP)-2, returnPC) // put PC on stack
+      .changeRegisterRelative(Regs.SP, -2)         // decrease stack
   }
 
-  def changeList(list:List[SystemChange]):Z80System =
+  def changeList(list:List[SystemChange]):Z80System = {
+    if(!(list == DummyChange.blank)) println("diff")
     list.foldLeft(this)((changedSystem,oneChange)=>oneChange.handle(changedSystem))
+  }
 
   /* NOTE: We could be watching memory changes through StateWatcher, but it adds some overhead */
   def changeRegister(regSymbol:RegSymbol, value:Int):Z80System = {

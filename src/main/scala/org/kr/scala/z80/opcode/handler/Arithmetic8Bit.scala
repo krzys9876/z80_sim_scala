@@ -18,11 +18,15 @@ object Arithmetic8Bit extends OpCodeHandler {
     val destLocation = oper.getDestination(sourceLocation)
 
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))
-    val chgList = destLocation match {
+    /*val chgList = destLocation match {
       case EmptyLocation => List(new DummyChange())
       case _ => List(system.putValueToLocation(destLocation, result.valueOut))
+    }*/
+    val chgSystem = destLocation match {
+      case EmptyLocation => system
+      case _ => system.putValueToLocation2(destLocation, result.valueOut)
     }
-    (system,chgList ++ List(new RegisterChange(Regs.F, flags())), actualCode.size, actualCode.t)
+    (chgSystem.changeRegister(Regs.F, flags()),/*chgList ++ List(new RegisterChange(Regs.F, flags()))*/ DummyChange.blank, actualCode.size, actualCode.t)
   }
 }
 

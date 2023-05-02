@@ -23,16 +23,17 @@ object JumpCallReturn extends OpCodeHandler {
     val instrSize = actualCode.size
     val checker = new JumpConditionChecker(actualCode.condition)
 
-    val changePC =
+    val (chgSystemStJump,_) = handleStackForJump(checker.isMet, oper, instrSize)(system)
+    val (chgSystemPC, _) =
       handleJump(
         oper,
         actualCode.condition,
         checker,
         actualCode.source,
-        instrSize)
-    val changeStack = handleStack(checker.isMet, oper, instrSize)
+        instrSize)(chgSystemStJump)
+    val (chgSystemStReturn,_) = handleStackForReturn(checker.isMet, oper, instrSize)(chgSystemPC)
 
-    (system,changePC ++ changeStack, 0, if(checker.isMet) actualCode.t+actualCode.tConditional else actualCode.t)
+    (chgSystemStReturn,DummyChange.blank, 0, if(checker.isMet) actualCode.t+actualCode.tConditional else actualCode.t)
   }
 
   private def calcAddress(oper: JumpOperation, value: Int, prevPC: Int): Int =
@@ -45,31 +46,34 @@ object JumpCallReturn extends OpCodeHandler {
   private def calcRelativeAddress(pc: Int, relative: Int): Int = Z80Utils.word2ComplToRaw(pc + 2 + Z80Utils.rawByteTo2Compl(relative))
 
   private def handleJump(oper: JumpOperation, cond: JumpConditionBase, checker: JumpConditionChecker, location: Location, instrSize: Int)
-                        (implicit system: Z80System): List[SystemChange] = {
+                        (system: Z80System): (Z80System,List[SystemChange]) = {
     val prevPC = system.getRegValue(Regs.PC)
     val address = calcAddress(oper, system.getValueFromLocation(location), prevPC)
     val newPC = chooseAddress(prevPC, address, checker)
-    val changePC = List(new RegisterChange(Regs.PC, newPC + (if (!checker.isMet) instrSize else 0)))
-    val changeReg = (oper, cond) match {
-      case (JumpType.DJumpR, c:RegisterJumpCondition) => List(new RegisterChange(c.register, checker.decRegValue()))
-      case _ => List()
+    val (chgSystemPC,changePC) = (system.changeRegister(Regs.PC, newPC + (if (!checker.isMet) instrSize else 0)),DummyChange.blank)
+    val (chgSystem,changeReg) = (oper, cond) match {
+      case (JumpType.DJumpR, c:RegisterJumpCondition) => (chgSystemPC.changeRegister(c.register, checker.decRegValue()),DummyChange.blank)
+      case _ => (chgSystemPC,List())
     }
-    changePC ++ changeReg
+    (chgSystem,changePC ++ changeReg)
   }
 
   private def chooseAddress(prevPC: Int, address: Int, checker: JumpConditionChecker): Int =
     if (checker.isMet) address else prevPC
 
-  private def handleStack(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(implicit system: Z80System): List[SystemChange] =
+  private def handleStackForJump(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(system: Z80System): (Z80System,List[SystemChange]) =
     (shouldJump, oper) match {
-      case (true, JumpType.Call) => List(
-        new MemoryChangeWord(system.getRegValue(Regs.SP) - 2, system.getRegValue(Regs.PC) + instrSize),
-        new RegisterChangeRelative(Regs.SP, -2)
-      )
-      case (true, JumpType.Return) => List(
-        new RegisterChangeRelative(Regs.SP, 2)
-      )
-      case _ => List()
+      case (true, JumpType.Call) => (
+        system
+          .changeMemoryWord(system.getRegValue(Regs.SP) - 2, system.getRegValue(Regs.PC) + instrSize)
+          .changeRegisterRelative(Regs.SP, -2),DummyChange.blank)
+      case _ => (system,DummyChange.blank)
+    }
+
+  private def handleStackForReturn(shouldJump: Boolean, oper: JumpOperation, instrSize: Int)(system: Z80System): (Z80System, List[SystemChange]) =
+    (shouldJump, oper) match {
+      case (true, JumpType.Return) => (system.changeRegisterRelative(Regs.SP, 2), DummyChange.blank)
+      case _ => (system, DummyChange.blank)
     }
 }
 

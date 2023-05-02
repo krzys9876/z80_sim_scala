@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode.{OpCode, OpCodeExchangeLocation, OpCodeSize, OpCodeTCycles, RegisterAddrLocation}
-import org.kr.scala.z80.system.{Debugger, MemoryChangeWord, RegSymbol, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.system.{Debugger, DummyChange, MemoryChangeWord, RegSymbol, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.IntValue
 
 class ExchangeLocationBase(val reg1: RegSymbol, val reg2: RegSymbol)
@@ -18,7 +18,7 @@ object Exchange extends OpCodeHandler {
     val actualCode=castType[OpCode with OpCodeExchangeLocation with OpCodeSize with OpCodeTCycles](code)
     val exchangeLocList=actualCode.exchange
 
-    val chgList=exchangeLocList.flatMap(entry=>{
+    /*val chgList=exchangeLocList.flatMap(entry=>{
       entry match {
         case loc : ExchangeLocation =>
           List(new RegisterChange(loc.reg1,system.getRegValue(entry.reg2)),
@@ -29,7 +29,20 @@ object Exchange extends OpCodeHandler {
           List(new MemoryChangeWord(addressLoc1,system.getRegValue(loc.reg2)),
             new RegisterChange(loc.reg2,memLoc1))
       }
-    })
-    (system,chgList,actualCode.size,actualCode.t)
+    })*/
+    val chgSystem=exchangeLocList.foldLeft(system)((sys,entry)=>
+      entry match {
+        case loc: ExchangeLocation =>
+          val reg1Value=sys.getRegValue(entry.reg1)
+          val reg2Value=sys.getRegValue(entry.reg2)
+          sys
+            .changeRegister(loc.reg1, reg2Value)
+            .changeRegister(loc.reg2, reg1Value)
+        case loc: ExchangeLocationIndirect =>
+          val addressLoc1 = system.getRegValue(loc.reg1)
+          val memLoc1 = system.getValueFromLocation(RegisterAddrLocation(loc.reg1, isWord = true))
+          sys.changeMemoryWord(addressLoc1, system.getRegValue(loc.reg2)).changeRegister(loc.reg2, memLoc1)
+      })
+    (chgSystem,DummyChange.blank,actualCode.size,actualCode.t)
   }
 }

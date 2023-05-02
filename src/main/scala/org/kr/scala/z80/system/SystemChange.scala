@@ -37,3 +37,7 @@ class InputRefreshChange(val port: PortIDWithUpper) extends SystemChange {
 class DummyChange() extends SystemChange {
   override def handle(system:Z80System):Z80System= system
 }
+
+object DummyChange {
+  val blank:List[DummyChange]=List()
+}

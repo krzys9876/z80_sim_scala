@@ -28,16 +28,21 @@ object Search extends OpCodeHandler {
     // set P flag if new BC is 0
     val newFlags = flagsWithC.set(Flag.P,newCounterValue != 0)
 
-    val chgList=
+    /*val chgList=
       List(new RegisterChange(Regs.HL, newSearchedAddr), //HL+1
         new RegisterChange(Regs.BC, newCounterValue), //BC-1
-        new RegisterChange(Regs.F, newFlags.value)) // flags
+        new RegisterChange(Regs.F, newFlags.value)) // flags*/
+
+    val chgSystem = system
+      .changeRegister(Regs.HL, newSearchedAddr) //HL+1
+      .changeRegister(Regs.BC, newCounterValue) //BC-1
+      .changeRegister(Regs.F, newFlags.value) // flags
 
     //NOTE: returning forwardPC=0 effectively means repeating the same instruction,
     // which is what is required here until new counter is 0
     val forwardPC=if(actualCode.repeat && newCounterValue>0 && !newFlags(Flag.Z)) 0 else actualCode.size
     //NOTE: for last iteration (or single execution) it takes 16 cycles, otherwise 21 cycles. t=21, tConditional=-5
     val tCycles=actualCode.t + (if(newCounterValue==0) actualCode.tConditional else 0)
-    (system,chgList,forwardPC,tCycles)
+    (chgSystem,DummyChange.blank,forwardPC,tCycles)
   }
 }

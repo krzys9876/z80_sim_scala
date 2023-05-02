@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode.{OpCode, OpCodeBitManipulation, OpCodeSize, OpCodeSourceLocation, OpCodeTCycles}
-import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.system.{Debugger, DummyChange, Flag, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.Z80Utils
 
 sealed abstract class BitOperation
@@ -25,9 +25,12 @@ object BitManipulation extends OpCodeHandler {
         actualCode.bit,
         system.getValueFromLocation(loc),
         system.getFlags())
-    val change=List(system.putValueToLocation(loc,value),new RegisterChange(Regs.F, flags))
+    //val change=List(system.putValueToLocation(loc,value),new RegisterChange(Regs.F, flags))
 
-    (system,change,actualCode.size,actualCode.t)
+    (system
+      .putValueToLocation2(loc,value)
+      .changeRegister(Regs.F, flags)
+        ,DummyChange.blank,actualCode.size,actualCode.t)
   }
 
   private def handleBitManipulation(oper: BitOperation, bit: Int, prevValue: Int, prevFlags:Int):(Int,Int)={

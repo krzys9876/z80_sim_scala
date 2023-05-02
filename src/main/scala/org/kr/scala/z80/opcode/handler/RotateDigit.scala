@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.system.{Debugger, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.system.{Debugger, DummyChange, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt}
 
 object RotateDigit extends OpCodeHandler {
@@ -18,12 +18,12 @@ object RotateDigit extends OpCodeHandler {
       ArithmeticOpInput(system.getRegValue(Regs.A),
         IntValue(system.getValueFromLocation(loc)),
         system.getFlags))
-    val change = List(
-      new RegisterChange(Regs.A, result.valueOut),
-      system.putValueToLocation(loc, result.valueAux()),
-      new RegisterChange(Regs.F, newF()))
+    val chgSystem = system
+      .changeRegister(Regs.A, result.valueOut)
+      .putValueToLocation2(loc, result.valueAux())
+      .changeRegister(Regs.F, newF())
 
-    (system, change, actualCode.size, actualCode.t)
+    (chgSystem, DummyChange.blank, actualCode.size, actualCode.t)
   }
 }
 

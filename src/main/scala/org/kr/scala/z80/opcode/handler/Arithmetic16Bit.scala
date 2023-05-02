@@ -1,7 +1,7 @@
 package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
-import org.kr.scala.z80.system.{Debugger, Flag, RegisterChange, Regs, SystemChange, Z80System}
+import org.kr.scala.z80.system.{Debugger, DummyChange, Flag, RegisterChange, Regs, SystemChange, Z80System}
 import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
 
 object Arithmetic16Bit extends OpCodeHandler {
@@ -18,9 +18,12 @@ object Arithmetic16Bit extends OpCodeHandler {
       system.getFlags)
 
     val (result, flags) = oper.calcAll(calcInput)
-    val chgList = List(system.putValueToLocation(destLoc, result.valueOut), new RegisterChange(Regs.F,flags()))
+    //val chgList = List(system.putValueToLocation(destLoc, result.valueOut), new RegisterChange(Regs.F,flags()))
 
-    (system,chgList, actualCode.size, actualCode.t)
+    (system
+      .putValueToLocation2(destLoc, result.valueOut)
+      .changeRegister(Regs.F,flags()),
+      DummyChange.blank, actualCode.size, actualCode.t)
   }
 }
 
