@@ -16,7 +16,7 @@ object RotateShift extends OpCodeHandler {
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, AnyInt, prevFlags))
 
     (system
-      .putValueToLocation2(loc, result.valueOut)
+      .putValueToLocation(loc, result.valueOut)
       .changeRegister(Regs.F, flags()),
       actualCode.size,actualCode.t)
   }

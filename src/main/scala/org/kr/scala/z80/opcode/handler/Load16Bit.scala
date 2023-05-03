@@ -9,7 +9,7 @@ object Load16Bit extends OpCodeHandler {
     val sourceLoc = actualCode.source
     val value = system.getValueFromLocation(sourceLoc)
     val destLoc = actualCode.destination
-    val chgSystem = system.putValueToLocation2(destLoc, value, isWord = true)
+    val chgSystem = system.putValueToLocation(destLoc, value, isWord = true)
     val chgSystemStack = code match {
       case change: OpStackChange => chgSystem.changeRegisterRelative(Regs.SP, change.stackChange)
       case _ => chgSystem

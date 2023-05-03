@@ -27,7 +27,7 @@ object BitManipulation extends OpCodeHandler {
         system.getFlags())
 
     (system
-      .putValueToLocation2(loc,value)
+      .putValueToLocation(loc,value)
       .changeRegister(Regs.F, flags)
         ,actualCode.size,actualCode.t)
   }

@@ -20,7 +20,7 @@ object Arithmetic16Bit extends OpCodeHandler {
     val (result, flags) = oper.calcAll(calcInput)
 
     (system
-      .putValueToLocation2(destLoc, result.valueOut)
+      .putValueToLocation(destLoc, result.valueOut)
       .changeRegister(Regs.F,flags()),
       actualCode.size, actualCode.t)
   }

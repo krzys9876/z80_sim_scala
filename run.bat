@@ -17,10 +17,10 @@ rem java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.0.13.jar
 rem java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.0.13.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic2.txt" --steps-m 14 --memory-type slow --register-type fast
 rem java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.0.13.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic2.txt" --steps-m 14 --memory-type slow --register-type slow
 
-java.exe -jar target\scala-2.13\z80_sim-assembly-0.1.2.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type fast --register-type fast
-java.exe -jar target\scala-2.13\z80_sim-assembly-0.1.2.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type fast --register-type slow
-java.exe -jar target\scala-2.13\z80_sim-assembly-0.1.2.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type slow --register-type fast
-java.exe -jar target\scala-2.13\z80_sim-assembly-0.1.2.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type slow --register-type slow
+java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.2.0.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type fast --register-type fast
+java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.2.0.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type fast --register-type slow
+java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.2.0.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type slow --register-type fast
+java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.2.0.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type slow --register-type slow
 
 rem java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.1.1.jar --mode batch --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type fast --register-type fast
 rem java.exe -XX:+UseSerialGC -jar target\scala-2.13\z80_sim-assembly-0.1.1.jar --mode interactive --hex-file "input-files\basicall_KR_simpleIO.hex" --basic-file "input-files\arithmetic3.txt" --steps-m 50 --memory-type fast --register-type fast

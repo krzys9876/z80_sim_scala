@@ -55,18 +55,18 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
       case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
 
-  private def putValueToMemory2(address: Int, value: Int, isWord: Boolean): Z80System =
+  private def putValueToMemory(address: Int, value: Int, isWord: Boolean): Z80System =
     if (isWord) changeMemoryWord(address, value)
     else changeMemoryByte(address, value)
 
-  def putValueToLocation2(location: Location, value: Int, isWord: Boolean = false): Z80System = {
+  def putValueToLocation(location: Location, value: Int, isWord: Boolean = false): Z80System = {
     location match {
       case loc: RegisterLocation => changeRegister(loc.register, value)
-      case loc: IndirectAddrLocation => putValueToMemory2(getWordFromMemoryAtPC(loc.offsetPC), value, isWord)
-      case loc: RegisterAddrLocation => putValueToMemory2(getAddressFromReg(loc.addressReg, 0), value, isWord)
-      case loc: RegisterAddrDirOffsetLocation => putValueToMemory2(getAddressFromReg(loc.addressReg, loc.directOffset), value, isWord)
+      case loc: IndirectAddrLocation => putValueToMemory(getWordFromMemoryAtPC(loc.offsetPC), value, isWord)
+      case loc: RegisterAddrLocation => putValueToMemory(getAddressFromReg(loc.addressReg, 0), value, isWord)
+      case loc: RegisterAddrDirOffsetLocation => putValueToMemory(getAddressFromReg(loc.addressReg, loc.directOffset), value, isWord)
       case loc: RegisterAddrIndirOffsetLocation =>
-        putValueToMemory2(getAddressFromReg(loc.addressReg, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl))), value, isWord)
+        putValueToMemory(getAddressFromReg(loc.addressReg, Z80Utils.rawByteTo2Compl(getByteFromMemoryAtPC(loc.indirectOffset2Compl))), value, isWord)
       case loc => throw new IncorrectLocation(f"incorrect location: ${loc.toString}")
     }
   }

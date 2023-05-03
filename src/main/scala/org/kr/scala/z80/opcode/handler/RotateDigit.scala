@@ -20,7 +20,7 @@ object RotateDigit extends OpCodeHandler {
         system.getFlags))
     val chgSystem = system
       .changeRegister(Regs.A, result.valueOut)
-      .putValueToLocation2(loc, result.valueAux())
+      .putValueToLocation(loc, result.valueAux())
       .changeRegister(Regs.F, newF())
 
     (chgSystem, actualCode.size, actualCode.t)

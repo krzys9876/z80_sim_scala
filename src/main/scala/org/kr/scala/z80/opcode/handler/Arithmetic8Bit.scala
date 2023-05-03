@@ -20,7 +20,7 @@ object Arithmetic8Bit extends OpCodeHandler {
     val (result, flags) = oper.calcAll(ArithmeticOpInput(prevValue, dest, prevFlags))
     val chgSystem = destLocation match {
       case EmptyLocation => system
-      case _ => system.putValueToLocation2(destLocation, result.valueOut)
+      case _ => system.putValueToLocation(destLocation, result.valueOut)
     }
     (chgSystem.changeRegister(Regs.F, flags()), actualCode.size, actualCode.t)
   }

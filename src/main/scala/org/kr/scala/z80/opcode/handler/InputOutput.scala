@@ -22,7 +22,7 @@ object InOutOpType {
   case object In extends InOutOperation("IN") {
     override def handle(system:Z80System, port:PortIDWithUpper, location:Location)(implicit debugger:Debugger):Z80System=
       system
-        .putValueToLocation2(location,system.readPort(port))
+        .putValueToLocation(location,system.readPort(port))
         .refreshInput(port)
   }
   case object Out extends InOutOperation("OUT") {

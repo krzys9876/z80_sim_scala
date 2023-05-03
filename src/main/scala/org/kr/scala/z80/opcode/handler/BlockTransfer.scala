@@ -23,7 +23,7 @@ object BlockTransfer extends OpCodeHandler {
     val newFlags=baseFlags.set(Flag.P,newCounterValue!=0)
 
     val chgSystem=system
-      .putValueToLocation2(destValueLoc,sourceValue) // (HL)->(DE)
+      .putValueToLocation(destValueLoc,sourceValue) // (HL)->(DE)
       .changeRegister(Regs.HL,newSourceAddr) //HL+1
       .changeRegister(Regs.DE,newDestAddr) //DE+1
       .changeRegister(Regs.BC, newCounterValue) //BC-1
