@@ -2,7 +2,7 @@ package org.kr.scala.z80.opcode.handler
 
 import org.kr.scala.z80.opcode._
 import org.kr.scala.z80.system._
-import org.kr.scala.z80.utils.{IntValue, OptionInt, Z80Utils}
+import org.kr.scala.z80.utils.Z80Utils
 
 object Search extends OpCodeHandler {
   override def handle(code:OpCode)(implicit system:Z80System, debugger:Debugger):(Z80System,Int, Int) = {
@@ -31,7 +31,7 @@ object Search extends OpCodeHandler {
     val chgSystem = system
       .changeRegister(Regs.HL, newSearchedAddr) //HL+1
       .changeRegister(Regs.BC, newCounterValue) //BC-1
-      .changeRegister(Regs.F, newFlags.value) // flags
+      .setFlags(newFlags) // flags
 
     //NOTE: returning forwardPC=0 effectively means repeating the same instruction,
     // which is what is required here until new counter is 0

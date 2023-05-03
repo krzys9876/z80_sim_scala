@@ -24,19 +24,19 @@ object BitManipulation extends OpCodeHandler {
         actualCode.operation,
         actualCode.bit,
         system.getValueFromLocation(loc),
-        system.getFlags())
+        system.getFlags)
 
     (system
       .putValueToLocation(loc,value)
-      .changeRegister(Regs.F, flags)
+      .setFlags(flags)
         ,actualCode.size,actualCode.t)
   }
 
-  private def handleBitManipulation(oper: BitOperation, bit: Int, prevValue: Int, prevFlags:Int):(Int,Int)={
+  private def handleBitManipulation(oper: BitOperation, bit: Int, prevValue: Int, prevFlags:Flag):(Int,Flag)={
     oper match {
       case BitOpType.Test =>
         val newZ= !Z80Utils.getBit(prevValue,bit)
-        val newF=new Flag(prevFlags).set(Flag.Z,newZ).set(Flag.H).reset(Flag.N)()
+        val newF=prevFlags.set(Flag.Z,newZ).set(Flag.H).reset(Flag.N)
         (prevValue,newF)
       case BitOpType.Reset => (Z80Utils.resetBit(prevValue,bit),prevFlags)
       case BitOpType.Set => (Z80Utils.setBit(prevValue,bit),prevFlags)

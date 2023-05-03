@@ -23,7 +23,8 @@ class Z80System(val memory: MemoryContents, val register: RegisterBase,
   }
 
   def getRegValue(symbol:RegSymbol):Int=register(symbol)
-  def getFlags:Flag=new Flag(register(Regs.F))
+  def getFlags:Flag=register.flags
+  def setFlags(newFlags:Flag):Z80System=replaceRegister(register.setFlags(newFlags))
 
   private def getByteFromMemoryAtPC(offset:Int):Int = memory(pc,offset)
   private def getWordFromMemoryAtPC(offset:Int):Int = memory.word(pc,offset)

@@ -27,7 +27,7 @@ object BlockTransfer extends OpCodeHandler {
       .changeRegister(Regs.HL,newSourceAddr) //HL+1
       .changeRegister(Regs.DE,newDestAddr) //DE+1
       .changeRegister(Regs.BC, newCounterValue) //BC-1
-      .changeRegister(Regs.F, newFlags.value) //flags
+      .setFlags(newFlags) //flags
 
     //NOTE: returning forwardPC=0 effectively means repeating the same instruction,
     // which is what is required here until new counter is 0

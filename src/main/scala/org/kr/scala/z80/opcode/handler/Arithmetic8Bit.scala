@@ -22,7 +22,7 @@ object Arithmetic8Bit extends OpCodeHandler {
       case EmptyLocation => system
       case _ => system.putValueToLocation(destLocation, result.valueOut)
     }
-    (chgSystem.changeRegister(Regs.F, flags()), actualCode.size, actualCode.t)
+    (chgSystem.setFlags(flags), actualCode.size, actualCode.t)
   }
 }
 

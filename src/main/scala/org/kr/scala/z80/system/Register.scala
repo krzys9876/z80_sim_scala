@@ -7,6 +7,8 @@ trait RegisterBase {
   def apply(flag:FlagSymbol):Boolean
   def set(regSymbolObj:RegSymbol,value:Int): RegisterBase
   def relative(regSymbol:RegSymbol, relativeValue:Int): RegisterBase
+  def flags:Flag
+  def setFlags(newFlags: Flag):RegisterBase
 }
 
 
@@ -14,6 +16,7 @@ class ImmutableRegister(val a:Int, val f:Int, val b:Int, val c:Int, val d:Int, v
                         val pc:Int, val sp:Int, val r:Int, val i:Int, val ix:Int, val iy:Int,
                         val af1:Int, val bc1:Int, val de1:Int, val hl1:Int,
                         val iff:Int, val im:Int) extends RegisterBase {
+  override val flags:FlagImmutable=new FlagImmutable(f)
   def apply(regSymbolObj:RegSymbol):Int= {
     regSymbolObj match {
       case Regs.A => a
@@ -76,6 +79,8 @@ class ImmutableRegister(val a:Int, val f:Int, val b:Int, val c:Int, val d:Int, v
     }
   }
 
+  def setFlags(newFlags: Flag): ImmutableRegister = set(Regs.F, newFlags())
+
   def relative(regSymbol:RegSymbol, relativeValue:Int): ImmutableRegister=
     set(regSymbol,Z80Utils.add16bit(apply(regSymbol),relativeValue))
 
@@ -93,23 +98,26 @@ class MutableRegister() extends RegisterBase {
       0xFFFF,0xFFFF,0xFFFF,0xFFFF,
       0,0))
 
+  var flags:FlagMutable=new FlagMutable()
+
   def apply(regSymbolObj:RegSymbol):Int= {
     regSymbolObj match {
-      case Regs.AF => Z80Utils.makeWord(data.data(Regs.A.index),data.data(Regs.F.index))
+      case Regs.AF => Z80Utils.makeWord(data.data(Regs.A.index),flags())
       case Regs.BC => Z80Utils.makeWord(data.data(Regs.B.index),data.data(Regs.C.index))
       case Regs.DE => Z80Utils.makeWord(data.data(Regs.D.index),data.data(Regs.E.index))
       case Regs.HL => Z80Utils.makeWord(data.data(Regs.H.index),data.data(Regs.L.index))
+      case Regs.F => flags()
       case _ => data.data(regSymbolObj.index)
     }
   }
 
-  def apply(flag:FlagSymbol):Boolean=flag.extract(data.data(Regs.F.index))
+  def apply(flag:FlagSymbol):Boolean=flag.extract(flags())
 
   def set(regSymbolObj:RegSymbol,value:Int): MutableRegister= {
     regSymbolObj match {
       case Regs.AF =>
         data.data(Regs.A.index)=Z80Utils.getH(value)
-        data.data(Regs.F.index)=Z80Utils.getL(value)
+        flags=flags.replace(Z80Utils.getL(value))
       case Regs.BC =>
         data.data(Regs.B.index) = Z80Utils.getH(value)
         data.data(Regs.C.index) = Z80Utils.getL(value)
@@ -119,10 +127,15 @@ class MutableRegister() extends RegisterBase {
       case Regs.HL =>
         data.data(Regs.H.index) = Z80Utils.getH(value)
         data.data(Regs.L.index) = Z80Utils.getL(value)
+      case Regs.F =>
+        flags=flags.replace(value)
       case _ => data.data(regSymbolObj.index)=value
     }
-
     this
+  }
+
+  override def setFlags(newFlags: Flag): MutableRegister = {
+    set(Regs.F,newFlags())
   }
 
   def relative(regSymbol:RegSymbol, relativeValue:Int): MutableRegister=
@@ -193,18 +206,47 @@ sealed abstract class FlagSymbol(val symbol:String, val bit:Int) {
   override val toString:String=if(symbol.nonEmpty) symbol else "-"
 }
 
-class Flag(val value:Int) {
-  def apply(newValue:Int):Flag=new Flag(newValue)
-  def apply():Int=value
-  def apply(symbol:FlagSymbol):Boolean=Z80Utils.getBit(value,symbol.bit)
-  def flagValue(symbol:FlagSymbol):Int=if(Z80Utils.getBit(value,symbol.bit)) 1 else 0
-  def set(flagSymbol:FlagSymbol,flag:Boolean):Flag=setFlag(flagSymbol,flag)
-  def set(flagSymbol:FlagSymbol):Flag=setFlag(flagSymbol,flag=true)
-  def reset(flagSymbol:FlagSymbol):Flag=setFlag(flagSymbol,flag=false)
-
-  private def setFlag(flagSymbol:FlagSymbol,flag:Boolean):Flag=
-    new Flag(Z80Utils.setOrResetBit(value,flagSymbol.bit,flag))
+trait Flag {
+  def replace(newValue: Int): Flag
+  def apply(): Int
+  def apply(symbol: FlagSymbol): Boolean
+  def flagValue(symbol: FlagSymbol): Int = if (apply(symbol)) 1 else 0
+  def set(flagSymbol: FlagSymbol, flag: Boolean): Flag
+  def set(flagSymbol: FlagSymbol): Flag
+  def reset(flagSymbol: FlagSymbol): Flag
 }
+
+class FlagImmutable(value:Int) extends Flag {
+  override def replace(newValue:Int):FlagImmutable=new FlagImmutable(newValue)
+  override def apply():Int=value
+  override def apply(symbol:FlagSymbol):Boolean=Z80Utils.getBit(value,symbol.bit)
+  def set(flagSymbol:FlagSymbol,flag:Boolean):FlagImmutable=setFlag(flagSymbol,flag)
+  def set(flagSymbol:FlagSymbol):FlagImmutable=setFlag(flagSymbol,flag=true)
+  def reset(flagSymbol:FlagSymbol):FlagImmutable=setFlag(flagSymbol,flag=false)
+
+  private def setFlag(flagSymbol:FlagSymbol,flag:Boolean):FlagImmutable=
+    new FlagImmutable(Z80Utils.setOrResetBit(value,flagSymbol.bit,flag))
+}
+
+class FlagMutable extends Flag {
+  private var v:Int=0xFF
+  override def apply():Int=v
+  override def replace(newValue:Int):FlagMutable={
+    v=newValue
+    this
+  }
+  override def apply(symbol: FlagSymbol): Boolean = Z80Utils.getBit(v, symbol.bit)
+  override def set(flagSymbol: FlagSymbol, flag: Boolean): FlagMutable = setFlag(flagSymbol, flag)
+  override def set(flagSymbol: FlagSymbol): FlagMutable = setFlag(flagSymbol, flag = true)
+  override def reset(flagSymbol: FlagSymbol): FlagMutable = setFlag(flagSymbol, flag = false)
+
+  private def setFlag(flagSymbol: FlagSymbol, flag: Boolean): FlagMutable = {
+    v=Z80Utils.setOrResetBit(v, flagSymbol.bit, flag)
+    this
+  }
+}
+
+
 
 object Flag {
   case object S extends FlagSymbol("S",7)
@@ -215,15 +257,13 @@ object Flag {
   case object C extends FlagSymbol("C",0)
   case object None extends FlagSymbol("",0)
 
-  def of(s:Boolean, z:Boolean, h:Boolean, p:Boolean, n:Boolean, c:Boolean):Flag=
-    new Flag(
-      (if(s) 1 << 7 else 0) |
-      (if(z) 1 << 6 else 0) |
-      (if(h) 1 << 4 else 0) |
-      (if(p) 1 << 2 else 0) |
-      (if(n) 1 << 1 else 0) |
-      (if(c) 1 << 0 else 0)
-    )
+  def valueFromBits(s: Boolean, z: Boolean, h: Boolean, p: Boolean, n: Boolean, c: Boolean): Int =
+    (if (s) 1 << 7 else 0) |
+        (if (z) 1 << 6 else 0) |
+        (if (h) 1 << 4 else 0) |
+        (if (p) 1 << 2 else 0) |
+        (if (n) 1 << 1 else 0) |
+        (if (c) 1 << 0 else 0)
 }
 
 class UnknownRegisterException(message : String) extends Exception(message)
